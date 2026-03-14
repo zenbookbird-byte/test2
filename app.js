@@ -92,7 +92,7 @@ function normalizeData(raw) {
       open: !market.closed,
       wallets: signalSource.filter(signal => signal.marketTitle === market.title).reduce((max, signal) => Math.max(max, Number(signal.walletCount || 0)), 0),
       thesis: Number(market.yes_price ?? 0) >= 0.5 ? "momentum" : "meanRevert",
-      catalyst: "Published market from the repo's generated Polymarket data."
+      catalyst: "Published market row from generated Polymarket data."
     };
     marketById.set(normalized.id, normalized);
     return normalized;
@@ -245,7 +245,7 @@ function renderMetrics(filteredMarkets, filteredWallets) {
 function renderMarkets(filteredMarkets) {
   const grid = document.getElementById("marketsGrid");
   if (!filteredMarkets.length) {
-    grid.innerHTML = '<div class="empty">No real markets match the current filters.</div>';
+        grid.innerHTML = '<div class="empty">No markets match the current query.</div>';
     return;
   }
 
@@ -255,7 +255,7 @@ function renderMarkets(filteredMarkets) {
     return `
       <article class="market-card">
         <div class="market-top">
-          <div class="chip ${edge >= 45 ? "hot" : edge >= 28 ? "" : "warn"}">${edge >= 45 ? "High Edge" : edge >= 28 ? "Tradeable" : "Watch"}</div>
+          <div class="chip ${edge >= 45 ? "hot" : edge >= 28 ? "" : "warn"}">${edge >= 45 ? "priority" : edge >= 28 ? "active" : "watch"}</div>
           <button class="icon-btn" data-watch="${market.id}">${watched ? "Watching" : "Watch"}</button>
         </div>
         <h3>${market.title}</h3>
@@ -267,13 +267,13 @@ function renderMarkets(filteredMarkets) {
             <div class="muted tiny">${formatMoney(market.volume)} volume</div>
           </div>
           <div>
-            <div class="score-pill">${market.wallets} signal wallets</div>
-            <div class="muted tiny">${market.thesis === "momentum" ? "Momentum" : "Mean reversion"} thesis</div>
+            <div class="score-pill">${market.wallets} wallets</div>
+            <div class="muted tiny">${market.thesis === "momentum" ? "Momentum" : "Mean reversion"}</div>
           </div>
         </div>
         <div class="hero-actions" style="margin-top:14px">
-          <a class="btn" href="${market.url}" target="_blank" rel="noreferrer">Search Market</a>
-          <button class="btn" data-select="${market.id}">Open in Notes</button>
+          <a class="btn" href="${market.url}" target="_blank" rel="noreferrer">Open Search</a>
+          <button class="btn" data-select="${market.id}">Open Notes</button>
           <button class="btn" data-sim="${market.id}">Simulate</button>
         </div>
       </article>
@@ -315,7 +315,7 @@ function renderWallets(filteredWallets) {
   document.getElementById("walletSummary").textContent = `${filteredWallets.length} verified wallet${filteredWallets.length === 1 ? "" : "s"}`;
 
   if (!filteredWallets.length) {
-    body.innerHTML = '<tr><td colspan="6"><div class="empty">No valid wallet addresses with profitable history are available from the published data.</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="6"><div class="empty">No wallet rows match the current query.</div></td></tr>';
     return;
   }
 
@@ -372,10 +372,10 @@ function renderActivity(filteredMarkets, filteredWallets) {
   const items = [];
   const bestSignal = state.signals[0];
 
-  if (filteredMarkets[0]) items.push(`Top live market: ${filteredMarkets[0].title} at ${Math.round(filteredMarkets[0].yesPrice * 100)}c.`);
-  if (filteredWallets[0]) items.push(`Best verified wallet row: ${filteredWallets[0].address.slice(0, 12)}... at ${formatMoney(filteredWallets[0].pnl)} net PnL.`);
-  if (bestSignal) items.push(`Top published signal: ${bestSignal.title} with EV ${bestSignal.ev.toFixed(3)} and ${bestSignal.walletCount} wallets.`);
-  if (state.sourceLabel) items.push(`Current data source: ${state.sourceLabel}.`);
+  if (filteredMarkets[0]) items.push(`Top market: ${filteredMarkets[0].title} at ${Math.round(filteredMarkets[0].yesPrice * 100)}c.`);
+  if (filteredWallets[0]) items.push(`Top wallet: ${filteredWallets[0].address.slice(0, 12)}... at ${formatMoney(filteredWallets[0].pnl)} net PnL.`);
+  if (bestSignal) items.push(`Top signal: ${bestSignal.title} with EV ${bestSignal.ev.toFixed(3)} and ${bestSignal.walletCount} wallets.`);
+  if (state.sourceLabel) items.push(`Source: ${state.sourceLabel}.`);
 
   list.innerHTML = items.length
     ? items.map(item => `<div class="activity-item"><div class="tiny">${item}</div></div>`).join("")

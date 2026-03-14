@@ -10,18 +10,17 @@
   <div class="shell">
     <section class="hero">
       <div class="hero-card">
-        <div class="eyebrow">Live-style market tracker</div>
+        <div class="eyebrow">Workspace / polytrack</div>
         <h1>PolyTrack Pro</h1>
         <p>
-          A sharper rebuild of the original dashboard with practical trader tooling:
-          persistent watchlists, market notes, scenario simulation, smarter filters,
-          CSV export, and published market/trade data with real links.
+          Minimal Polymarket tracking workspace with verified wallet rows, notes,
+          simulation, exports, and hosted published data.
         </p>
         <div class="hero-actions">
           <button class="btn primary" id="refreshBtn">Refresh Insights</button>
           <button class="btn" id="loadLiveBtn">Load Published Data</button>
           <button class="btn" id="exportWatchlistBtn">Export Watchlist</button>
-          <button class="btn" id="focusHotBtn">Show Best Setups</button>
+          <button class="btn" id="focusHotBtn">Focus View</button>
         </div>
       </div>
       <aside class="hero-card hero-side">
@@ -31,7 +30,7 @@
         </div>
         <div>
           <div class="big-number" id="headlineEdge">0.0%</div>
-          <p>Composite edge score for the best visible opportunity.</p>
+          <p>Composite score for the strongest visible market in the current view.</p>
         </div>
       </aside>
     </section>
@@ -61,13 +60,13 @@
 
     <section class="layout">
       <aside class="panel">
-        <h2>Filters</h2>
+        <h2>Query</h2>
         <div class="control">
-          <label for="marketSearch">Search market</label>
+          <label for="marketSearch">Market query</label>
           <input class="field" id="marketSearch" placeholder="Strike, ceasefire, nuclear deal...">
         </div>
         <div class="control">
-          <label for="walletSearch">Search wallet</label>
+          <label for="walletSearch">Wallet query</label>
           <input class="field" id="walletSearch" placeholder="0x...">
         </div>
         <div class="control toggle-row">
@@ -82,7 +81,7 @@
         </div>
         <div class="control toggle-row">
           <div>
-            <label for="marketStatus">Market status</label>
+            <label for="marketStatus">Scope</label>
             <select id="marketStatus">
               <option value="all">All</option>
               <option value="open" selected>Open only</option>
@@ -90,7 +89,7 @@
             </select>
           </div>
           <div>
-            <label for="sortMode">Sort markets</label>
+            <label for="sortMode">Ordering</label>
             <select id="sortMode">
               <option value="edge">Highest edge</option>
               <option value="volume">Highest volume</option>
@@ -100,7 +99,7 @@
           </div>
         </div>
         <div class="control">
-          <label for="thesisMode">Market thesis</label>
+          <label for="thesisMode">Bias</label>
           <select id="thesisMode">
             <option value="all">All ideas</option>
             <option value="momentum">Momentum only</option>
@@ -108,15 +107,15 @@
           </select>
         </div>
         <p class="hint">
-          This version loads published market/trade data, sends market clicks to Polymarket's real search page,
-          and sends wallet clicks to Polygonscan. Wallet rows are filtered to valid addresses with profitable exits.
+          Published market and trade data load first. Market links open real Polymarket search pages.
+          Wallet links open Polygonscan. Invalid or low-confidence wallet rows are filtered out.
         </p>
       </aside>
 
       <div class="content-stack">
         <section class="panel">
           <div class="section-header">
-            <h2>Best Markets</h2>
+            <h2>Markets</h2>
             <div class="muted tiny" id="lastUpdated">Last updated: loading...</div>
           </div>
           <div class="markets-grid" id="marketsGrid"></div>
@@ -124,7 +123,7 @@
 
         <section class="panel">
           <div class="section-header">
-            <h2>Market Snapshot Chart</h2>
+            <h2>Price Curve</h2>
             <div class="muted tiny">Visible yes-price curve</div>
           </div>
           <div class="chart-card">
@@ -135,7 +134,7 @@
         <section class="wallet-table">
           <div class="wallet-toolbar">
             <div>
-              <h2>Wallet Leaderboard</h2>
+              <h2>Wallets</h2>
               <div class="muted tiny" id="walletSummary">0 visible wallets</div>
             </div>
             <div class="toolbar-actions">
@@ -162,7 +161,7 @@
 
         <section class="split">
           <div class="sim-card">
-            <h2>Scenario Simulator</h2>
+            <h2>Simulator</h2>
             <div class="sim-grid">
               <div>
                 <label for="simMarket">Market</label>
@@ -177,15 +176,15 @@
                 <input id="simTarget" class="field" type="number" value="62" min="1" max="99">
               </div>
             </div>
-            <p class="hint">Estimate a position using the current yes price and your own expected exit probability.</p>
+            <p class="hint">Estimate a position using the current yes price and your expected exit probability.</p>
             <div class="result-grid" id="simResults"></div>
           </div>
 
           <div class="content-stack">
             <section class="note-card">
-              <h2>Market Notes</h2>
+              <h2>Notes</h2>
               <div class="muted" id="noteTitle">Select a market to write notes</div>
-              <textarea id="marketNote" placeholder="Track catalysts, invalidation points, timing, or copy-trade ideas..."></textarea>
+              <textarea id="marketNote" placeholder="Catalysts, invalidation, timing, copy-trade notes..."></textarea>
               <div class="note-actions">
                 <button class="btn primary" id="saveNoteBtn">Save Note</button>
                 <button class="btn" id="clearNoteBtn">Clear Note</button>
@@ -194,7 +193,7 @@
             </section>
 
             <section class="activity-card">
-              <h2>Idea Feed</h2>
+              <h2>Feed</h2>
               <div class="activity-list" id="activityList"></div>
             </section>
           </div>
