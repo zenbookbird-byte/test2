@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sol Scope — Solana Wallet Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-mark">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#9945FF"/>
+              <stop offset="0.5" stop-color="#7B61FF"/>
+              <stop offset="1" stop-color="#14F195"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#lg)"/>
+          <path d="M9 11 h12 l-2 2 H7z M9 16 h12 l-2 2 H7z M9 21 h12 l-2 2 H7z" fill="#0b0a14" opacity=".9"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Sol Scope</h1>
+        <p class="tag">Solana wallet tracker</p>
+      </div>
+    </div>
+
+    <nav class="net-switch" role="tablist" aria-label="Network">
+      <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
+      <button class="net-btn" data-network="devnet" role="tab" aria-selected="false">Devnet</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero glass">
+      <h2>Track any Solana wallet in real time</h2>
+      <p class="lede">Paste a Solana address to see SOL balance, SPL tokens, and recent activity. No login. No tracking.</p>
+
+      <form id="search-form" class="search" autocomplete="off">
+        <div class="search-field">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
+          <input id="address" type="text" placeholder="Enter wallet address (e.g. 7xKXtg2C...UDV4)" spellcheck="false" required />
+          <button type="button" id="paste-btn" class="ghost-btn" title="Paste from clipboard">Paste</button>
+        </div>
+        <button type="submit" class="primary-btn">
+          <span>Track</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m13 5l7 7l-7 7l-1.4-1.4l4.6-4.6H4v-2h12.2l-4.6-4.6z"/></svg>
+        </button>
+      </form>
+
+      <div class="chips">
+        <span class="chip-label">Try:</span>
+        <button class="chip" data-addr="vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg">Vines Validator</button>
+        <button class="chip" data-addr="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM">Treasury</button>
+        <button class="chip" data-addr="So11111111111111111111111111111111111111112">Wrapped SOL</button>
+      </div>
+    </section>
+
+    <section id="status" class="status" hidden></section>
+
+    <section id="dashboard" class="dashboard" hidden>
+      <div class="card glass account-card">
+        <div class="account-head">
+          <div class="avatar" id="avatar"></div>
+          <div class="account-meta">
+            <div class="row">
+              <span class="label">Wallet</span>
+              <button id="copy-btn" class="ghost-btn small">Copy</button>
+              <a id="explorer-link" class="ghost-btn small" target="_blank" rel="noopener">Explorer</a>
+            </div>
+            <code id="account-addr" class="addr">—</code>
+            <div class="account-tags">
+              <span id="tag-executable" class="tag-pill" hidden>Program</span>
+              <span id="tag-system" class="tag-pill" hidden>System Account</span>
+              <span id="tag-empty" class="tag-pill warn" hidden>No activity</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat">
+            <span class="stat-label">SOL Balance</span>
+            <span class="stat-value"><span id="sol-balance">0</span> <small>SOL</small></span>
+            <span class="stat-sub"><span id="sol-usd">—</span> USD</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">SPL Tokens</span>
+            <span class="stat-value"><span id="token-count">0</span></span>
+            <span class="stat-sub"><span id="nonzero-count">0</span> with balance</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Transactions</span>
+            <span class="stat-value"><span id="tx-count">0</span></span>
+            <span class="stat-sub">recent activity</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <div class="card-head">
+          <h3>Token holdings</h3>
+          <span class="muted" id="tokens-meta">—</span>
+        </div>
+        <div id="tokens" class="tokens"></div>
+      </div>
+
+      <div class="card glass">
+        <div class="card-head">
+          <h3>Recent transactions</h3>
+          <span class="muted" id="tx-meta">—</span>
+        </div>
+        <ul id="tx-list" class="tx-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Built with the public Solana JSON-RPC.</span>
+    <span class="dot">•</span>
+    <span>Prices via CoinGecko.</span>
+  </footer>
+
+  <template id="token-row-tmpl">
+    <div class="token-row">
+      <div class="token-id">
+        <span class="token-dot"></span>
+        <div>
+          <div class="token-mint"></div>
+          <div class="token-sub muted"></div>
+        </div>
+      </div>
+      <div class="token-amount"></div>
+    </div>
+  </template>
+
+  <template id="tx-row-tmpl">
+    <li class="tx-row">
+      <div class="tx-left">
+        <span class="tx-status"></span>
+        <div>
+          <a class="tx-sig" target="_blank" rel="noopener"></a>
+          <div class="tx-sub muted"></div>
+        </div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-time"></div>
+        <div class="tx-slot muted"></div>
+      </div>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
