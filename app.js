@@ -589,6 +589,180 @@ async function loadMoreTx() {
   }
 }
 
+/* ---------------- Trading modals (Latest / Trending / Gainers / Volume / Memescope) ---------------- */
+const TRADING_VIEWS = {
+  latest:    { title: 'Latest Tokens',  sub: 'Recently launched Solana tokens, ranked by listing time' },
+  trending:  { title: 'Trending',       sub: 'Top trending Solana tokens by 24h volume' },
+  gainers:   { title: 'Top Gainers',    sub: 'Best 24h price performance' },
+  volume:    { title: 'High Volume',    sub: 'Highest 24h trading volume' },
+  memescope: { title: 'Memescope',      sub: 'Boosted launchpad tokens & memecoins' },
+  copy:      { title: 'Copy Trading',   sub: 'Mirror top wallets automatically (coming soon)' },
+};
+
+function openModal(title, sub) {
+  $('#modal-title').textContent = title;
+  $('#modal-sub').textContent = sub || '';
+  $('#modal-body').innerHTML = '<div class="modal-loading">Loading…</div>';
+  $('#modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  $('#modal').hidden = true;
+  document.body.style.overflow = '';
+}
+
+async function fetchSolanaPairs() {
+  // DexScreener search returns up to ~30 pairs per query. We aggregate a few popular base symbols
+  // to get a broader set, then dedupe by base token mint.
+  const queries = ['SOL', 'USDC', 'BONK', 'WIF', 'JUP'];
+  const seen = new Map();
+  await Promise.all(queries.map(async q => {
+    try {
+      const r = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${q}`);
+      if (!r.ok) return;
+      const json = await r.json();
+      for (const p of json?.pairs || []) {
+        if (p.chainId !== 'solana') continue;
+        const base = p.baseToken?.address;
+        if (!base) continue;
+        const prev = seen.get(base);
+        const vol = Number(p.volume?.h24 || 0);
+        if (!prev || vol > Number(prev.volume?.h24 || 0)) seen.set(base, p);
+      }
+    } catch (_) {}
+  }));
+  return Array.from(seen.values());
+}
+
+async function fetchLatestTokenProfiles() {
+  try {
+    const r = await fetch('https://api.dexscreener.com/token-profiles/latest/v1');
+    if (!r.ok) return [];
+    const json = await r.json();
+    const list = Array.isArray(json) ? json : (json.profiles || []);
+    return list.filter(p => p.chainId === 'solana');
+  } catch { return []; }
+}
+
+async function fetchBoostedTokens() {
+  try {
+    const r = await fetch('https://api.dexscreener.com/token-boosts/top/v1');
+    if (!r.ok) return [];
+    const json = await r.json();
+    const list = Array.isArray(json) ? json : (json.boosts || []);
+    return list.filter(p => p.chainId === 'solana');
+  } catch { return []; }
+}
+
+function pairsRowHtml(p, rank) {
+  const price = Number(p.priceUsd) || null;
+  const ch = Number(p.priceChange?.h24 ?? 0);
+  const vol = Number(p.volume?.h24 || 0);
+  const mc = Number(p.marketCap || p.fdv || 0);
+  const created = p.pairCreatedAt ? timeAgo(Math.floor(p.pairCreatedAt / 1000)) : '—';
+  const logo = p.info?.imageUrl;
+  const sym = p.baseToken?.symbol || '?';
+  const name = p.baseToken?.name || '';
+  const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+  return `
+    <tr>
+      <td class="rank-cell">${rank}</td>
+      <td>
+        <div class="token-id">
+          ${logo ? `<img class="token-logo" src="${logo}" alt="" onerror="this.remove()">` : `<span class="token-logo fallback" style="display:inline-flex;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:#0a0820;font-weight:700;font-size:11px;background:linear-gradient(135deg,#9945ff,#14f195)">${escapeHtml(sym.slice(0,2).toUpperCase())}</span>`}
+          <div class="token-text">
+            <div class="token-sym">${escapeHtml(sym)}</div>
+            <div class="token-sub muted">${escapeHtml(name)} · ${shorten(p.baseToken.address, 4, 4)}</div>
+          </div>
+        </div>
+      </td>
+      <td class="num">${price ? fmtUSD(price, price < 1 ? 6 : 2) : '—'}</td>
+      <td class="num delta ${cls}">${fmtPct(ch)}</td>
+      <td class="num">${vol ? fmtUSD(vol) : '—'}</td>
+      <td class="num">${mc ? fmtUSD(mc) : '—'}</td>
+      <td class="num"><a class="ext" href="${p.url}" target="_blank" rel="noopener">DEX ↗</a></td>
+    </tr>`;
+}
+
+function renderPairsTable(rows, emptyMsg = 'No data available right now.') {
+  if (!rows.length) return `<div class="empty">${emptyMsg}</div>`;
+  return `
+    <table class="modal-table">
+      <thead><tr>
+        <th>#</th><th>Token</th><th class="num">Price</th><th class="num">24h</th>
+        <th class="num">Volume 24h</th><th class="num">Market Cap</th><th class="num"></th>
+      </tr></thead>
+      <tbody>${rows.map((p, i) => pairsRowHtml(p, i + 1)).join('')}</tbody>
+    </table>`;
+}
+
+async function loadTradingView(view) {
+  const meta = TRADING_VIEWS[view];
+  if (!meta) return;
+  openModal(meta.title, meta.sub);
+  const body = $('#modal-body');
+
+  try {
+    if (view === 'copy') {
+      body.innerHTML = `<div class="empty">Copy Trading is a placeholder in this demo.<br>Real wallet-mirroring needs a paid swap-execution API.</div>`;
+      return;
+    }
+
+    if (view === 'latest') {
+      const profiles = await fetchLatestTokenProfiles();
+      if (!profiles.length) { body.innerHTML = `<div class="empty">Couldn't load latest tokens.</div>`; return; }
+      const mints = profiles.slice(0, 30).map(p => p.tokenAddress);
+      const prices = await fetchDexscreenerForMints(mints);
+      // Build rows from profile + price info
+      const rows = profiles.slice(0, 30).map(p => {
+        const px = prices.get(p.tokenAddress);
+        return {
+          baseToken: { address: p.tokenAddress, symbol: px?.symbol || (p.label || '?'), name: px?.name || (p.description?.slice(0, 40) || '') },
+          priceUsd: px?.price,
+          priceChange: { h24: px?.change24h ?? null },
+          volume: { h24: null },
+          info: { imageUrl: p.icon || px?.logoURI },
+          url: p.url || `https://dexscreener.com/solana/${p.tokenAddress}`,
+        };
+      });
+      body.innerHTML = renderPairsTable(rows, 'No new Solana tokens reported.');
+      return;
+    }
+
+    if (view === 'memescope') {
+      const boosts = await fetchBoostedTokens();
+      if (!boosts.length) { body.innerHTML = `<div class="empty">No boosted tokens right now.</div>`; return; }
+      const mints = boosts.slice(0, 30).map(b => b.tokenAddress);
+      const prices = await fetchDexscreenerForMints(mints);
+      const rows = boosts.slice(0, 30).map(b => {
+        const px = prices.get(b.tokenAddress);
+        return {
+          baseToken: { address: b.tokenAddress, symbol: px?.symbol || '?', name: px?.name || (b.description?.slice(0, 40) || '') },
+          priceUsd: px?.price,
+          priceChange: { h24: px?.change24h ?? null },
+          volume: { h24: null },
+          info: { imageUrl: b.icon || px?.logoURI },
+          url: b.url || `https://dexscreener.com/solana/${b.tokenAddress}`,
+        };
+      });
+      body.innerHTML = renderPairsTable(rows, 'No boosted tokens.');
+      return;
+    }
+
+    // trending / gainers / volume — derived from a fetched pair set
+    const pairs = await fetchSolanaPairs();
+    let sorted;
+    if (view === 'trending') sorted = pairs.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
+    else if (view === 'gainers') sorted = pairs.sort((a, b) => Number(b.priceChange?.h24 ?? -1e9) - Number(a.priceChange?.h24 ?? -1e9));
+    else if (view === 'volume') sorted = pairs.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
+    else sorted = pairs;
+    body.innerHTML = renderPairsTable(sorted.slice(0, 25));
+  } catch (err) {
+    console.error(err);
+    body.innerHTML = `<div class="empty">Couldn't load data: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
 /* ---------------- UI wiring ---------------- */
 function init() {
   $('#search-form').addEventListener('submit', (e) => {
@@ -654,6 +828,20 @@ function init() {
   });
 
   $('#load-more-tx').addEventListener('click', loadMoreTx);
+
+  // Trading dropdown items
+  $$('.ddi[data-trading]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const v = el.dataset.trading;
+    if (v === 'wallet') return; // we're already here
+    loadTradingView(v);
+  }));
+
+  // Modal close
+  $$('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
+  });
 
   // Trending ticker
   loadTrendingTicker();

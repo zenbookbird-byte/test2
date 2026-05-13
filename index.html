@@ -80,21 +80,36 @@
           <button class="nav-link" aria-haspopup="true" aria-expanded="false">Trading <span class="caret">▾</span></button>
           <div class="dropdown">
             <div class="dropdown-section">
-              <h4>Discover</h4>
-              <a class="ddi">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17h2v-7H3zm4 0h2V7H7zm4 0h2v-4h-2zm4 0h2V9h-2zm4 0h2V5h-2z"/></svg></span>
-                <div><div class="ddi-title">Trading Terminal</div><div class="ddi-sub">Pro charts &amp; one-click swaps</div></div>
-              </a>
-              <a class="ddi">
+              <h4>Market Analysis</h4>
+              <a class="ddi" data-trading="latest">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m1-13h-2v5l4.25 2.52l1-1.64L13 11.25z"/></svg></span>
-                <div><div class="ddi-title">Memescope</div><div class="ddi-sub">Live launches across 20+ DEXes</div></div>
+                <div><div class="ddi-title">Latest Tokens</div><div class="ddi-sub">Track recently launched tokens in real-time</div></div>
               </a>
-              <a class="ddi active-link">
+              <a class="ddi" data-trading="trending">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="m3.5 18.5l6-6.5l4 4L22 6.92L20.59 5.5l-7.09 8l-4-4L2 17z"/></svg></span>
+                <div><div class="ddi-title">Trending</div><div class="ddi-sub">Discover top trending tokens by volume</div></div>
+              </a>
+              <a class="ddi" data-trading="gainers">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19z"/></svg></span>
+                <div><div class="ddi-title">Top Gainers</div><div class="ddi-sub">Top performing tokens by price gains</div></div>
+              </a>
+              <a class="ddi" data-trading="volume">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 21V11h3v10zm5.5 0V3h3v18zM16 21v-7h3v7z"/></svg></span>
+                <div><div class="ddi-title">High Volume</div><div class="ddi-sub">Analyze tokens with the highest volume</div></div>
+              </a>
+              <a class="ddi" data-trading="memescope">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27H15l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14S14 12 14 9.5S12 5 9.5 5"/></svg></span>
+                <div><div class="ddi-title">Memescope</div><div class="ddi-sub">Advanced analytics for launchpad tokens</div></div>
+              </a>
+            </div>
+            <div class="dropdown-section">
+              <h4>Wallets</h4>
+              <a class="ddi active-link" data-trading="wallet">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2zm-9-2h10V8H12zm4-2.5a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5"/></svg></span>
                 <div><div class="ddi-title">Wallet Tracker <span class="here-pill">you are here</span></div><div class="ddi-sub">Portfolio &amp; PnL for any wallet</div></div>
               </a>
-              <a class="ddi">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 14l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span>
+              <a class="ddi" data-trading="copy">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m-3-4H4a2 2 0 0 0-2 2v14h2V3h12z"/></svg></span>
                 <div><div class="ddi-title">Copy Trading</div><div class="ddi-sub">Mirror top wallets automatically</div></div>
               </a>
             </div>
@@ -339,6 +354,21 @@
     <span class="dot">•</span>
     <span>Open source, no tracking.</span>
   </footer>
+
+  <!-- Generic data modal used by Trading / Tools dropdown items -->
+  <div id="modal" class="modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel glass" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header class="modal-head">
+        <div>
+          <h3 id="modal-title">—</h3>
+          <p id="modal-sub" class="muted small">—</p>
+        </div>
+        <button class="ghost-btn small" data-close>Close ✕</button>
+      </header>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
 
   <template id="holdings-row-tmpl">
     <tr class="holding-row">
