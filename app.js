@@ -378,6 +378,7 @@ function renderHoldings() {
   const total = state.totalValue || 1;
   for (const h of rows) {
     const node = tmpl.content.firstElementChild.cloneNode(true);
+    if (h.mint) node.dataset.mint = h.mint;
     const sym = h.symbol || 'Unknown';
     const sub = h.isNative ? 'Native SOL' : (h.name ? `${h.name} · ${shorten(h.mint, 4, 4)}` : shorten(h.mint, 6, 6));
     $('.token-sym', node).textContent = sym;
@@ -763,6 +764,308 @@ async function loadTradingView(view) {
   }
 }
 
+/* ---------------- Token detail modal ---------------- */
+async function openTokenDetail(mint) {
+  openModal('Token detail', shorten(mint, 10, 10));
+  const body = $('#modal-body');
+  try {
+    const [tokenMap, priceMap] = await Promise.all([
+      loadJupTokenMap(),
+      fetchDexscreenerForMints([mint]),
+    ]);
+    const meta = tokenMap.get(mint) || {};
+    const px = priceMap.get(mint) || {};
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+    const json = r.ok ? await r.json() : {};
+    const pairs = (json.pairs || []).filter(p => p.chainId === 'solana')
+      .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0))
+      .slice(0, 8);
+
+    const sym = px.symbol || meta.symbol || '?';
+    const name = px.name || meta.name || '';
+    const logo = meta.logoURI || px.logoURI;
+    const price = px.price;
+    const ch = px.change24h;
+    const chCls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+
+    $('#modal-title').textContent = `${sym}${name ? ` · ${name}` : ''}`;
+    $('#modal-sub').innerHTML = `<span class="mono">${escapeHtml(mint)}</span>`;
+
+    body.innerHTML = `
+      <div class="td-summary">
+        <div class="td-id">
+          ${logo ? `<img class="td-logo" src="${logo}" alt="" onerror="this.remove()">` : ''}
+          <div>
+            <div class="td-price">${price ? fmtUSD(price, price < 1 ? 6 : 2) : '—'}</div>
+            <div class="td-chg delta ${chCls}">${fmtPct(ch)} <span class="muted small">24h</span></div>
+          </div>
+        </div>
+        <div class="td-links">
+          <a class="ghost-btn small" target="_blank" rel="noopener" href="https://dexscreener.com/solana/${mint}">DexScreener ↗</a>
+          <a class="ghost-btn small" target="_blank" rel="noopener" href="https://birdeye.so/token/${mint}?chain=solana">Birdeye ↗</a>
+          <a class="ghost-btn small" target="_blank" rel="noopener" href="${SOLSCAN}/token/${mint}">Solscan ↗</a>
+          <button class="ghost-btn small" data-copy="${escapeHtml(mint)}">Copy mint</button>
+        </div>
+      </div>
+      <h4 class="td-h4">Top pairs by volume</h4>
+      ${pairs.length ? `
+        <table class="modal-table">
+          <thead><tr><th>Pair</th><th>DEX</th><th class="num">Liquidity</th><th class="num">24h vol</th><th class="num">24h chg</th><th></th></tr></thead>
+          <tbody>${pairs.map(p => {
+            const c = Number(p.priceChange?.h24 ?? 0);
+            const cc = c > 0 ? 'pos' : c < 0 ? 'neg' : 'neutral';
+            return `<tr>
+              <td>${escapeHtml(p.baseToken?.symbol || '?')}/${escapeHtml(p.quoteToken?.symbol || '?')}</td>
+              <td>${escapeHtml(p.dexId || '—')}</td>
+              <td class="num">${p.liquidity?.usd ? fmtUSD(p.liquidity.usd) : '—'}</td>
+              <td class="num">${p.volume?.h24 ? fmtUSD(p.volume.h24) : '—'}</td>
+              <td class="num delta ${cc}">${fmtPct(c)}</td>
+              <td class="num"><a class="ext" target="_blank" rel="noopener" href="${p.url}">Open ↗</a></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>` : `<div class="empty">No active pairs found on DexScreener.</div>`}
+    `;
+
+    body.querySelector('[data-copy]')?.addEventListener('click', async (e) => {
+      try { await navigator.clipboard.writeText(e.currentTarget.dataset.copy); e.currentTarget.textContent = 'Copied'; } catch {}
+    });
+  } catch (err) {
+    body.innerHTML = `<div class="empty">Couldn't load token: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* ---------------- Tools modals ---------------- */
+function promptModal(title, sub, placeholder, onSubmit) {
+  openModal(title, sub);
+  const body = $('#modal-body');
+  body.innerHTML = `
+    <form class="prompt-form" id="prompt-form">
+      <input id="prompt-input" placeholder="${escapeHtml(placeholder)}" class="filter-input" style="flex:1;min-width:0;font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px" autofocus />
+      <button class="primary-btn small" type="submit">Analyze →</button>
+    </form>
+    <div id="prompt-result"></div>`;
+  $('#prompt-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const v = $('#prompt-input').value.trim();
+    if (!v) return;
+    $('#prompt-result').innerHTML = '<div class="modal-loading">Analyzing…</div>';
+    try { await onSubmit(v, $('#prompt-result')); }
+    catch (err) { $('#prompt-result').innerHTML = `<div class="empty">Error: ${escapeHtml(err.message)}</div>`; }
+  });
+}
+
+async function toolTokenChecker(mintInput, out) {
+  const mint = mintInput.trim();
+  if (!isValidAddress(mint)) { out.innerHTML = `<div class="empty">Not a valid Solana mint address.</div>`; return; }
+  const [supplyR, accountInfo, ds, tokenMap] = await Promise.all([
+    rpc('getTokenSupply', [mint]).catch(() => null),
+    rpc('getAccountInfo', [mint, { encoding: 'jsonParsed' }]).then(r => r?.value).catch(() => null),
+    fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+    loadJupTokenMap(),
+  ]);
+  const supply = supplyR?.value?.uiAmount ?? null;
+  const decimals = supplyR?.value?.decimals ?? null;
+  const info = accountInfo?.data?.parsed?.info || {};
+  const owner = accountInfo?.owner;
+  const verified = tokenMap.has(mint);
+  const pairs = (ds.pairs || []).filter(p => p.chainId === 'solana');
+  const liquidity = pairs.reduce((s, p) => s + Number(p.liquidity?.usd || 0), 0);
+  const volume = pairs.reduce((s, p) => s + Number(p.volume?.h24 || 0), 0);
+  const price = pairs[0]?.priceUsd;
+
+  // Naive scoring
+  let score = 50;
+  if (verified) score += 25;
+  if (!info.mintAuthority) score += 10;
+  if (!info.freezeAuthority) score += 10;
+  if (liquidity > 50_000) score += 10;
+  if (liquidity > 500_000) score += 5;
+  if (volume > 50_000) score += 5;
+  if (pairs.length >= 3) score += 5;
+  score = Math.min(score, 100);
+  const grade = score >= 85 ? 'A' : score >= 70 ? 'B' : score >= 50 ? 'C' : 'D';
+  const gradeCls = score >= 85 ? 'pos' : score >= 50 ? '' : 'neg';
+
+  out.innerHTML = `
+    <div class="checker">
+      <div class="checker-score">
+        <div class="grade ${gradeCls}">${grade}</div>
+        <div>
+          <div class="muted small">Safety score (heuristic)</div>
+          <div class="big-sm">${score}/100</div>
+        </div>
+      </div>
+      <ul class="checker-flags">
+        <li class="${verified ? 'good' : 'warn'}">${verified ? '✓' : '!'} ${verified ? 'Listed on Jupiter verified registry' : 'Not on Jupiter verified registry'}</li>
+        <li class="${info.mintAuthority ? 'warn' : 'good'}">${info.mintAuthority ? '!' : '✓'} Mint authority ${info.mintAuthority ? 'present — supply can change' : 'renounced'}</li>
+        <li class="${info.freezeAuthority ? 'warn' : 'good'}">${info.freezeAuthority ? '!' : '✓'} Freeze authority ${info.freezeAuthority ? 'present — holders can be frozen' : 'renounced'}</li>
+        <li class="${liquidity > 50_000 ? 'good' : 'warn'}">${liquidity > 50_000 ? '✓' : '!'} Liquidity ${fmtUSD(liquidity)} across ${pairs.length} pair(s)</li>
+        <li class="${volume > 10_000 ? 'good' : 'warn'}">${volume > 10_000 ? '✓' : '!'} 24h volume ${fmtUSD(volume)}</li>
+      </ul>
+      <dl class="kv">
+        <div><dt>Price</dt><dd>${price ? fmtUSD(Number(price), Number(price) < 1 ? 6 : 2) : '—'}</dd></div>
+        <div><dt>Supply</dt><dd>${supply != null ? fmt(supply) : '—'}</dd></div>
+        <div><dt>Decimals</dt><dd>${decimals ?? '—'}</dd></div>
+        <div><dt>Owner program</dt><dd>${shorten(owner || '—', 8, 8)}</dd></div>
+        <div><dt>Mint authority</dt><dd>${info.mintAuthority ? shorten(info.mintAuthority, 8, 8) : 'none'}</dd></div>
+        <div><dt>Freeze authority</dt><dd>${info.freezeAuthority ? shorten(info.freezeAuthority, 8, 8) : 'none'}</dd></div>
+      </dl>
+      <p class="muted small note">Heuristic only. Score combines authority renouncement, registry status, and liquidity / volume thresholds.</p>
+    </div>`;
+}
+
+async function toolHolderInsights(mint, out) {
+  if (!isValidAddress(mint)) { out.innerHTML = `<div class="empty">Not a valid Solana mint address.</div>`; return; }
+  const [largestR, supplyR, tokenMap] = await Promise.all([
+    rpc('getTokenLargestAccounts', [mint]).catch(() => null),
+    rpc('getTokenSupply', [mint]).catch(() => null),
+    loadJupTokenMap(),
+  ]);
+  const meta = tokenMap.get(mint) || {};
+  const supply = supplyR?.value?.uiAmount;
+  const list = (largestR?.value || []).slice(0, 20);
+  if (!list.length) { out.innerHTML = `<div class="empty">No holder data returned.</div>`; return; }
+
+  const top10 = list.slice(0, 10).reduce((s, a) => s + Number(a.uiAmount || 0), 0);
+  const concentration = supply ? (top10 / supply) * 100 : null;
+
+  out.innerHTML = `
+    <div class="kv" style="margin-bottom:14px">
+      <div><dt>Token</dt><dd>${escapeHtml(meta.symbol || shorten(mint, 8, 8))}</dd></div>
+      <div><dt>Supply</dt><dd>${supply != null ? fmt(supply) : '—'}</dd></div>
+      <div><dt>Top 10 concentration</dt><dd>${concentration != null ? concentration.toFixed(2) + '%' : '—'}</dd></div>
+    </div>
+    <table class="modal-table">
+      <thead><tr><th>#</th><th>Token account</th><th class="num">Amount</th><th class="num">% supply</th></tr></thead>
+      <tbody>${list.map((a, i) => `
+        <tr>
+          <td class="rank-cell">${i + 1}</td>
+          <td><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${a.address}">${shorten(a.address, 8, 8)} ↗</a></td>
+          <td class="num">${fmt(Number(a.uiAmount || 0))}</td>
+          <td class="num">${supply ? ((Number(a.uiAmount || 0) / supply) * 100).toFixed(2) + '%' : '—'}</td>
+        </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+async function toolDecoder(sig, out) {
+  sig = sig.trim();
+  if (sig.length < 64) { out.innerHTML = `<div class="empty">Paste a full transaction signature (base58).</div>`; return; }
+  const tx = await rpc('getTransaction', [sig, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }]).catch(() => null);
+  if (!tx) { out.innerHTML = `<div class="empty">Transaction not found on ${state.network}.</div>`; return; }
+
+  const m = tx.transaction.message;
+  const accounts = m.accountKeys.map(a => a.pubkey || a);
+  const ix = m.instructions.map((i, idx) => {
+    const prog = (typeof i.programId === 'string') ? i.programId : accounts[i.programIdIndex];
+    return { idx, program: prog, parsed: i.parsed, data: i.data };
+  });
+  const inner = (tx.meta?.innerInstructions || []).flatMap(g => g.instructions.map(i => ({
+    program: (typeof i.programId === 'string') ? i.programId : accounts[i.programIdIndex],
+    parsed: i.parsed,
+  })));
+  const balDelta = (tx.meta?.preBalances || []).map((pre, i) => ({
+    account: accounts[i],
+    delta: ((tx.meta.postBalances[i] - pre) / LAMPORTS_PER_SOL),
+  })).filter(b => Math.abs(b.delta) > 0);
+
+  const logs = tx.meta?.logMessages || [];
+  out.innerHTML = `
+    <div class="kv" style="margin-bottom:14px">
+      <div><dt>Status</dt><dd>${tx.meta?.err ? '<span class="delta neg">failed</span>' : '<span class="delta pos">success</span>'}</dd></div>
+      <div><dt>Slot</dt><dd>${tx.slot}</dd></div>
+      <div><dt>Block time</dt><dd>${tx.blockTime ? new Date(tx.blockTime * 1000).toLocaleString() : '—'}</dd></div>
+      <div><dt>Fee</dt><dd>${tx.meta?.fee ? (tx.meta.fee / LAMPORTS_PER_SOL).toFixed(6) + ' SOL' : '—'}</dd></div>
+      <div><dt>Instructions</dt><dd>${ix.length} top-level + ${inner.length} inner</dd></div>
+      <div><dt>Accounts</dt><dd>${accounts.length}</dd></div>
+    </div>
+    <h4 class="td-h4">Instructions</h4>
+    <ol class="ix-list">
+      ${ix.map(i => `<li><span class="mono">${shorten(i.program, 6, 6)}</span> ${i.parsed?.type ? `<span class="ix-type">${escapeHtml(i.parsed.type)}</span>` : '<span class="muted">raw</span>'}</li>`).join('')}
+    </ol>
+    <h4 class="td-h4">SOL balance changes</h4>
+    <ul class="bal-list">
+      ${balDelta.length ? balDelta.map(b => `<li><span class="mono">${shorten(b.account, 6, 6)}</span> <span class="delta ${b.delta > 0 ? 'pos' : 'neg'}">${b.delta > 0 ? '+' : ''}${b.delta.toFixed(6)} SOL</span></li>`).join('') : '<li class="muted">No SOL deltas.</li>'}
+    </ul>
+    <h4 class="td-h4">Program logs</h4>
+    <pre class="logs">${escapeHtml(logs.slice(0, 60).join('\n')) || '<em>No logs.</em>'}</pre>
+    <p><a class="ghost-btn small" target="_blank" rel="noopener" href="${EXPLORER}/tx/${sig}?cluster=${explorerCluster()}">Open in Explorer ↗</a></p>`;
+}
+
+async function openSwap() {
+  openModal('Swap', 'Quote any token pair via Jupiter Lite API');
+  $('#modal-body').innerHTML = `
+    <div class="swap-card">
+      <label class="swap-row"><span>You pay</span>
+        <div class="swap-input"><input id="swap-from" class="filter-input" value="So11111111111111111111111111111111111111112" placeholder="From mint"></div>
+        <div class="swap-input"><input id="swap-amt" class="filter-input" type="number" value="1" min="0" step="0.1"></div>
+      </label>
+      <div class="swap-arrow">↓</div>
+      <label class="swap-row"><span>You receive</span>
+        <div class="swap-input"><input id="swap-to" class="filter-input" value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" placeholder="To mint"></div>
+        <div class="swap-input"><span id="swap-out" class="muted">—</span></div>
+      </label>
+      <button id="swap-quote" class="primary-btn small">Get quote</button>
+      <div id="swap-result" class="muted small"></div>
+      <p class="muted small note">Read-only quote via Jupiter. Real swap execution requires a wallet adapter, not included.</p>
+    </div>`;
+  $('#swap-quote').addEventListener('click', async () => {
+    const from = $('#swap-from').value.trim();
+    const to = $('#swap-to').value.trim();
+    const amt = parseFloat($('#swap-amt').value || '0');
+    if (!isValidAddress(from) || !isValidAddress(to) || !(amt > 0)) {
+      $('#swap-result').textContent = 'Enter valid mints and amount.';
+      return;
+    }
+    $('#swap-result').textContent = 'Fetching quote…';
+    try {
+      // Need decimals of input mint to compute lamports
+      const sup = await rpc('getTokenSupply', [from]).catch(() => null);
+      const dec = sup?.value?.decimals ?? 9;
+      const amount = BigInt(Math.round(amt * 10 ** dec)).toString();
+      const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${from}&outputMint=${to}&amount=${amount}&slippageBps=50&restrictIntermediateTokens=true`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Jupiter: ${r.status}`);
+      const q = await r.json();
+      const outSup = await rpc('getTokenSupply', [to]).catch(() => null);
+      const outDec = outSup?.value?.decimals ?? 9;
+      const outAmt = Number(q.outAmount) / 10 ** outDec;
+      $('#swap-out').textContent = `≈ ${fmt(outAmt, 6)}`;
+      $('#swap-result').innerHTML = `Best route via <strong>${q.routePlan?.map(r => r.swapInfo?.label).join(' → ') || '—'}</strong>. Price impact ${(Number(q.priceImpactPct || 0) * 100).toFixed(3)}%.`;
+    } catch (err) {
+      $('#swap-result').textContent = `Quote failed: ${err.message}`;
+    }
+  });
+}
+
+function openInfoModal(title, sub, bodyHtml) {
+  openModal(title, sub);
+  $('#modal-body').innerHTML = bodyHtml;
+}
+
+const PRODUCT_INFO = {
+  'data-api':  ['Data API',         'Comprehensive Solana blockchain data API',
+    `<p>This demo uses public APIs (Solana JSON-RPC, DexScreener, Jupiter). A production "Data API" service would offer historical trades, OHLCV bars, holder snapshots, and wallet PnL with cost-basis.</p>`],
+  'rpc':       ['Solana RPC',       'High-performance, low-latency Solana RPC nodes',
+    `<p>The current network is <code>${state.network}</code>. Public RPC endpoints rate-limit heavily; a dedicated RPC plan removes the limits and adds priority fee estimation, gRPC streams, and isolated mempool access.</p>`],
+  'dedicated': ['Dedicated Nodes',  'Fully managed dedicated Solana infrastructure',
+    `<p>Dedicated nodes give you predictable latency under load — co-located in <em>fra1 / nyc1 / sgp1</em> with hot-swap failover. Not part of this demo.</p>`],
+  'grpc':      ['Yellowstone gRPC', 'Real-time Solana data streaming',
+    `<p>Subscribe to account, slot, transaction, and block updates over gRPC. The demo polls JSON-RPC; production trackers stream Geyser to keep PnL realtime.</p>`],
+  'raptor':    ['Raptor Swap API',  'Integrate seamless token swaps into your apps',
+    `<p>This demo wires the <code>Swap</code> link to <em>Jupiter Lite</em> for quotes (read-only). A first-party swap API would add MEV-protection, priority-fee tuning, and your own fee bps.</p>`],
+  'teams':     ['Teams',            'Collaborate and share access with your team',
+    `<p>Share saved wallets, alerts, and dashboards across an org. Not implemented in this demo.</p>`],
+};
+
+const DEVELOPERS_INFO = ['Developers', 'API reference & guides',
+  `<p>This static demo talks directly to:</p>
+   <ul class="dev-list">
+     <li><strong>Solana JSON-RPC</strong> — <code>getBalance</code>, <code>getTokenAccountsByOwner</code>, <code>getSignaturesForAddress</code>, <code>getTransaction</code>, <code>getTokenSupply</code>, <code>getTokenLargestAccounts</code>.</li>
+     <li><strong>DexScreener</strong> — <code>/latest/dex/tokens</code>, <code>/latest/dex/search</code>, <code>/token-profiles/latest/v1</code>, <code>/token-boosts/top/v1</code>.</li>
+     <li><strong>Jupiter</strong> — <code>tokens.jup.ag</code> (registry) and <code>lite-api.jup.ag/swap/v1/quote</code> (quotes).</li>
+   </ul>
+   <p>Deep-link to a wallet: <code>?addr=&lt;ADDRESS&gt;</code></p>`];
+
 /* ---------------- UI wiring ---------------- */
 function init() {
   $('#search-form').addEventListener('submit', (e) => {
@@ -836,6 +1139,43 @@ function init() {
     if (v === 'wallet') return; // we're already here
     loadTradingView(v);
   }));
+
+  // Tools dropdown items
+  $$('.ddi[data-tool]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const t = el.dataset.tool;
+    if (t === 'checker')  promptModal('Token Checker', 'Heuristic safety analysis — paste an SPL mint', 'Paste an SPL mint address…', toolTokenChecker);
+    else if (t === 'holders')  promptModal('Holder Insights', 'Top holders & concentration for a token', 'Paste an SPL mint address…', toolHolderInsights);
+    else if (t === 'decoder')  promptModal('Transaction Decoder', 'Parse and explain any Solana transaction', 'Paste a transaction signature…', toolDecoder);
+  }));
+
+  // Products dropdown items
+  $$('.ddi[data-product]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const p = el.dataset.product;
+    const info = PRODUCT_INFO[p];
+    if (info) openInfoModal(info[0], info[1], info[2]);
+  }));
+
+  // Top-bar action links (Swap / Developers)
+  $$('[data-action]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const a = el.dataset.action;
+    if (a === 'swap') openSwap();
+    else if (a === 'developers') openInfoModal(DEVELOPERS_INFO[0], DEVELOPERS_INFO[1], DEVELOPERS_INFO[2]);
+  }));
+
+  // Click ticker items to open token detail
+  $('#ticker-track').addEventListener('click', (e) => {
+    const item = e.target.closest('.ticker-item');
+    if (item?.dataset.mint) openTokenDetail(item.dataset.mint);
+  });
+
+  // Click a holdings row to open token detail
+  $('#holdings-body').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr');
+    if (tr?.dataset.mint) openTokenDetail(tr.dataset.mint);
+  });
 
   // Modal close
   $$('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));

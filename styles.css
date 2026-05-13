@@ -610,6 +610,91 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .modal-table a.ext:hover { color: var(--text); text-decoration: underline; }
 .rank-cell { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; width: 32px; }
 
+/* Holdings rows clickable */
+.holding-row { cursor: pointer; }
+.ticker-item[data-mint] { cursor: pointer; }
+.ticker-item[data-mint]:hover { color: #fff; }
+
+/* Token detail */
+.td-summary {
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 14px 12px; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 12px; margin-bottom: 14px;
+}
+.td-id { display: flex; align-items: center; gap: 14px; }
+.td-logo { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2); }
+.td-price { font-size: 26px; font-weight: 800; letter-spacing: -.01em; }
+.td-chg { font-size: 13px; margin-top: 2px; }
+.td-links { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.td-h4 { margin: 14px 12px 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+/* Token Checker */
+.checker { padding: 4px; }
+.checker-score {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 16px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  margin-bottom: 14px;
+}
+.grade {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: grid; place-content: center; font-size: 28px; font-weight: 800;
+  background: rgba(153, 69, 255, .18); color: #d8c9ff; border: 1px solid rgba(153, 69, 255, .35);
+}
+.grade.pos { background: rgba(20, 241, 149, .18); color: #88f3c3; border-color: rgba(20, 241, 149, .35); }
+.grade.neg { background: rgba(255, 90, 118, .18); color: #ffb0bd; border-color: rgba(255, 90, 118, .35); }
+.checker-flags {
+  list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px;
+}
+.checker-flags li {
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--stroke); font-size: 13px;
+}
+.checker-flags li.good { color: #a3f3c8; border-color: rgba(20, 241, 149, .25); background: rgba(20, 241, 149, .06); }
+.checker-flags li.warn { color: #ffce91; border-color: rgba(255, 179, 71, .3); background: rgba(255, 179, 71, .06); }
+
+/* Decoder */
+.ix-list, .bal-list {
+  margin: 0 0 14px; padding: 0; list-style: none; display: grid; gap: 6px;
+}
+.ix-list li, .bal-list li {
+  padding: 10px 12px; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 10px; font-size: 12.5px; display: flex; justify-content: space-between; gap: 12px;
+}
+.ix-type {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  background: rgba(153, 69, 255, .15); color: #d8c9ff; border: 1px solid rgba(153, 69, 255, .3);
+}
+.logs {
+  max-height: 240px; overflow: auto;
+  padding: 12px; border-radius: 10px;
+  background: rgba(0,0,0,.4); border: 1px solid var(--stroke);
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.6;
+  color: #cfcaff; white-space: pre-wrap; word-break: break-word;
+}
+
+/* Swap */
+.swap-card { display: grid; gap: 10px; padding: 4px; }
+.swap-row {
+  display: grid; gap: 6px;
+  padding: 12px 14px; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 12px;
+}
+.swap-row > span { font-size: 11px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+.swap-input { display: flex; align-items: center; gap: 8px; }
+.swap-input input { width: 100%; }
+.swap-arrow { text-align: center; color: var(--muted); font-size: 18px; }
+
+/* Prompt form */
+.prompt-form {
+  display: flex; gap: 8px; padding: 4px 4px 14px;
+}
+
+/* Developers list */
+.dev-list { padding-left: 18px; }
+.dev-list li { margin-bottom: 8px; font-size: 13px; }
+.dev-list code { background: var(--surface); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--stroke); }
+
 @media (max-width: 720px) {
   .topbar-main { flex-wrap: wrap; gap: 10px; }
   .topbar-right { order: 3; width: 100%; flex-wrap: wrap; }
