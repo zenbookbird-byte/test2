@@ -84,6 +84,60 @@ function timeAgo(unixSec) {
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const isValidAddress = (a) => BASE58_RE.test((a || '').trim());
 
+/* Trending tokens (curated popular Solana mints) */
+const TRENDING_MINTS = [
+  { mint: 'So11111111111111111111111111111111111111112',  sym: 'SOL'  },
+  { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',  sym: 'USDC' },
+  { mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',  sym: 'USDT' },
+  { mint: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',   sym: 'JUP'  },
+  { mint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',  sym: 'BONK' },
+  { mint: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm',  sym: 'WIF'  },
+  { mint: 'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5',   sym: 'MEW'  },
+  { mint: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',  sym: 'ETH'  },
+  { mint: '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh',  sym: 'BTC'  },
+  { mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',   sym: 'mSOL' },
+  { mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',   sym: 'RENDER'},
+  { mint: '8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB',  sym: 'GMT'  },
+  { mint: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',  sym: 'RAY'  },
+  { mint: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',  sym: 'POPCAT'},
+];
+
+async function loadTrendingTicker() {
+  if (state.network !== 'mainnet-beta') {
+    $('#ticker-track').innerHTML = '<span class="ticker-loading muted">Prices unavailable on devnet</span>';
+    return;
+  }
+  const mints = TRENDING_MINTS.map(t => t.mint);
+  const priceMap = await fetchDexscreenerForMints(mints);
+  const items = TRENDING_MINTS.map(t => {
+    const p = priceMap.get(t.mint);
+    if (!p) return null;
+    return { sym: t.sym, mint: t.mint, price: p.price, change: p.change24h, logo: p.logoURI };
+  }).filter(Boolean);
+
+  if (!items.length) {
+    $('#ticker-track').innerHTML = '<span class="ticker-loading muted">No price data right now</span>';
+    return;
+  }
+
+  const renderItem = (it) => {
+    const cls = it.change > 0 ? 'pos' : it.change < 0 ? 'neg' : '';
+    const arrow = it.change > 0 ? '↗' : it.change < 0 ? '↘' : '→';
+    return `
+      <span class="ticker-item" data-mint="${it.mint}">
+        ${it.logo ? `<img src="${it.logo}" alt="" onerror="this.remove()">` : ''}
+        <span class="ticker-sym">${it.sym}</span>
+        <span class="ticker-price">${fmtUSD(it.price, it.price < 1 ? 4 : 2)}</span>
+        <span class="ticker-chg ${cls}">${arrow} ${fmtPct(it.change)}</span>
+      </span>
+    `;
+  };
+
+  // Duplicate the list so the marquee can loop seamlessly
+  const html = items.map(renderItem).join('') + items.map(renderItem).join('');
+  $('#ticker-track').innerHTML = html;
+}
+
 function explorerCluster() { return state.network === 'mainnet-beta' ? 'mainnet' : state.network; }
 
 /* ---------------- RPC ---------------- */
@@ -574,6 +628,7 @@ function init() {
       b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
     });
     state.network = btn.dataset.network;
+    loadTrendingTicker();
     const v = $('#address').value.trim();
     if (v && isValidAddress(v)) trackAddress(v);
   }));
@@ -599,6 +654,10 @@ function init() {
   });
 
   $('#load-more-tx').addEventListener('click', loadMoreTx);
+
+  // Trending ticker
+  loadTrendingTicker();
+  setInterval(loadTrendingTicker, 60_000);
 
   // Deep-link support: /?addr=...
   const params = new URLSearchParams(location.search);

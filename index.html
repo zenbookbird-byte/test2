@@ -17,37 +17,137 @@
   </div>
 
   <header class="topbar">
-    <div class="brand">
-      <span class="logo-mark">
-        <svg viewBox="0 0 32 32" aria-hidden="true">
-          <defs>
-            <linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="#9945FF"/>
-              <stop offset="0.5" stop-color="#7B61FF"/>
-              <stop offset="1" stop-color="#14F195"/>
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#lg)"/>
-          <path d="M9 11 h12 l-2 2 H7z M9 16 h12 l-2 2 H7z M9 21 h12 l-2 2 H7z" fill="#0b0a14" opacity=".9"/>
-        </svg>
-      </span>
-      <div class="brand-text">
-        <h1>Sol Scope</h1>
-        <p class="tag">Wallet · Portfolio · PnL</p>
+    <div class="topbar-main">
+      <a class="brand" href="#">
+        <span class="logo-mark">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <defs>
+              <linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#9945FF"/>
+                <stop offset="0.5" stop-color="#7B61FF"/>
+                <stop offset="1" stop-color="#14F195"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#lg)"/>
+            <path d="M9 11 h12 l-2 2 H7z M9 16 h12 l-2 2 H7z M9 21 h12 l-2 2 H7z" fill="#0b0a14" opacity=".9"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>Sol Scope</h1>
+        </div>
+      </a>
+
+      <nav class="primary-nav" aria-label="Primary">
+        <a class="nav-link" href="#"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l-4 4l4 4v-3h8v-2H7zm10-6l-4 4v3H5v2h8v3z"/></svg>Swap</a>
+
+        <div class="nav-item">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">Products <span class="caret">▾</span></button>
+          <div class="dropdown wide">
+            <div class="dropdown-section">
+              <h4>Infrastructure</h4>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3c4.97 0 9 1.34 9 3v12c0 1.66-4.03 3-9 3s-9-1.34-9-3V6c0-1.66 4.03-3 9-3m0 2c-3.87 0-7 .9-7 2s3.13 2 7 2s7-.9 7-2s-3.13-2-7-2m7 4.34C17.4 10.4 14.85 11 12 11s-5.4-.6-7-1.66V12c0 1.1 3.13 2 7 2s7-.9 7-2zm0 6C17.4 16.4 14.85 17 12 17s-5.4-.6-7-1.66V18c0 1.1 3.13 2 7 2s7-.9 7-2z"/></svg></span>
+                <div><div class="ddi-title">Data API</div><div class="ddi-sub">Comprehensive Solana blockchain data API</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L3 7v6c0 5 3.84 9.74 9 11c5.16-1.26 9-6 9-11V7zm0 2.18L19 8v5c0 3.91-2.99 7.69-7 8.93C7.99 20.69 5 16.91 5 13V8z"/></svg></span>
+                <div><div class="ddi-title">Solana RPC</div><div class="ddi-sub">High-performance, low-latency RPC nodes</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v6H4zm0 10h16v6H4zm2-7v2h2V7zm0 10v2h2v-2z"/></svg></span>
+                <div><div class="ddi-title">Dedicated Nodes</div><div class="ddi-sub">Fully managed dedicated Solana infrastructure</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 21V11l-7 1l9-12v10l7-1z"/></svg></span>
+                <div><div class="ddi-title">Yellowstone gRPC</div><div class="ddi-sub">Real-time Solana data streaming</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 17v-3H8v3l-5-5l5-5v3h8V7l5 5z"/></svg></span>
+                <div><div class="ddi-title">Raptor Swap API</div><div class="ddi-sub">Integrate seamless token swaps into your apps</div></div>
+              </a>
+            </div>
+            <div class="dropdown-section">
+              <h4>Enterprise</h4>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3s-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5S5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span>
+                <div><div class="ddi-title">Teams</div><div class="ddi-sub">Collaborate and share access with your team</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">Trading <span class="caret">▾</span></button>
+          <div class="dropdown">
+            <div class="dropdown-section">
+              <h4>Discover</h4>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17h2v-7H3zm4 0h2V7H7zm4 0h2v-4h-2zm4 0h2V9h-2zm4 0h2V5h-2z"/></svg></span>
+                <div><div class="ddi-title">Trading Terminal</div><div class="ddi-sub">Pro charts &amp; one-click swaps</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m1-13h-2v5l4.25 2.52l1-1.64L13 11.25z"/></svg></span>
+                <div><div class="ddi-title">Memescope</div><div class="ddi-sub">Live launches across 20+ DEXes</div></div>
+              </a>
+              <a class="ddi active-link">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2zm-9-2h10V8H12zm4-2.5a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5"/></svg></span>
+                <div><div class="ddi-title">Wallet Tracker <span class="here-pill">you are here</span></div><div class="ddi-sub">Portfolio &amp; PnL for any wallet</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 14l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span>
+                <div><div class="ddi-title">Copy Trading</div><div class="ddi-sub">Mirror top wallets automatically</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">Tools <span class="caret">▾</span></button>
+          <div class="dropdown">
+            <div class="dropdown-section">
+              <h4>Utilities</h4>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a4 4 0 0 1 4 4v3h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V5a4 4 0 0 1 4-4m0 2a2 2 0 0 0-2 2v3h4V5a2 2 0 0 0-2-2"/></svg></span>
+                <div><div class="ddi-title">Token Checker</div><div class="ddi-sub">Rug score &amp; safety analysis</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h2v-2H3zm0 4h2v-2H3zm0-8h2V7H3zm4 4h14v-2H7zm0 4h14v-2H7zM7 7v2h14V7z"/></svg></span>
+                <div><div class="ddi-title">Holder Insights</div><div class="ddi-sub">Top holders &amp; concentration</div></div>
+              </a>
+              <a class="ddi">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 14l-4-4l1.4-1.4L10 14.2l6.6-6.6L18 9z"/></svg></span>
+                <div><div class="ddi-title">Transaction Decoder</div><div class="ddi-sub">Parse any Solana tx</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <a class="nav-link" href="#"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2"/></svg>Developers</a>
+      </nav>
+
+      <div class="topbar-right">
+        <nav class="net-switch" role="tablist" aria-label="Network">
+          <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
+          <button class="net-btn" data-network="devnet" role="tab" aria-selected="false">Devnet</button>
+        </nav>
+
+        <form id="search-form" class="search-nav" autocomplete="off">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
+          <input id="address" type="text" placeholder="Paste a Solana wallet address…" spellcheck="false" required />
+          <button type="button" id="paste-btn" class="ghost-btn small">Paste</button>
+          <button type="submit" class="primary-btn small">Track</button>
+        </form>
       </div>
     </div>
 
-    <form id="search-form" class="search-nav" autocomplete="off">
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
-      <input id="address" type="text" placeholder="Search any Solana wallet address…" spellcheck="false" required />
-      <button type="button" id="paste-btn" class="ghost-btn small">Paste</button>
-      <button type="submit" class="primary-btn small">Track</button>
-    </form>
-
-    <nav class="net-switch" role="tablist" aria-label="Network">
-      <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
-      <button class="net-btn" data-network="devnet" role="tab" aria-selected="false">Devnet</button>
-    </nav>
+    <div class="ticker" aria-label="Trending tokens">
+      <span class="ticker-label">Trending</span>
+      <div class="ticker-viewport">
+        <div class="ticker-track" id="ticker-track">
+          <span class="ticker-loading muted">Loading prices…</span>
+        </div>
+      </div>
+    </div>
   </header>
 
   <main class="container">
