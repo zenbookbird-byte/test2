@@ -31,11 +31,18 @@
           <path d="M9 11 h12 l-2 2 H7z M9 16 h12 l-2 2 H7z M9 21 h12 l-2 2 H7z" fill="#0b0a14" opacity=".9"/>
         </svg>
       </span>
-      <div>
+      <div class="brand-text">
         <h1>Sol Scope</h1>
-        <p class="tag">Solana wallet tracker</p>
+        <p class="tag">Wallet · Portfolio · PnL</p>
       </div>
     </div>
+
+    <form id="search-form" class="search-nav" autocomplete="off">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
+      <input id="address" type="text" placeholder="Search any Solana wallet address…" spellcheck="false" required />
+      <button type="button" id="paste-btn" class="ghost-btn small">Paste</button>
+      <button type="submit" class="primary-btn small">Track</button>
+    </form>
 
     <nav class="net-switch" role="tablist" aria-label="Network">
       <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
@@ -44,41 +51,30 @@
   </header>
 
   <main class="container">
-    <section class="hero glass">
-      <h2>Track any Solana wallet in real time</h2>
-      <p class="lede">Paste a Solana address to see SOL balance, SPL tokens, and recent activity. No login. No tracking.</p>
-
-      <form id="search-form" class="search" autocomplete="off">
-        <div class="search-field">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
-          <input id="address" type="text" placeholder="Enter wallet address (e.g. 7xKXtg2C...UDV4)" spellcheck="false" required />
-          <button type="button" id="paste-btn" class="ghost-btn" title="Paste from clipboard">Paste</button>
-        </div>
-        <button type="submit" class="primary-btn">
-          <span>Track</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m13 5l7 7l-7 7l-1.4-1.4l4.6-4.6H4v-2h12.2l-4.6-4.6z"/></svg>
-        </button>
-      </form>
-
+    <section id="empty-state" class="hero glass">
+      <h2>Track any Solana wallet — portfolio, holdings &amp; activity</h2>
+      <p class="lede">Paste an address above to see total portfolio value, SPL token holdings with live prices, 24h change, and the full transaction feed. No login. No tracking.</p>
       <div class="chips">
         <span class="chip-label">Try:</span>
         <button class="chip" data-addr="vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg">Vines Validator</button>
         <button class="chip" data-addr="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM">Treasury</button>
-        <button class="chip" data-addr="So11111111111111111111111111111111111111112">Wrapped SOL</button>
+        <button class="chip" data-addr="GDDMwNyyx8uB6zrqwBFHjLLG3TBYk2F8Az4yrQC5RzMp">Whale</button>
       </div>
     </section>
 
     <section id="status" class="status" hidden></section>
 
     <section id="dashboard" class="dashboard" hidden>
-      <div class="card glass account-card">
+      <!-- Wallet header / portfolio summary -->
+      <div class="card glass portfolio-card">
         <div class="account-head">
           <div class="avatar" id="avatar"></div>
           <div class="account-meta">
             <div class="row">
               <span class="label">Wallet</span>
               <button id="copy-btn" class="ghost-btn small">Copy</button>
-              <a id="explorer-link" class="ghost-btn small" target="_blank" rel="noopener">Explorer</a>
+              <a id="explorer-link" class="ghost-btn small" target="_blank" rel="noopener">Explorer ↗</a>
+              <a id="solscan-link" class="ghost-btn small" target="_blank" rel="noopener">Solscan ↗</a>
             </div>
             <code id="account-addr" class="addr">—</code>
             <div class="account-tags">
@@ -89,70 +85,196 @@
           </div>
         </div>
 
-        <div class="stat-grid">
-          <div class="stat">
-            <span class="stat-label">SOL Balance</span>
-            <span class="stat-value"><span id="sol-balance">0</span> <small>SOL</small></span>
-            <span class="stat-sub"><span id="sol-usd">—</span> USD</span>
+        <div class="portfolio-summary">
+          <div class="port-value">
+            <span class="stat-label">Total portfolio value</span>
+            <div class="port-value-row">
+              <span class="big" id="portfolio-total">$0.00</span>
+              <span id="portfolio-change" class="delta neutral">—</span>
+            </div>
+            <span class="muted small" id="portfolio-sub">— SOL · — tokens</span>
           </div>
-          <div class="stat">
-            <span class="stat-label">SPL Tokens</span>
-            <span class="stat-value"><span id="token-count">0</span></span>
-            <span class="stat-sub"><span id="nonzero-count">0</span> with balance</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Transactions</span>
-            <span class="stat-value"><span id="tx-count">0</span></span>
-            <span class="stat-sub">recent activity</span>
+          <div class="stat-grid">
+            <div class="stat">
+              <span class="stat-label">SOL Balance</span>
+              <span class="stat-value"><span id="sol-balance">0</span> <small>SOL</small></span>
+              <span class="stat-sub" id="sol-usd">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">24h P&amp;L <span class="hint" title="Estimated from current holdings × 24h price change. Not a realized PnL.">?</span></span>
+              <span class="stat-value" id="pnl-24h">$0.00</span>
+              <span class="stat-sub" id="pnl-24h-pct">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Tokens</span>
+              <span class="stat-value" id="token-count">0</span>
+              <span class="stat-sub"><span id="nonzero-count">0</span> with balance</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Wallet age</span>
+              <span class="stat-value" id="wallet-age">—</span>
+              <span class="stat-sub" id="wallet-first">first tx —</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="card glass">
-        <div class="card-head">
-          <h3>Token holdings</h3>
-          <span class="muted" id="tokens-meta">—</span>
-        </div>
-        <div id="tokens" class="tokens"></div>
+      <!-- Tab bar -->
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="holdings" role="tab" aria-selected="true">Holdings <span class="tab-badge" id="badge-holdings">0</span></button>
+        <button class="tab" data-tab="activity" role="tab" aria-selected="false">Activity <span class="tab-badge" id="badge-activity">0</span></button>
+        <button class="tab" data-tab="analytics" role="tab" aria-selected="false">Analytics</button>
+        <button class="tab" data-tab="pnl" role="tab" aria-selected="false">PnL <span class="tab-badge soft">beta</span></button>
       </div>
 
-      <div class="card glass">
-        <div class="card-head">
-          <h3>Recent transactions</h3>
-          <span class="muted" id="tx-meta">—</span>
+      <!-- Holdings tab -->
+      <section class="tab-panel active" data-panel="holdings">
+        <div class="card glass">
+          <div class="card-head">
+            <h3>Token holdings</h3>
+            <div class="card-tools">
+              <input id="holdings-filter" class="filter-input" placeholder="Filter by symbol or mint…" />
+              <button id="hide-dust" class="ghost-btn small" aria-pressed="false">Hide dust (&lt; $1)</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table holdings-table">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th class="num">Price</th>
+                  <th class="num">24h</th>
+                  <th class="num">Balance</th>
+                  <th class="num">Value</th>
+                  <th class="num">Allocation</th>
+                </tr>
+              </thead>
+              <tbody id="holdings-body"></tbody>
+            </table>
+          </div>
         </div>
-        <ul id="tx-list" class="tx-list"></ul>
-      </div>
+      </section>
+
+      <!-- Activity tab -->
+      <section class="tab-panel" data-panel="activity" hidden>
+        <div class="card glass">
+          <div class="card-head">
+            <h3>Recent activity</h3>
+            <div class="card-tools">
+              <span class="muted" id="tx-meta">—</span>
+              <button id="load-more-tx" class="ghost-btn small" hidden>Load more</button>
+            </div>
+          </div>
+          <ul id="tx-list" class="tx-list"></ul>
+        </div>
+      </section>
+
+      <!-- Analytics tab -->
+      <section class="tab-panel" data-panel="analytics" hidden>
+        <div class="grid-2">
+          <div class="card glass">
+            <div class="card-head"><h3>Portfolio composition</h3></div>
+            <div class="composition">
+              <div class="donut">
+                <svg viewBox="0 0 42 42" id="donut-svg"><circle cx="21" cy="21" r="15.9155" class="donut-bg"/></svg>
+                <div class="donut-center">
+                  <span class="muted small">Total</span>
+                  <span id="donut-total" class="big-sm">$0</span>
+                </div>
+              </div>
+              <ul id="composition-legend" class="legend"></ul>
+            </div>
+          </div>
+          <div class="card glass">
+            <div class="card-head"><h3>Top movers (24h)</h3></div>
+            <ul id="movers" class="movers"></ul>
+          </div>
+        </div>
+
+        <div class="card glass">
+          <div class="card-head"><h3>Account info</h3></div>
+          <dl class="kv">
+            <div><dt>Owner program</dt><dd id="kv-owner">—</dd></div>
+            <div><dt>Executable</dt><dd id="kv-exec">—</dd></div>
+            <div><dt>Rent epoch</dt><dd id="kv-rent">—</dd></div>
+            <div><dt>Account size</dt><dd id="kv-size">—</dd></div>
+            <div><dt>First seen</dt><dd id="kv-first">—</dd></div>
+            <div><dt>Last activity</dt><dd id="kv-last">—</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- PnL tab -->
+      <section class="tab-panel" data-panel="pnl" hidden>
+        <div class="card glass">
+          <div class="card-head"><h3>PnL by holding</h3>
+            <span class="muted">24h estimate from current balance × price change</span>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th class="num">Value</th>
+                  <th class="num">24h price</th>
+                  <th class="num">24h P&amp;L</th>
+                </tr>
+              </thead>
+              <tbody id="pnl-body"></tbody>
+            </table>
+          </div>
+          <p class="muted small note">
+            Realized PnL needs a per-trade cost-basis indexer (e.g. Solana Tracker's paid API).
+            This tab shows an unrealized 24h estimate based on current holdings.
+          </p>
+        </div>
+      </section>
     </section>
   </main>
 
   <footer class="footer">
-    <span>Built with the public Solana JSON-RPC.</span>
+    <span>Built on the public Solana JSON-RPC.</span>
     <span class="dot">•</span>
-    <span>Prices via CoinGecko.</span>
+    <span>Prices: DexScreener &amp; Jupiter.</span>
+    <span class="dot">•</span>
+    <span>Open source, no tracking.</span>
   </footer>
 
-  <template id="token-row-tmpl">
-    <div class="token-row">
-      <div class="token-id">
-        <span class="token-dot"></span>
-        <div>
-          <div class="token-mint"></div>
-          <div class="token-sub muted"></div>
+  <template id="holdings-row-tmpl">
+    <tr class="holding-row">
+      <td>
+        <div class="token-id">
+          <img class="token-logo" alt="" />
+          <div class="token-text">
+            <div class="token-sym"></div>
+            <div class="token-sub muted"></div>
+          </div>
         </div>
-      </div>
-      <div class="token-amount"></div>
-    </div>
+      </td>
+      <td class="num"><span class="t-price">—</span></td>
+      <td class="num"><span class="t-change delta">—</span></td>
+      <td class="num"><span class="t-balance">—</span></td>
+      <td class="num"><span class="t-value">—</span></td>
+      <td class="num">
+        <div class="alloc-cell">
+          <div class="alloc-bar"><span class="alloc-fill"></span></div>
+          <span class="t-alloc">—</span>
+        </div>
+      </td>
+    </tr>
   </template>
 
   <template id="tx-row-tmpl">
     <li class="tx-row">
       <div class="tx-left">
-        <span class="tx-status"></span>
+        <span class="tx-icon"></span>
         <div>
-          <a class="tx-sig" target="_blank" rel="noopener"></a>
-          <div class="tx-sub muted"></div>
+          <div class="tx-title"></div>
+          <a class="tx-sig mono muted" target="_blank" rel="noopener"></a>
         </div>
+      </div>
+      <div class="tx-mid">
+        <span class="tx-fee muted"></span>
       </div>
       <div class="tx-right">
         <div class="tx-time"></div>
