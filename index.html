@@ -7,7 +7,714 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+:root {
+  --bg-0: #07060f;
+  --bg-1: #0d0b1d;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.07);
+  --surface-3: rgba(255, 255, 255, 0.1);
+  --stroke: rgba(255, 255, 255, 0.08);
+  --stroke-strong: rgba(255, 255, 255, 0.16);
+  --text: #ecebff;
+  --muted: #8c87b3;
+  --muted-2: #6a6790;
+  --accent: #9945ff;
+  --accent-2: #14f195;
+  --accent-3: #7b61ff;
+  --pos: #14f195;
+  --neg: #ff5a76;
+  --warn: #ffb347;
+  --shadow: 0 30px 80px -30px rgba(120, 60, 255, 0.45);
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 80% -10%, #1a0f3d 0%, transparent 60%),
+              radial-gradient(900px 700px at -10% 20%, #0b1f33 0%, transparent 55%),
+              linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+
+/* Aurora background blobs */
+.aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; filter: blur(80px); opacity: .5; }
+.blob { position: absolute; width: 520px; height: 520px; border-radius: 50%; mix-blend-mode: screen; }
+.blob-1 { background: #9945ff; top: -10%; left: 10%; animation: float 18s ease-in-out infinite; }
+.blob-2 { background: #14f195; top: 30%; right: -5%; animation: float 22s ease-in-out -6s infinite; }
+.blob-3 { background: #4f8bff; bottom: -15%; left: 30%; animation: float 26s ease-in-out -10s infinite; }
+@keyframes float {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  50%      { transform: translate3d(40px, -30px, 0) scale(1.1); }
+}
+
+/* Top bar */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(180deg, rgba(7,6,15,.92), rgba(7,6,15,.75) 70%, rgba(7,6,15,.6));
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--stroke);
+}
+.topbar-main {
+  display: flex; align-items: center; gap: 18px;
+  padding: 12px clamp(16px, 3vw, 32px);
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: inherit; flex-shrink: 0;
+}
+.logo-mark svg { width: 32px; height: 32px; border-radius: 9px; box-shadow: var(--shadow); }
+.brand h1 { margin: 0; font-size: 15px; letter-spacing: .2px; font-weight: 700; }
+.brand-text { display: none; }
+@media (min-width: 720px) { .brand-text { display: block; } }
+
+/* Primary nav */
+.primary-nav {
+  display: none; align-items: center; gap: 2px; margin-left: 6px;
+}
+@media (min-width: 980px) { .primary-nav { display: flex; } }
+.nav-item { position: relative; }
+.nav-link {
+  appearance: none; border: 0; background: transparent;
+  color: var(--muted); font: inherit; font-size: 13.5px; font-weight: 500;
+  padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+  transition: color .2s, background .2s;
+}
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-ico { width: 16px; height: 16px; color: currentColor; opacity: .7; }
+.caret { font-size: 10px; opacity: .7; transition: transform .2s; }
+.nav-item:hover .caret,
+.nav-item:focus-within .caret { transform: translateY(1px); }
+.nav-item:hover > .nav-link,
+.nav-item:focus-within > .nav-link {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--stroke-strong);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute; top: calc(100% + 8px); left: 0;
+  min-width: 340px;
+  padding: 10px;
+  background: rgba(13, 11, 29, .96);
+  border: 1px solid var(--stroke-strong);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .65), 0 0 0 1px rgba(255,255,255,.02);
+  backdrop-filter: blur(16px);
+  display: none;
+  z-index: 30;
+}
+.dropdown.wide { min-width: 460px; }
+.nav-item:hover > .dropdown,
+.nav-item:focus-within > .dropdown { display: block; }
+.dropdown-section + .dropdown-section {
+  margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--stroke);
+}
+.dropdown-section h4 {
+  margin: 6px 12px 8px; font-size: 10.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--muted-2); font-weight: 600;
+}
+.ddi {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  text-decoration: none; color: inherit;
+  transition: background .15s, transform .15s;
+}
+.ddi:hover { background: var(--surface-2); }
+.ddi.active-link {
+  background: rgba(153, 69, 255, .12);
+  box-shadow: inset 0 0 0 1px rgba(153, 69, 255, .35);
+}
+.ddi-ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: #c8c1ff; flex-shrink: 0;
+}
+.ddi-ico svg { width: 18px; height: 18px; }
+.ddi-title {
+  font-size: 13.5px; font-weight: 600; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.ddi-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.here-pill {
+  font-size: 9.5px; padding: 1px 6px; border-radius: 999px; letter-spacing: .08em;
+  background: rgba(20, 241, 149, .18); color: #88f3c3; border: 1px solid rgba(20, 241, 149, .35);
+  text-transform: uppercase; font-weight: 600;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px; flex: 0 1 auto; min-width: 0;
+}
+
+.search-nav {
+  flex: 1 1 280px; max-width: 460px; min-width: 0;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  border-radius: 12px; padding: 4px 4px 4px 12px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-nav:focus-within {
+  border-color: rgba(153, 69, 255, .55);
+  box-shadow: 0 0 0 4px rgba(153, 69, 255, .15);
+}
+.search-nav .icon { width: 16px; height: 16px; color: var(--muted); }
+.search-nav input {
+  flex: 1; border: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 13px; padding: 8px 6px; outline: none;
+  font-family: 'JetBrains Mono', monospace;
+}
+.search-nav input::placeholder { color: var(--muted-2); font-family: 'Inter', sans-serif; }
+
+/* Ticker */
+.ticker {
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px clamp(16px, 3vw, 32px);
+  border-top: 1px solid var(--stroke);
+  background: rgba(7, 6, 15, .6);
+  overflow: hidden;
+}
+.ticker-label {
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600; flex-shrink: 0;
+  padding-right: 12px; border-right: 1px solid var(--stroke);
+}
+.ticker-viewport {
+  position: relative; flex: 1; overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+.ticker-track {
+  display: inline-flex; gap: 28px; white-space: nowrap;
+  animation: ticker-scroll 60s linear infinite;
+  will-change: transform;
+}
+.ticker:hover .ticker-track { animation-play-state: paused; }
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--text);
+}
+.ticker-item img {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface-2);
+}
+.ticker-sym { font-weight: 600; }
+.ticker-price { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ticker-chg { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 11.5px; }
+.ticker-chg.pos { color: var(--pos); }
+.ticker-chg.neg { color: var(--neg); }
+.ticker-loading { padding: 2px 4px; }
+
+.net-switch {
+  display: inline-flex; gap: 4px; padding: 4px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 999px;
+  flex-shrink: 0;
+}
+.net-btn {
+  appearance: none; border: 0; background: transparent; color: var(--muted);
+  padding: 6px 12px; border-radius: 999px; cursor: pointer; font: inherit;
+  font-size: 12px; font-weight: 500; transition: color .2s, background .2s;
+}
+.net-btn:hover { color: var(--text); }
+.net-btn.active {
+  color: #0c0a1e;
+  background: linear-gradient(135deg, #c4b1ff, #9be9c8);
+  box-shadow: 0 6px 20px -10px rgba(153, 69, 255, .8);
+}
+
+/* Layout */
+.container {
+  position: relative; z-index: 2;
+  max-width: 1200px; margin: 0 auto;
+  padding: 24px clamp(16px, 3vw, 40px) 80px;
+  display: grid; gap: 22px;
+}
+
+/* Glass surfaces */
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--shadow);
+}
+
+/* Hero (empty state) */
+.hero { padding: clamp(28px, 4vw, 48px); position: relative; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; inset: -1px;
+  background: radial-gradient(600px 200px at 20% 0%, rgba(153, 69, 255, .25), transparent 60%),
+              radial-gradient(500px 200px at 80% 100%, rgba(20, 241, 149, .15), transparent 60%);
+  pointer-events: none; border-radius: inherit;
+}
+.hero h2 {
+  position: relative; margin: 0; font-size: clamp(24px, 3.4vw, 36px);
+  letter-spacing: -0.02em; line-height: 1.1; font-weight: 800;
+  background: linear-gradient(180deg, #ffffff, #b9b3ff 70%, #14f195);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero .lede { position: relative; margin: 10px 0 18px; color: var(--muted); max-width: 60ch; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; position: relative; }
+.chip-label { color: var(--muted); font-size: 12px; margin-right: 4px; }
+.chip {
+  appearance: none; border: 1px dashed var(--stroke-strong); background: transparent;
+  color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+  padding: 6px 10px; border-radius: 999px;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.chip:hover { color: var(--text); background: var(--surface); border-style: solid; }
+
+/* Buttons */
+.primary-btn {
+  appearance: none; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-radius: 10px;
+  color: #0a0820; font: inherit; font-weight: 600; font-size: 13px;
+  background: linear-gradient(135deg, #c4b1ff 0%, #9be9c8 100%);
+  box-shadow: 0 14px 30px -14px rgba(153, 69, 255, .8);
+  transition: transform .15s ease, box-shadow .2s;
+}
+.primary-btn.small { padding: 7px 12px; font-size: 12px; border-radius: 8px; }
+.primary-btn:hover { transform: translateY(-1px); }
+
+.ghost-btn {
+  appearance: none; cursor: pointer;
+  border: 1px solid var(--stroke); background: transparent; color: var(--text);
+  padding: 8px 12px; border-radius: 10px; font: inherit; font-size: 13px;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.ghost-btn:hover { background: var(--surface); border-color: var(--stroke-strong); }
+.ghost-btn.small { padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+.ghost-btn[aria-pressed="true"] {
+  background: rgba(153, 69, 255, .14); border-color: rgba(153, 69, 255, .45); color: #d8c9ff;
+}
+
+/* Status */
+.status {
+  padding: 14px 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px;
+}
+.status.error { color: #ffd2da; border-color: rgba(255, 90, 118, .35); background: rgba(255, 90, 118, .08); }
+.status.loading::before {
+  content: ""; width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.2); border-top-color: var(--text);
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Dashboard */
+.dashboard { display: grid; gap: 18px; }
+.card { padding: clamp(18px, 2.2vw, 26px); }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; gap: 12px; flex-wrap: wrap;
+}
+.card-head h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .2px; }
+.card-tools { display: flex; gap: 8px; align-items: center; }
+.muted { color: var(--muted); font-size: 12px; }
+.muted.small { font-size: 11px; }
+
+/* Portfolio header card */
+.account-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.avatar {
+  width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+  background: conic-gradient(from 180deg at 50% 50%, #9945ff, #14f195, #4f8bff, #9945ff);
+  box-shadow: 0 10px 30px -12px rgba(153, 69, 255, .8);
+  position: relative;
+}
+.avatar::after {
+  content: ""; position: absolute; inset: 6px; border-radius: 10px;
+  background: rgba(10, 8, 26, .55);
+}
+.account-meta { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.account-meta .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.account-meta .label { color: var(--muted); font-size: 12px; margin-right: 2px; }
+.addr {
+  font-size: 13px; color: #cfcaff; word-break: break-all;
+  background: var(--surface); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--stroke);
+  display: inline-block;
+}
+.account-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag-pill {
+  font-size: 11px; padding: 3px 8px; border-radius: 999px; letter-spacing: .3px;
+  background: rgba(20, 241, 149, .12); color: #88f3c3; border: 1px solid rgba(20, 241, 149, .25);
+}
+.tag-pill.warn { background: rgba(255, 179, 71, .12); color: #ffce91; border-color: rgba(255, 179, 71, .3); }
+
+.portfolio-summary {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr); gap: 22px;
+  padding-top: 18px; border-top: 1px solid var(--stroke);
+}
+@media (max-width: 800px) { .portfolio-summary { grid-template-columns: 1fr; } }
+.port-value { display: grid; gap: 6px; align-content: start; }
+.port-value-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.big {
+  font-size: clamp(34px, 5vw, 48px); font-weight: 800; letter-spacing: -.02em;
+  background: linear-gradient(180deg, #ffffff, #c8c1ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  line-height: 1;
+}
+.big-sm { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+
+.delta { font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+.delta.pos { color: var(--pos); }
+.delta.neg { color: var(--neg); }
+.delta.neutral { color: var(--muted); }
+
+.stat-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.stat {
+  padding: 14px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  display: grid; gap: 4px; align-content: start;
+}
+.stat-label { color: var(--muted); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; }
+.stat-value { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.stat-value small { font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+.stat-sub { color: var(--muted); font-size: 11.5px; }
+
+.hint {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--muted); font-size: 9px; cursor: help; margin-left: 4px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex; gap: 4px; padding: 4px; align-self: start;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px;
+  overflow-x: auto;
+}
+.tab {
+  appearance: none; border: 0; cursor: pointer;
+  background: transparent; color: var(--muted); font: inherit;
+  font-size: 13px; font-weight: 500;
+  padding: 9px 14px; border-radius: 9px;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: color .2s, background .2s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--stroke-strong); }
+.tab-badge {
+  font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke); color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.tab-badge.soft { background: rgba(153, 69, 255, .15); color: #c8b6ff; border-color: rgba(153, 69, 255, .3); }
+
+.tab-panel { display: grid; gap: 18px; }
+.tab-panel[hidden] { display: none; }
+
+/* Filter input */
+.filter-input {
+  appearance: none; border: 1px solid var(--stroke);
+  background: var(--surface); color: var(--text); font: inherit; font-size: 12px;
+  padding: 6px 10px; border-radius: 8px; min-width: 200px;
+}
+.filter-input:focus { outline: none; border-color: rgba(153, 69, 255, .45); }
+
+/* Table */
+.table-wrap { overflow-x: auto; margin: 0 -8px; }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 640px; }
+.table thead th {
+  text-align: left; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500;
+  padding: 10px 12px; border-bottom: 1px solid var(--stroke);
+}
+.table tbody td {
+  padding: 14px 12px; border-bottom: 1px solid var(--stroke);
+  font-size: 13.5px; vertical-align: middle;
+}
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr { transition: background .15s; }
+.table tbody tr:hover { background: var(--surface); }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.token-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.token-logo {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #9945ff, #14f195);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.25);
+  object-fit: cover;
+}
+.token-logo.fallback { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #0a0820; }
+.token-text { min-width: 0; }
+.token-sym { font-weight: 600; font-size: 14px; }
+.token-sub { font-size: 11px; margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+.alloc-cell { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.alloc-bar {
+  width: 70px; height: 6px; border-radius: 999px; background: var(--surface-2);
+  overflow: hidden; border: 1px solid var(--stroke);
+}
+.alloc-fill {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, #9945ff, #14f195);
+  width: 0%;
+}
+.t-alloc { font-size: 12px; color: var(--muted); width: 44px; text-align: right; }
+
+.empty {
+  padding: 28px; text-align: center; color: var(--muted); font-size: 13px;
+  border: 1px dashed var(--stroke-strong); border-radius: 12px;
+}
+
+/* Transactions */
+.tx-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tx-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px; align-items: center;
+  padding: 12px 14px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+}
+.tx-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tx-icon {
+  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(20, 241, 149, .12); color: var(--pos);
+  border: 1px solid rgba(20, 241, 149, .25); font-size: 14px;
+}
+.tx-icon.err { background: rgba(255, 90, 118, .12); color: var(--neg); border-color: rgba(255, 90, 118, .3); }
+.tx-icon.unknown { background: var(--surface-2); color: var(--muted); border-color: var(--stroke); }
+.tx-title { font-size: 13.5px; font-weight: 500; }
+.tx-sig {
+  font-size: 11.5px; color: var(--muted); text-decoration: none;
+}
+.tx-sig:hover { color: var(--text); text-decoration: underline; }
+.tx-fee { font-size: 11.5px; }
+.tx-right { text-align: right; }
+.tx-time { font-size: 12.5px; }
+.tx-slot { font-size: 11px; }
+
+/* Analytics */
+.grid-2 { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+.composition { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.donut { position: relative; width: 180px; height: 180px; flex-shrink: 0; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut-bg { fill: transparent; stroke: var(--surface-2); stroke-width: 5; }
+.donut-seg { fill: transparent; stroke-width: 5; transition: stroke-dasharray .6s ease; }
+.donut-center {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px;
+}
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 220px; flex: 1; }
+.legend li {
+  display: grid; grid-template-columns: 12px 1fr auto auto; gap: 10px; align-items: center;
+  font-size: 12.5px;
+}
+.legend .dot { width: 10px; height: 10px; border-radius: 3px; }
+.legend .name { font-weight: 500; }
+.legend .val { color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend .pct { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.movers { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.movers li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px;
+}
+.movers .left { display: flex; gap: 10px; align-items: center; }
+.movers img { width: 24px; height: 24px; border-radius: 50%; }
+
+.kv {
+  margin: 0; display: grid; gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.kv > div {
+  padding: 10px 12px; background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px;
+  display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px;
+}
+.kv dt { color: var(--muted); margin: 0; }
+.kv dd { margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: right; word-break: break-all; }
+
+.note { margin: 14px 0 0; }
+
+/* Footer */
+.footer {
+  position: relative; z-index: 2;
+  text-align: center; padding: 24px;
+  color: var(--muted); font-size: 12px;
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+}
+.footer .dot { opacity: .5; }
+
+/* Modal */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 5vh 4vw;
+}
+.modal[hidden] { display: none; }
+.modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(5, 4, 12, .65);
+  backdrop-filter: blur(8px);
+  animation: fade-in .18s ease-out;
+}
+.modal-panel {
+  position: relative;
+  width: min(960px, 100%); max-height: 90vh;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, rgba(20, 17, 40, .98), rgba(13, 11, 29, .98));
+  border: 1px solid var(--stroke-strong);
+  border-radius: 18px;
+  box-shadow: 0 40px 100px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03);
+  overflow: hidden;
+  animation: pop-in .2s ease-out;
+}
+@keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
+.modal-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--stroke);
+}
+.modal-head h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.modal-head p { margin: 4px 0 0; }
+.modal-body {
+  overflow: auto; padding: 14px 14px 18px;
+}
+.modal-body .empty, .modal-body .modal-loading {
+  padding: 40px; text-align: center; color: var(--muted);
+}
+.modal-loading::before {
+  content: ""; display: block; width: 22px; height: 22px; margin: 0 auto 12px;
+  border-radius: 50%; border: 2px solid rgba(255,255,255,.15); border-top-color: var(--text);
+  animation: spin .9s linear infinite;
+}
+.modal-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.modal-table thead th {
+  text-align: left; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500; padding: 6px 12px;
+}
+.modal-table tbody td {
+  padding: 12px; background: var(--surface); border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke);
+  font-size: 13px; vertical-align: middle;
+}
+.modal-table tbody tr td:first-child { border-left: 1px solid var(--stroke); border-radius: 10px 0 0 10px; }
+.modal-table tbody tr td:last-child  { border-right: 1px solid var(--stroke); border-radius: 0 10px 10px 0; }
+.modal-table tbody tr:hover td { background: var(--surface-2); }
+.modal-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.modal-table a.ext { color: #c8c1ff; text-decoration: none; font-size: 11px; }
+.modal-table a.ext:hover { color: var(--text); text-decoration: underline; }
+.rank-cell { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; width: 32px; }
+
+/* Holdings rows clickable */
+.holding-row { cursor: pointer; }
+.ticker-item[data-mint] { cursor: pointer; }
+.ticker-item[data-mint]:hover { color: #fff; }
+
+/* Token detail */
+.td-summary {
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 14px 12px; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 12px; margin-bottom: 14px;
+}
+.td-id { display: flex; align-items: center; gap: 14px; }
+.td-logo { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2); }
+.td-price { font-size: 26px; font-weight: 800; letter-spacing: -.01em; }
+.td-chg { font-size: 13px; margin-top: 2px; }
+.td-links { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.td-h4 { margin: 14px 12px 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+/* Token Checker */
+.checker { padding: 4px; }
+.checker-score {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 16px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  margin-bottom: 14px;
+}
+.grade {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: grid; place-content: center; font-size: 28px; font-weight: 800;
+  background: rgba(153, 69, 255, .18); color: #d8c9ff; border: 1px solid rgba(153, 69, 255, .35);
+}
+.grade.pos { background: rgba(20, 241, 149, .18); color: #88f3c3; border-color: rgba(20, 241, 149, .35); }
+.grade.neg { background: rgba(255, 90, 118, .18); color: #ffb0bd; border-color: rgba(255, 90, 118, .35); }
+.checker-flags {
+  list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px;
+}
+.checker-flags li {
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--stroke); font-size: 13px;
+}
+.checker-flags li.good { color: #a3f3c8; border-color: rgba(20, 241, 149, .25); background: rgba(20, 241, 149, .06); }
+.checker-flags li.warn { color: #ffce91; border-color: rgba(255, 179, 71, .3); background: rgba(255, 179, 71, .06); }
+
+/* Decoder */
+.ix-list, .bal-list {
+  margin: 0 0 14px; padding: 0; list-style: none; display: grid; gap: 6px;
+}
+.ix-list li, .bal-list li {
+  padding: 10px 12px; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 10px; font-size: 12.5px; display: flex; justify-content: space-between; gap: 12px;
+}
+.ix-type {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  background: rgba(153, 69, 255, .15); color: #d8c9ff; border: 1px solid rgba(153, 69, 255, .3);
+}
+.logs {
+  max-height: 240px; overflow: auto;
+  padding: 12px; border-radius: 10px;
+  background: rgba(0,0,0,.4); border: 1px solid var(--stroke);
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.6;
+  color: #cfcaff; white-space: pre-wrap; word-break: break-word;
+}
+
+/* Swap */
+.swap-card { display: grid; gap: 10px; padding: 4px; }
+.swap-row {
+  display: grid; gap: 6px;
+  padding: 12px 14px; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 12px;
+}
+.swap-row > span { font-size: 11px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+.swap-input { display: flex; align-items: center; gap: 8px; }
+.swap-input input { width: 100%; }
+.swap-arrow { text-align: center; color: var(--muted); font-size: 18px; }
+
+/* Prompt form */
+.prompt-form {
+  display: flex; gap: 8px; padding: 4px 4px 14px;
+}
+
+/* Developers list */
+.dev-list { padding-left: 18px; }
+.dev-list li { margin-bottom: 8px; font-size: 13px; }
+.dev-list code { background: var(--surface); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--stroke); }
+
+@media (max-width: 720px) {
+  .topbar-main { flex-wrap: wrap; gap: 10px; }
+  .topbar-right { order: 3; width: 100%; flex-wrap: wrap; }
+  .search-nav { flex-basis: 100%; max-width: none; }
+  .tx-row { grid-template-columns: 1fr; }
+  .tx-mid, .tx-right { text-align: left; }
+}
+
+</style>
 </head>
 <body>
   <div class="aurora">
@@ -413,6 +1120,1207 @@
     </li>
   </template>
 
-  <script src="app.js"></script>
+  <script>
+/* Sol Scope — Solana Wallet Portfolio Tracker
+ * Static, no-build. Talks directly to:
+ *   - Solana JSON-RPC (mainnet/devnet)
+ *   - DexScreener (price + 24h change, CORS-friendly)
+ *   - Jupiter token registry (symbol/name/logo, CORS-friendly)
+ */
+
+const RPC = {
+  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
+  'devnet': 'https://api.devnet.solana.com',
+};
+const EXPLORER = 'https://explorer.solana.com';
+const SOLSCAN = 'https://solscan.io';
+const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+const LAMPORTS_PER_SOL = 1_000_000_000;
+
+const state = {
+  network: 'mainnet-beta',
+  address: null,
+  holdings: [],          // [{mint, ata, decimals, uiAmount, meta?, price?, change24h?, value?}]
+  txs: [],
+  txBefore: null,        // pagination cursor
+  hideDust: false,
+  filter: '',
+  jupTokenMap: null,     // Map<mint, {symbol,name,logoURI}>
+  totalValue: 0,
+};
+
+/* ---------------- DOM helpers ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+function showStatus(message, variant = 'loading') {
+  const el = $('#status');
+  el.hidden = false;
+  el.className = `status ${variant}`;
+  el.textContent = message;
+}
+function clearStatus() { $('#status').hidden = true; }
+
+function shorten(addr, head = 6, tail = 6) {
+  if (!addr || addr.length <= head + tail + 1) return addr || '';
+  return `${addr.slice(0, head)}…${addr.slice(-tail)}`;
+}
+function fmt(n, max = 6) {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  if (Math.abs(n) >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (Math.abs(n) >= 1) return n.toLocaleString(undefined, { maximumFractionDigits: Math.min(max, 4) });
+  return n.toLocaleString(undefined, { maximumFractionDigits: max });
+}
+function fmtUSD(n, decimals = 2) {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (abs >= 10_000) return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  if (abs >= 1) return `${n.toLocaleString(undefined, { maximumFractionDigits: decimals })}`;
+  if (abs >= 0.01) return `${n.toFixed(3)}`;
+  if (abs === 0) return '$0.00';
+  return `${n.toFixed(6)}`;
+}
+function fmtPct(n) {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  const sign = n > 0 ? '+' : '';
+  return `${sign}${n.toFixed(2)}%`;
+}
+function fmtDelta(n) {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  const sign = n > 0 ? '+' : n < 0 ? '−' : '';
+  return `${sign}${fmtUSD(Math.abs(n))}`;
+}
+function timeAgo(unixSec) {
+  if (!unixSec) return '—';
+  const s = Math.floor(Date.now() / 1000 - unixSec);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24); if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30); if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(mo / 12)}y ago`;
+}
+
+const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const isValidAddress = (a) => BASE58_RE.test((a || '').trim());
+
+/* Trending tokens (curated popular Solana mints) */
+const TRENDING_MINTS = [
+  { mint: 'So11111111111111111111111111111111111111112',  sym: 'SOL'  },
+  { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',  sym: 'USDC' },
+  { mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',  sym: 'USDT' },
+  { mint: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',   sym: 'JUP'  },
+  { mint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',  sym: 'BONK' },
+  { mint: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm',  sym: 'WIF'  },
+  { mint: 'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5',   sym: 'MEW'  },
+  { mint: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',  sym: 'ETH'  },
+  { mint: '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh',  sym: 'BTC'  },
+  { mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',   sym: 'mSOL' },
+  { mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',   sym: 'RENDER'},
+  { mint: '8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB',  sym: 'GMT'  },
+  { mint: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',  sym: 'RAY'  },
+  { mint: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',  sym: 'POPCAT'},
+];
+
+async function loadTrendingTicker() {
+  if (state.network !== 'mainnet-beta') {
+    $('#ticker-track').innerHTML = '<span class="ticker-loading muted">Prices unavailable on devnet</span>';
+    return;
+  }
+  const mints = TRENDING_MINTS.map(t => t.mint);
+  const priceMap = await fetchDexscreenerForMints(mints);
+  const items = TRENDING_MINTS.map(t => {
+    const p = priceMap.get(t.mint);
+    if (!p) return null;
+    return { sym: t.sym, mint: t.mint, price: p.price, change: p.change24h, logo: p.logoURI };
+  }).filter(Boolean);
+
+  if (!items.length) {
+    $('#ticker-track').innerHTML = '<span class="ticker-loading muted">No price data right now</span>';
+    return;
+  }
+
+  const renderItem = (it) => {
+    const cls = it.change > 0 ? 'pos' : it.change < 0 ? 'neg' : '';
+    const arrow = it.change > 0 ? '↗' : it.change < 0 ? '↘' : '→';
+    return `
+      <span class="ticker-item" data-mint="${it.mint}">
+        ${it.logo ? `<img src="${it.logo}" alt="" onerror="this.remove()">` : ''}
+        <span class="ticker-sym">${it.sym}</span>
+        <span class="ticker-price">${fmtUSD(it.price, it.price < 1 ? 4 : 2)}</span>
+        <span class="ticker-chg ${cls}">${arrow} ${fmtPct(it.change)}</span>
+      </span>
+    `;
+  };
+
+  // Duplicate the list so the marquee can loop seamlessly
+  const html = items.map(renderItem).join('') + items.map(renderItem).join('');
+  $('#ticker-track').innerHTML = html;
+}
+
+function explorerCluster() { return state.network === 'mainnet-beta' ? 'mainnet' : state.network; }
+
+/* ---------------- RPC ---------------- */
+async function rpc(method, params = []) {
+  const res = await fetch(RPC[state.network], {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+  });
+  if (!res.ok) throw new Error(`RPC ${method}: ${res.status}`);
+  const json = await res.json();
+  if (json.error) throw new Error(`${method}: ${json.error.message}`);
+  return json.result;
+}
+
+/* ---------------- Token registry & prices ---------------- */
+async function loadJupTokenMap() {
+  if (state.jupTokenMap) return state.jupTokenMap;
+  const map = new Map();
+  // Always inject native SOL pseudo-entry
+  map.set(WSOL_MINT, { symbol: 'SOL', name: 'Solana', logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png', decimals: 9 });
+  try {
+    // Jupiter strict (verified) token list
+    const r = await fetch('https://tokens.jup.ag/tokens?tags=verified');
+    if (r.ok) {
+      const list = await r.json();
+      for (const t of list) {
+        map.set(t.address, { symbol: t.symbol, name: t.name, logoURI: t.logoURI, decimals: t.decimals });
+      }
+    }
+  } catch (_) { /* offline: degrade gracefully */ }
+  state.jupTokenMap = map;
+  return map;
+}
+
+async function fetchDexscreenerForMints(mints) {
+  // Returns Map<mint, {price, change24h, name, symbol, logoURI}>
+  const out = new Map();
+  if (!mints.length) return out;
+  // DexScreener supports up to 30 addresses per request, comma-separated
+  const chunks = [];
+  for (let i = 0; i < mints.length; i += 30) chunks.push(mints.slice(i, i + 30));
+  await Promise.all(chunks.map(async (chunk) => {
+    try {
+      const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${chunk.join(',')}`);
+      if (!r.ok) return;
+      const json = await r.json();
+      const pairs = json?.pairs || [];
+      // For each mint, pick the pair with the highest 24h volume (USD)
+      const bestByMint = new Map();
+      for (const p of pairs) {
+        const base = p.baseToken?.address;
+        const vol = Number(p.volume?.h24 || 0);
+        if (!base) continue;
+        const prev = bestByMint.get(base);
+        if (!prev || vol > prev._vol) bestByMint.set(base, { ...p, _vol: vol });
+      }
+      for (const [mint, p] of bestByMint) {
+        out.set(mint, {
+          price: Number(p.priceUsd) || null,
+          change24h: Number(p.priceChange?.h24 ?? 0),
+          symbol: p.baseToken?.symbol,
+          name: p.baseToken?.name,
+          logoURI: p.info?.imageUrl || null,
+        });
+      }
+    } catch (_) { /* network: skip */ }
+  }));
+  return out;
+}
+
+/* ---------------- Main load flow ---------------- */
+async function trackAddress(address) {
+  address = address.trim();
+  if (!isValidAddress(address)) {
+    showStatus('That doesn’t look like a Solana address (base58, 32–44 chars).', 'error');
+    return;
+  }
+  state.address = address;
+  state.txBefore = null;
+  state.txs = [];
+  showStatus('Loading wallet…', 'loading');
+  $('#empty-state').hidden = true;
+  $('#dashboard').hidden = true;
+
+  try {
+    const [tokenMap, accountInfo, lamports, splV1, splV2, sigs] = await Promise.all([
+      loadJupTokenMap(),
+      rpc('getAccountInfo', [address, { encoding: 'base64' }]).then(r => r?.value).catch(() => null),
+      rpc('getBalance', [address]).then(r => r?.value ?? 0).catch(() => 0),
+      rpc('getTokenAccountsByOwner', [address, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }])
+        .then(r => r?.value ?? []).catch(() => []),
+      rpc('getTokenAccountsByOwner', [address, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: 'jsonParsed' }])
+        .then(r => r?.value ?? []).catch(() => []),
+      rpc('getSignaturesForAddress', [address, { limit: 20 }]).catch(() => []),
+    ]);
+
+    // Build holdings (SOL + SPL)
+    const splAccounts = [...splV1, ...splV2].map(a => {
+      const info = a.account?.data?.parsed?.info;
+      const amount = info?.tokenAmount;
+      return {
+        mint: info?.mint,
+        ata: a.pubkey,
+        owner: info?.owner,
+        decimals: amount?.decimals ?? 0,
+        uiAmount: amount?.uiAmount ?? 0,
+      };
+    });
+
+    const solHolding = {
+      mint: WSOL_MINT,
+      isNative: true,
+      decimals: 9,
+      uiAmount: (lamports || 0) / LAMPORTS_PER_SOL,
+      ata: null,
+    };
+    const holdings = [solHolding, ...splAccounts.filter(t => t.uiAmount > 0)];
+
+    // Fetch prices for distinct mints (skip pure dust to save calls, but include SOL always)
+    const mints = [...new Set(holdings.map(h => h.mint).filter(Boolean))];
+    const priceMap = state.network === 'mainnet-beta'
+      ? await fetchDexscreenerForMints(mints)
+      : new Map();
+
+    // Merge metadata + prices
+    for (const h of holdings) {
+      const meta = tokenMap.get(h.mint) || {};
+      const px = priceMap.get(h.mint) || {};
+      h.symbol = px.symbol || meta.symbol || null;
+      h.name = px.name || meta.name || null;
+      h.logoURI = meta.logoURI || px.logoURI || null;
+      h.price = px.price ?? null;
+      h.change24h = (px.change24h ?? null);
+      h.value = h.price ? h.uiAmount * h.price : 0;
+    }
+
+    // Add empty-token accounts AFTER price merge so allocation isn't skewed
+    const emptyAtas = splAccounts.filter(t => t.uiAmount === 0);
+
+    state.holdings = holdings.sort((a, b) => (b.value || 0) - (a.value || 0));
+    state.totalValue = state.holdings.reduce((s, h) => s + (h.value || 0), 0);
+    state.emptyAtasCount = emptyAtas.length;
+
+    state.txs = sigs || [];
+    state.txBefore = state.txs.length ? state.txs[state.txs.length - 1].signature : null;
+
+    renderAll(accountInfo, lamports);
+    $('#dashboard').hidden = false;
+    clearStatus();
+  } catch (err) {
+    console.error(err);
+    showStatus(`Couldn't load wallet: ${err.message}`, 'error');
+  }
+}
+
+/* ---------------- Rendering ---------------- */
+function renderAll(accountInfo, lamports) {
+  renderAccount(accountInfo);
+  renderPortfolio(lamports);
+  renderHoldings();
+  renderActivity();
+  renderAnalytics(accountInfo);
+  renderPnL();
+}
+
+function renderAccount(accountInfo) {
+  const a = state.address;
+  $('#account-addr').textContent = a;
+  $('#explorer-link').href = `${EXPLORER}/address/${a}?cluster=${explorerCluster()}`;
+  $('#solscan-link').href = `${SOLSCAN}/account/${a}${state.network !== 'mainnet-beta' ? `?cluster=${state.network}` : ''}`;
+
+  const exec = accountInfo?.executable === true;
+  const owner = accountInfo?.owner;
+  $('#tag-executable').hidden = !exec;
+  $('#tag-system').hidden = !(owner === '11111111111111111111111111111111' && !exec);
+  $('#tag-empty').hidden = !!accountInfo;
+
+  // Avatar gradient from address hash
+  const hue = [...a].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 0) % 360;
+  $('#avatar').style.background =
+    `conic-gradient(from 180deg at 50% 50%, hsl(${hue} 90% 60%), hsl(${(hue + 100) % 360} 80% 55%), hsl(${(hue + 220) % 360} 85% 60%), hsl(${hue} 90% 60%))`;
+}
+
+function renderPortfolio(lamports) {
+  const sol = (lamports || 0) / LAMPORTS_PER_SOL;
+  $('#sol-balance').textContent = fmt(sol, 4);
+  const solPrice = state.holdings.find(h => h.isNative)?.price;
+  $('#sol-usd').textContent = solPrice ? `${fmtUSD(sol * solPrice)} @ ${fmtUSD(solPrice, 2)}` : '—';
+
+  const total = state.totalValue;
+  $('#portfolio-total').textContent = fmtUSD(total);
+  $('#donut-total').textContent = fmtUSD(total);
+
+  // 24h portfolio change estimate
+  const pnl24h = state.holdings.reduce((s, h) => {
+    if (!h.price || h.change24h == null) return s;
+    const prev = h.value / (1 + h.change24h / 100);
+    return s + (h.value - prev);
+  }, 0);
+  const prevTotal = total - pnl24h;
+  const pct = prevTotal ? (pnl24h / prevTotal) * 100 : 0;
+  const pnlEl = $('#portfolio-change');
+  pnlEl.textContent = `${pnl24h >= 0 ? '▲' : '▼'} ${fmtDelta(pnl24h)} (${fmtPct(pct)})`;
+  pnlEl.className = `delta ${pnl24h > 0 ? 'pos' : pnl24h < 0 ? 'neg' : 'neutral'}`;
+  $('#pnl-24h').textContent = fmtDelta(pnl24h);
+  $('#pnl-24h').style.color = pnl24h > 0 ? 'var(--pos)' : pnl24h < 0 ? 'var(--neg)' : '';
+  $('#pnl-24h-pct').textContent = fmtPct(pct);
+
+  const tokensWithBal = state.holdings.filter(h => h.uiAmount > 0);
+  $('#token-count').textContent = tokensWithBal.length;
+  $('#nonzero-count').textContent = tokensWithBal.length;
+  $('#badge-holdings').textContent = tokensWithBal.length;
+  $('#portfolio-sub').textContent = `${fmt(sol, 2)} SOL · ${tokensWithBal.length} tokens` + (state.emptyAtasCount ? ` · ${state.emptyAtasCount} empty ATAs` : '');
+}
+
+function renderHoldings() {
+  const body = $('#holdings-body');
+  body.innerHTML = '';
+  const tmpl = $('#holdings-row-tmpl');
+
+  let rows = state.holdings.filter(h => h.uiAmount > 0);
+  if (state.hideDust) rows = rows.filter(h => (h.value || 0) >= 1);
+  if (state.filter) {
+    const q = state.filter.toLowerCase();
+    rows = rows.filter(h =>
+      (h.symbol || '').toLowerCase().includes(q) ||
+      (h.name || '').toLowerCase().includes(q) ||
+      (h.mint || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="6"><div class="empty">No holdings to show.</div></td></tr>`;
+    return;
+  }
+
+  const total = state.totalValue || 1;
+  for (const h of rows) {
+    const node = tmpl.content.firstElementChild.cloneNode(true);
+    if (h.mint) node.dataset.mint = h.mint;
+    const sym = h.symbol || 'Unknown';
+    const sub = h.isNative ? 'Native SOL' : (h.name ? `${h.name} · ${shorten(h.mint, 4, 4)}` : shorten(h.mint, 6, 6));
+    $('.token-sym', node).textContent = sym;
+    $('.token-sub', node).textContent = sub;
+    const img = $('.token-logo', node);
+    if (h.logoURI) {
+      img.src = h.logoURI;
+      img.onerror = () => { img.removeAttribute('src'); img.classList.add('fallback'); img.textContent = (sym || '?').slice(0, 2).toUpperCase(); };
+    } else {
+      img.removeAttribute('src');
+      img.classList.add('fallback');
+      img.textContent = (sym || '?').slice(0, 2).toUpperCase();
+      const hue = [...(h.mint || '')].reduce((x, c) => (x * 31 + c.charCodeAt(0)) >>> 0, 0) % 360;
+      img.style.background = `linear-gradient(135deg, hsl(${hue} 80% 65%), hsl(${(hue + 80) % 360} 75% 55%))`;
+    }
+    $('.t-price', node).textContent = h.price ? fmtUSD(h.price, h.price < 1 ? 6 : 4) : '—';
+    const chg = $('.t-change', node);
+    if (h.change24h == null) {
+      chg.textContent = '—';
+      chg.classList.add('neutral');
+    } else {
+      chg.textContent = fmtPct(h.change24h);
+      chg.classList.add(h.change24h > 0 ? 'pos' : h.change24h < 0 ? 'neg' : 'neutral');
+    }
+    $('.t-balance', node).textContent = fmt(h.uiAmount, Math.min(h.decimals || 4, 6));
+    $('.t-value', node).textContent = h.value ? fmtUSD(h.value) : '—';
+    const alloc = h.value ? (h.value / total) * 100 : 0;
+    $('.alloc-fill', node).style.width = `${Math.min(alloc, 100)}%`;
+    $('.t-alloc', node).textContent = h.value ? `${alloc.toFixed(1)}%` : '—';
+    body.appendChild(node);
+  }
+}
+
+function renderActivity() {
+  const list = $('#tx-list');
+  list.innerHTML = '';
+  const tmpl = $('#tx-row-tmpl');
+  const sigs = state.txs || [];
+  $('#tx-meta').textContent = sigs.length ? `Last ${sigs.length} signatures` : 'No history';
+  $('#badge-activity').textContent = sigs.length;
+  $('#load-more-tx').hidden = sigs.length < 20;
+
+  if (!sigs.length) {
+    list.innerHTML = `<li class="empty">No transactions found.</li>`;
+    return;
+  }
+  for (const s of sigs) {
+    const node = tmpl.content.firstElementChild.cloneNode(true);
+    const failed = !!s.err;
+    const icon = $('.tx-icon', node);
+    icon.textContent = failed ? '×' : '↔';
+    icon.classList.toggle('err', failed);
+    $('.tx-title', node).textContent = failed
+      ? `Failed transaction${s.memo ? ` · ${s.memo}` : ''}`
+      : (s.memo ? `Memo: ${s.memo}` : (s.confirmationStatus ? `Confirmed (${s.confirmationStatus})` : 'Confirmed'));
+    const sigEl = $('.tx-sig', node);
+    sigEl.textContent = shorten(s.signature, 10, 10);
+    sigEl.href = `${EXPLORER}/tx/${s.signature}?cluster=${explorerCluster()}`;
+    $('.tx-fee', node).textContent = '';
+    $('.tx-time', node).textContent = timeAgo(s.blockTime);
+    $('.tx-slot', node).textContent = `slot ${s.slot}`;
+    list.appendChild(node);
+  }
+}
+
+function renderAnalytics(accountInfo) {
+  // Donut + legend (top 6, rest in "Other")
+  const ranked = state.holdings.filter(h => h.value > 0).sort((a, b) => b.value - a.value);
+  const top = ranked.slice(0, 6);
+  const otherVal = ranked.slice(6).reduce((s, h) => s + h.value, 0);
+  const slices = [...top.map(h => ({ name: h.symbol || shorten(h.mint, 4, 4), val: h.value })),
+                  ...(otherVal > 0 ? [{ name: 'Other', val: otherVal }] : [])];
+  const total = state.totalValue;
+
+  const svg = $('#donut-svg');
+  // Clear previous segments
+  $('.donut-seg', svg).forEach(n => n.remove());
+  let offset = 0;
+  const palette = ['#9945ff', '#14f195', '#4f8bff', '#ffb347', '#ff6ad5', '#c4b1ff', '#7b61ff'];
+  slices.forEach((s, i) => {
+    const pct = total ? (s.val / total) * 100 : 0;
+    const seg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    seg.setAttribute('cx', '21');
+    seg.setAttribute('cy', '21');
+    seg.setAttribute('r', '15.9155');
+    seg.setAttribute('class', 'donut-seg');
+    seg.setAttribute('stroke', palette[i % palette.length]);
+    seg.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+    seg.setAttribute('stroke-dashoffset', `${100 - offset}`);
+    svg.appendChild(seg);
+    offset += pct;
+  });
+
+  const legend = $('#composition-legend');
+  legend.innerHTML = '';
+  slices.forEach((s, i) => {
+    const li = document.createElement('li');
+    const pct = total ? (s.val / total) * 100 : 0;
+    li.innerHTML = `
+      <span class="dot" style="background:${palette[i % palette.length]}"></span>
+      <span class="name">${escapeHtml(s.name)}</span>
+      <span class="val">${fmtUSD(s.val)}</span>
+      <span class="pct">${pct.toFixed(1)}%</span>`;
+    legend.appendChild(li);
+  });
+  if (!slices.length) {
+    legend.innerHTML = `<li class="empty">No priced holdings</li>`;
+  }
+
+  // Top movers (24h, by |change| × value)
+  const movers = state.holdings
+    .filter(h => h.value > 0 && h.change24h != null)
+    .map(h => ({ ...h, impact: Math.abs(h.change24h) * (h.value || 0) }))
+    .sort((a, b) => b.impact - a.impact)
+    .slice(0, 6);
+  const moversEl = $('#movers');
+  moversEl.innerHTML = '';
+  if (!movers.length) {
+    moversEl.innerHTML = `<li class="empty">No 24h price data</li>`;
+  }
+  for (const h of movers) {
+    const li = document.createElement('li');
+    const cls = h.change24h > 0 ? 'pos' : 'neg';
+    li.innerHTML = `
+      <div class="left">
+        ${h.logoURI ? `<img src="${h.logoURI}" alt="" onerror="this.remove()">` : ''}
+        <div>
+          <div style="font-weight:600">${escapeHtml(h.symbol || shorten(h.mint, 4, 4))}</div>
+          <div class="muted small">${fmtUSD(h.value)}</div>
+        </div>
+      </div>
+      <div class="delta ${cls}">${fmtPct(h.change24h)}</div>`;
+    moversEl.appendChild(li);
+  }
+
+  // Account info KV
+  $('#kv-owner').textContent = accountInfo?.owner || '—';
+  $('#kv-exec').textContent = accountInfo?.executable ? 'yes' : 'no';
+  $('#kv-rent').textContent = accountInfo?.rentEpoch ?? '—';
+  $('#kv-size').textContent = accountInfo?.space != null ? `${accountInfo.space} bytes` : '—';
+  const sigs = state.txs;
+  if (sigs.length) {
+    const newest = sigs[0]?.blockTime;
+    const oldest = sigs[sigs.length - 1]?.blockTime;
+    $('#kv-first').textContent = oldest ? new Date(oldest * 1000).toLocaleString() : '—';
+    $('#kv-last').textContent = newest ? new Date(newest * 1000).toLocaleString() : '—';
+    $('#wallet-first').textContent = oldest ? `first seen ${timeAgo(oldest)}` : 'first seen —';
+    $('#wallet-age').textContent = oldest ? timeAgo(oldest).replace(' ago', '') : '—';
+  } else {
+    $('#kv-first').textContent = '—';
+    $('#kv-last').textContent = '—';
+    $('#wallet-first').textContent = 'no activity';
+    $('#wallet-age').textContent = '—';
+  }
+}
+
+function renderPnL() {
+  const body = $('#pnl-body');
+  body.innerHTML = '';
+  const rows = state.holdings.filter(h => h.value > 0 && h.change24h != null);
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="4"><div class="empty">No priced holdings with 24h data.</div></td></tr>`;
+    return;
+  }
+  for (const h of rows) {
+    const prev = h.value / (1 + h.change24h / 100);
+    const delta = h.value - prev;
+    const cls = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'neutral';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="token-id">
+          ${h.logoURI ? `<img class="token-logo" src="${h.logoURI}" alt="" onerror="this.remove()">` : `<span class="token-logo fallback" style="display:inline-flex;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:#0a0820;font-weight:700;font-size:11px;background:linear-gradient(135deg,#9945ff,#14f195)">${escapeHtml((h.symbol || '?').slice(0,2).toUpperCase())}</span>`}
+          <div class="token-text">
+            <div class="token-sym">${escapeHtml(h.symbol || 'Unknown')}</div>
+            <div class="token-sub muted">${h.isNative ? 'Native SOL' : escapeHtml(shorten(h.mint, 6, 6))}</div>
+          </div>
+        </div>
+      </td>
+      <td class="num">${fmtUSD(h.value)}</td>
+      <td class="num delta ${cls}">${fmtPct(h.change24h)}</td>
+      <td class="num delta ${cls}">${fmtDelta(delta)}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ---------------- Activity pagination ---------------- */
+async function loadMoreTx() {
+  if (!state.address || !state.txBefore) return;
+  const btn = $('#load-more-tx');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  try {
+    const more = await rpc('getSignaturesForAddress', [state.address, { limit: 20, before: state.txBefore }]);
+    if (more?.length) {
+      state.txs = state.txs.concat(more);
+      state.txBefore = more[more.length - 1].signature;
+      renderActivity();
+    } else {
+      btn.hidden = true;
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Load more';
+  }
+}
+
+/* ---------------- Trading modals (Latest / Trending / Gainers / Volume / Memescope) ---------------- */
+const TRADING_VIEWS = {
+  latest:    { title: 'Latest Tokens',  sub: 'Recently launched Solana tokens, ranked by listing time' },
+  trending:  { title: 'Trending',       sub: 'Top trending Solana tokens by 24h volume' },
+  gainers:   { title: 'Top Gainers',    sub: 'Best 24h price performance' },
+  volume:    { title: 'High Volume',    sub: 'Highest 24h trading volume' },
+  memescope: { title: 'Memescope',      sub: 'Boosted launchpad tokens & memecoins' },
+  copy:      { title: 'Copy Trading',   sub: 'Mirror top wallets automatically (coming soon)' },
+};
+
+function openModal(title, sub) {
+  $('#modal-title').textContent = title;
+  $('#modal-sub').textContent = sub || '';
+  $('#modal-body').innerHTML = '<div class="modal-loading">Loading…</div>';
+  $('#modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  $('#modal').hidden = true;
+  document.body.style.overflow = '';
+}
+
+async function fetchSolanaPairs() {
+  // DexScreener search returns up to ~30 pairs per query. We aggregate a few popular base symbols
+  // to get a broader set, then dedupe by base token mint.
+  const queries = ['SOL', 'USDC', 'BONK', 'WIF', 'JUP'];
+  const seen = new Map();
+  await Promise.all(queries.map(async q => {
+    try {
+      const r = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${q}`);
+      if (!r.ok) return;
+      const json = await r.json();
+      for (const p of json?.pairs || []) {
+        if (p.chainId !== 'solana') continue;
+        const base = p.baseToken?.address;
+        if (!base) continue;
+        const prev = seen.get(base);
+        const vol = Number(p.volume?.h24 || 0);
+        if (!prev || vol > Number(prev.volume?.h24 || 0)) seen.set(base, p);
+      }
+    } catch (_) {}
+  }));
+  return Array.from(seen.values());
+}
+
+async function fetchLatestTokenProfiles() {
+  try {
+    const r = await fetch('https://api.dexscreener.com/token-profiles/latest/v1');
+    if (!r.ok) return [];
+    const json = await r.json();
+    const list = Array.isArray(json) ? json : (json.profiles || []);
+    return list.filter(p => p.chainId === 'solana');
+  } catch { return []; }
+}
+
+async function fetchBoostedTokens() {
+  try {
+    const r = await fetch('https://api.dexscreener.com/token-boosts/top/v1');
+    if (!r.ok) return [];
+    const json = await r.json();
+    const list = Array.isArray(json) ? json : (json.boosts || []);
+    return list.filter(p => p.chainId === 'solana');
+  } catch { return []; }
+}
+
+function pairsRowHtml(p, rank) {
+  const price = Number(p.priceUsd) || null;
+  const ch = Number(p.priceChange?.h24 ?? 0);
+  const vol = Number(p.volume?.h24 || 0);
+  const mc = Number(p.marketCap || p.fdv || 0);
+  const created = p.pairCreatedAt ? timeAgo(Math.floor(p.pairCreatedAt / 1000)) : '—';
+  const logo = p.info?.imageUrl;
+  const sym = p.baseToken?.symbol || '?';
+  const name = p.baseToken?.name || '';
+  const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+  return `
+    <tr>
+      <td class="rank-cell">${rank}</td>
+      <td>
+        <div class="token-id">
+          ${logo ? `<img class="token-logo" src="${logo}" alt="" onerror="this.remove()">` : `<span class="token-logo fallback" style="display:inline-flex;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:#0a0820;font-weight:700;font-size:11px;background:linear-gradient(135deg,#9945ff,#14f195)">${escapeHtml(sym.slice(0,2).toUpperCase())}</span>`}
+          <div class="token-text">
+            <div class="token-sym">${escapeHtml(sym)}</div>
+            <div class="token-sub muted">${escapeHtml(name)} · ${shorten(p.baseToken.address, 4, 4)}</div>
+          </div>
+        </div>
+      </td>
+      <td class="num">${price ? fmtUSD(price, price < 1 ? 6 : 2) : '—'}</td>
+      <td class="num delta ${cls}">${fmtPct(ch)}</td>
+      <td class="num">${vol ? fmtUSD(vol) : '—'}</td>
+      <td class="num">${mc ? fmtUSD(mc) : '—'}</td>
+      <td class="num"><a class="ext" href="${p.url}" target="_blank" rel="noopener">DEX ↗</a></td>
+    </tr>`;
+}
+
+function renderPairsTable(rows, emptyMsg = 'No data available right now.') {
+  if (!rows.length) return `<div class="empty">${emptyMsg}</div>`;
+  return `
+    <table class="modal-table">
+      <thead><tr>
+        <th>#</th><th>Token</th><th class="num">Price</th><th class="num">24h</th>
+        <th class="num">Volume 24h</th><th class="num">Market Cap</th><th class="num"></th>
+      </tr></thead>
+      <tbody>${rows.map((p, i) => pairsRowHtml(p, i + 1)).join('')}</tbody>
+    </table>`;
+}
+
+async function loadTradingView(view) {
+  const meta = TRADING_VIEWS[view];
+  if (!meta) return;
+  openModal(meta.title, meta.sub);
+  const body = $('#modal-body');
+
+  try {
+    if (view === 'copy') {
+      body.innerHTML = `<div class="empty">Copy Trading is a placeholder in this demo.<br>Real wallet-mirroring needs a paid swap-execution API.</div>`;
+      return;
+    }
+
+    if (view === 'latest') {
+      const profiles = await fetchLatestTokenProfiles();
+      if (!profiles.length) { body.innerHTML = `<div class="empty">Couldn't load latest tokens.</div>`; return; }
+      const mints = profiles.slice(0, 30).map(p => p.tokenAddress);
+      const prices = await fetchDexscreenerForMints(mints);
+      // Build rows from profile + price info
+      const rows = profiles.slice(0, 30).map(p => {
+        const px = prices.get(p.tokenAddress);
+        return {
+          baseToken: { address: p.tokenAddress, symbol: px?.symbol || (p.label || '?'), name: px?.name || (p.description?.slice(0, 40) || '') },
+          priceUsd: px?.price,
+          priceChange: { h24: px?.change24h ?? null },
+          volume: { h24: null },
+          info: { imageUrl: p.icon || px?.logoURI },
+          url: p.url || `https://dexscreener.com/solana/${p.tokenAddress}`,
+        };
+      });
+      body.innerHTML = renderPairsTable(rows, 'No new Solana tokens reported.');
+      return;
+    }
+
+    if (view === 'memescope') {
+      const boosts = await fetchBoostedTokens();
+      if (!boosts.length) { body.innerHTML = `<div class="empty">No boosted tokens right now.</div>`; return; }
+      const mints = boosts.slice(0, 30).map(b => b.tokenAddress);
+      const prices = await fetchDexscreenerForMints(mints);
+      const rows = boosts.slice(0, 30).map(b => {
+        const px = prices.get(b.tokenAddress);
+        return {
+          baseToken: { address: b.tokenAddress, symbol: px?.symbol || '?', name: px?.name || (b.description?.slice(0, 40) || '') },
+          priceUsd: px?.price,
+          priceChange: { h24: px?.change24h ?? null },
+          volume: { h24: null },
+          info: { imageUrl: b.icon || px?.logoURI },
+          url: b.url || `https://dexscreener.com/solana/${b.tokenAddress}`,
+        };
+      });
+      body.innerHTML = renderPairsTable(rows, 'No boosted tokens.');
+      return;
+    }
+
+    // trending / gainers / volume — derived from a fetched pair set
+    const pairs = await fetchSolanaPairs();
+    let sorted;
+    if (view === 'trending') sorted = pairs.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
+    else if (view === 'gainers') sorted = pairs.sort((a, b) => Number(b.priceChange?.h24 ?? -1e9) - Number(a.priceChange?.h24 ?? -1e9));
+    else if (view === 'volume') sorted = pairs.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
+    else sorted = pairs;
+    body.innerHTML = renderPairsTable(sorted.slice(0, 25));
+  } catch (err) {
+    console.error(err);
+    body.innerHTML = `<div class="empty">Couldn't load data: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* ---------------- Token detail modal ---------------- */
+async function openTokenDetail(mint) {
+  openModal('Token detail', shorten(mint, 10, 10));
+  const body = $('#modal-body');
+  try {
+    const [tokenMap, priceMap] = await Promise.all([
+      loadJupTokenMap(),
+      fetchDexscreenerForMints([mint]),
+    ]);
+    const meta = tokenMap.get(mint) || {};
+    const px = priceMap.get(mint) || {};
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+    const json = r.ok ? await r.json() : {};
+    const pairs = (json.pairs || []).filter(p => p.chainId === 'solana')
+      .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0))
+      .slice(0, 8);
+
+    const sym = px.symbol || meta.symbol || '?';
+    const name = px.name || meta.name || '';
+    const logo = meta.logoURI || px.logoURI;
+    const price = px.price;
+    const ch = px.change24h;
+    const chCls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+
+    $('#modal-title').textContent = `${sym}${name ? ` · ${name}` : ''}`;
+    $('#modal-sub').innerHTML = `<span class="mono">${escapeHtml(mint)}</span>`;
+
+    body.innerHTML = `
+      <div class="td-summary">
+        <div class="td-id">
+          ${logo ? `<img class="td-logo" src="${logo}" alt="" onerror="this.remove()">` : ''}
+          <div>
+            <div class="td-price">${price ? fmtUSD(price, price < 1 ? 6 : 2) : '—'}</div>
+            <div class="td-chg delta ${chCls}">${fmtPct(ch)} <span class="muted small">24h</span></div>
+          </div>
+        </div>
+        <div class="td-links">
+          <a class="ghost-btn small" target="_blank" rel="noopener" href="https://dexscreener.com/solana/${mint}">DexScreener ↗</a>
+          <a class="ghost-btn small" target="_blank" rel="noopener" href="https://birdeye.so/token/${mint}?chain=solana">Birdeye ↗</a>
+          <a class="ghost-btn small" target="_blank" rel="noopener" href="${SOLSCAN}/token/${mint}">Solscan ↗</a>
+          <button class="ghost-btn small" data-copy="${escapeHtml(mint)}">Copy mint</button>
+        </div>
+      </div>
+      <h4 class="td-h4">Top pairs by volume</h4>
+      ${pairs.length ? `
+        <table class="modal-table">
+          <thead><tr><th>Pair</th><th>DEX</th><th class="num">Liquidity</th><th class="num">24h vol</th><th class="num">24h chg</th><th></th></tr></thead>
+          <tbody>${pairs.map(p => {
+            const c = Number(p.priceChange?.h24 ?? 0);
+            const cc = c > 0 ? 'pos' : c < 0 ? 'neg' : 'neutral';
+            return `<tr>
+              <td>${escapeHtml(p.baseToken?.symbol || '?')}/${escapeHtml(p.quoteToken?.symbol || '?')}</td>
+              <td>${escapeHtml(p.dexId || '—')}</td>
+              <td class="num">${p.liquidity?.usd ? fmtUSD(p.liquidity.usd) : '—'}</td>
+              <td class="num">${p.volume?.h24 ? fmtUSD(p.volume.h24) : '—'}</td>
+              <td class="num delta ${cc}">${fmtPct(c)}</td>
+              <td class="num"><a class="ext" target="_blank" rel="noopener" href="${p.url}">Open ↗</a></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>` : `<div class="empty">No active pairs found on DexScreener.</div>`}
+    `;
+
+    body.querySelector('[data-copy]')?.addEventListener('click', async (e) => {
+      try { await navigator.clipboard.writeText(e.currentTarget.dataset.copy); e.currentTarget.textContent = 'Copied'; } catch {}
+    });
+  } catch (err) {
+    body.innerHTML = `<div class="empty">Couldn't load token: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* ---------------- Tools modals ---------------- */
+function promptModal(title, sub, placeholder, onSubmit) {
+  openModal(title, sub);
+  const body = $('#modal-body');
+  body.innerHTML = `
+    <form class="prompt-form" id="prompt-form">
+      <input id="prompt-input" placeholder="${escapeHtml(placeholder)}" class="filter-input" style="flex:1;min-width:0;font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px" autofocus />
+      <button class="primary-btn small" type="submit">Analyze →</button>
+    </form>
+    <div id="prompt-result"></div>`;
+  $('#prompt-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const v = $('#prompt-input').value.trim();
+    if (!v) return;
+    $('#prompt-result').innerHTML = '<div class="modal-loading">Analyzing…</div>';
+    try { await onSubmit(v, $('#prompt-result')); }
+    catch (err) { $('#prompt-result').innerHTML = `<div class="empty">Error: ${escapeHtml(err.message)}</div>`; }
+  });
+}
+
+async function toolTokenChecker(mintInput, out) {
+  const mint = mintInput.trim();
+  if (!isValidAddress(mint)) { out.innerHTML = `<div class="empty">Not a valid Solana mint address.</div>`; return; }
+  const [supplyR, accountInfo, ds, tokenMap] = await Promise.all([
+    rpc('getTokenSupply', [mint]).catch(() => null),
+    rpc('getAccountInfo', [mint, { encoding: 'jsonParsed' }]).then(r => r?.value).catch(() => null),
+    fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+    loadJupTokenMap(),
+  ]);
+  const supply = supplyR?.value?.uiAmount ?? null;
+  const decimals = supplyR?.value?.decimals ?? null;
+  const info = accountInfo?.data?.parsed?.info || {};
+  const owner = accountInfo?.owner;
+  const verified = tokenMap.has(mint);
+  const pairs = (ds.pairs || []).filter(p => p.chainId === 'solana');
+  const liquidity = pairs.reduce((s, p) => s + Number(p.liquidity?.usd || 0), 0);
+  const volume = pairs.reduce((s, p) => s + Number(p.volume?.h24 || 0), 0);
+  const price = pairs[0]?.priceUsd;
+
+  // Naive scoring
+  let score = 50;
+  if (verified) score += 25;
+  if (!info.mintAuthority) score += 10;
+  if (!info.freezeAuthority) score += 10;
+  if (liquidity > 50_000) score += 10;
+  if (liquidity > 500_000) score += 5;
+  if (volume > 50_000) score += 5;
+  if (pairs.length >= 3) score += 5;
+  score = Math.min(score, 100);
+  const grade = score >= 85 ? 'A' : score >= 70 ? 'B' : score >= 50 ? 'C' : 'D';
+  const gradeCls = score >= 85 ? 'pos' : score >= 50 ? '' : 'neg';
+
+  out.innerHTML = `
+    <div class="checker">
+      <div class="checker-score">
+        <div class="grade ${gradeCls}">${grade}</div>
+        <div>
+          <div class="muted small">Safety score (heuristic)</div>
+          <div class="big-sm">${score}/100</div>
+        </div>
+      </div>
+      <ul class="checker-flags">
+        <li class="${verified ? 'good' : 'warn'}">${verified ? '✓' : '!'} ${verified ? 'Listed on Jupiter verified registry' : 'Not on Jupiter verified registry'}</li>
+        <li class="${info.mintAuthority ? 'warn' : 'good'}">${info.mintAuthority ? '!' : '✓'} Mint authority ${info.mintAuthority ? 'present — supply can change' : 'renounced'}</li>
+        <li class="${info.freezeAuthority ? 'warn' : 'good'}">${info.freezeAuthority ? '!' : '✓'} Freeze authority ${info.freezeAuthority ? 'present — holders can be frozen' : 'renounced'}</li>
+        <li class="${liquidity > 50_000 ? 'good' : 'warn'}">${liquidity > 50_000 ? '✓' : '!'} Liquidity ${fmtUSD(liquidity)} across ${pairs.length} pair(s)</li>
+        <li class="${volume > 10_000 ? 'good' : 'warn'}">${volume > 10_000 ? '✓' : '!'} 24h volume ${fmtUSD(volume)}</li>
+      </ul>
+      <dl class="kv">
+        <div><dt>Price</dt><dd>${price ? fmtUSD(Number(price), Number(price) < 1 ? 6 : 2) : '—'}</dd></div>
+        <div><dt>Supply</dt><dd>${supply != null ? fmt(supply) : '—'}</dd></div>
+        <div><dt>Decimals</dt><dd>${decimals ?? '—'}</dd></div>
+        <div><dt>Owner program</dt><dd>${shorten(owner || '—', 8, 8)}</dd></div>
+        <div><dt>Mint authority</dt><dd>${info.mintAuthority ? shorten(info.mintAuthority, 8, 8) : 'none'}</dd></div>
+        <div><dt>Freeze authority</dt><dd>${info.freezeAuthority ? shorten(info.freezeAuthority, 8, 8) : 'none'}</dd></div>
+      </dl>
+      <p class="muted small note">Heuristic only. Score combines authority renouncement, registry status, and liquidity / volume thresholds.</p>
+    </div>`;
+}
+
+async function toolHolderInsights(mint, out) {
+  if (!isValidAddress(mint)) { out.innerHTML = `<div class="empty">Not a valid Solana mint address.</div>`; return; }
+  const [largestR, supplyR, tokenMap] = await Promise.all([
+    rpc('getTokenLargestAccounts', [mint]).catch(() => null),
+    rpc('getTokenSupply', [mint]).catch(() => null),
+    loadJupTokenMap(),
+  ]);
+  const meta = tokenMap.get(mint) || {};
+  const supply = supplyR?.value?.uiAmount;
+  const list = (largestR?.value || []).slice(0, 20);
+  if (!list.length) { out.innerHTML = `<div class="empty">No holder data returned.</div>`; return; }
+
+  const top10 = list.slice(0, 10).reduce((s, a) => s + Number(a.uiAmount || 0), 0);
+  const concentration = supply ? (top10 / supply) * 100 : null;
+
+  out.innerHTML = `
+    <div class="kv" style="margin-bottom:14px">
+      <div><dt>Token</dt><dd>${escapeHtml(meta.symbol || shorten(mint, 8, 8))}</dd></div>
+      <div><dt>Supply</dt><dd>${supply != null ? fmt(supply) : '—'}</dd></div>
+      <div><dt>Top 10 concentration</dt><dd>${concentration != null ? concentration.toFixed(2) + '%' : '—'}</dd></div>
+    </div>
+    <table class="modal-table">
+      <thead><tr><th>#</th><th>Token account</th><th class="num">Amount</th><th class="num">% supply</th></tr></thead>
+      <tbody>${list.map((a, i) => `
+        <tr>
+          <td class="rank-cell">${i + 1}</td>
+          <td><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${a.address}">${shorten(a.address, 8, 8)} ↗</a></td>
+          <td class="num">${fmt(Number(a.uiAmount || 0))}</td>
+          <td class="num">${supply ? ((Number(a.uiAmount || 0) / supply) * 100).toFixed(2) + '%' : '—'}</td>
+        </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+async function toolDecoder(sig, out) {
+  sig = sig.trim();
+  if (sig.length < 64) { out.innerHTML = `<div class="empty">Paste a full transaction signature (base58).</div>`; return; }
+  const tx = await rpc('getTransaction', [sig, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }]).catch(() => null);
+  if (!tx) { out.innerHTML = `<div class="empty">Transaction not found on ${state.network}.</div>`; return; }
+
+  const m = tx.transaction.message;
+  const accounts = m.accountKeys.map(a => a.pubkey || a);
+  const ix = m.instructions.map((i, idx) => {
+    const prog = (typeof i.programId === 'string') ? i.programId : accounts[i.programIdIndex];
+    return { idx, program: prog, parsed: i.parsed, data: i.data };
+  });
+  const inner = (tx.meta?.innerInstructions || []).flatMap(g => g.instructions.map(i => ({
+    program: (typeof i.programId === 'string') ? i.programId : accounts[i.programIdIndex],
+    parsed: i.parsed,
+  })));
+  const balDelta = (tx.meta?.preBalances || []).map((pre, i) => ({
+    account: accounts[i],
+    delta: ((tx.meta.postBalances[i] - pre) / LAMPORTS_PER_SOL),
+  })).filter(b => Math.abs(b.delta) > 0);
+
+  const logs = tx.meta?.logMessages || [];
+  out.innerHTML = `
+    <div class="kv" style="margin-bottom:14px">
+      <div><dt>Status</dt><dd>${tx.meta?.err ? '<span class="delta neg">failed</span>' : '<span class="delta pos">success</span>'}</dd></div>
+      <div><dt>Slot</dt><dd>${tx.slot}</dd></div>
+      <div><dt>Block time</dt><dd>${tx.blockTime ? new Date(tx.blockTime * 1000).toLocaleString() : '—'}</dd></div>
+      <div><dt>Fee</dt><dd>${tx.meta?.fee ? (tx.meta.fee / LAMPORTS_PER_SOL).toFixed(6) + ' SOL' : '—'}</dd></div>
+      <div><dt>Instructions</dt><dd>${ix.length} top-level + ${inner.length} inner</dd></div>
+      <div><dt>Accounts</dt><dd>${accounts.length}</dd></div>
+    </div>
+    <h4 class="td-h4">Instructions</h4>
+    <ol class="ix-list">
+      ${ix.map(i => `<li><span class="mono">${shorten(i.program, 6, 6)}</span> ${i.parsed?.type ? `<span class="ix-type">${escapeHtml(i.parsed.type)}</span>` : '<span class="muted">raw</span>'}</li>`).join('')}
+    </ol>
+    <h4 class="td-h4">SOL balance changes</h4>
+    <ul class="bal-list">
+      ${balDelta.length ? balDelta.map(b => `<li><span class="mono">${shorten(b.account, 6, 6)}</span> <span class="delta ${b.delta > 0 ? 'pos' : 'neg'}">${b.delta > 0 ? '+' : ''}${b.delta.toFixed(6)} SOL</span></li>`).join('') : '<li class="muted">No SOL deltas.</li>'}
+    </ul>
+    <h4 class="td-h4">Program logs</h4>
+    <pre class="logs">${escapeHtml(logs.slice(0, 60).join('\n')) || '<em>No logs.</em>'}</pre>
+    <p><a class="ghost-btn small" target="_blank" rel="noopener" href="${EXPLORER}/tx/${sig}?cluster=${explorerCluster()}">Open in Explorer ↗</a></p>`;
+}
+
+async function openSwap() {
+  openModal('Swap', 'Quote any token pair via Jupiter Lite API');
+  $('#modal-body').innerHTML = `
+    <div class="swap-card">
+      <label class="swap-row"><span>You pay</span>
+        <div class="swap-input"><input id="swap-from" class="filter-input" value="So11111111111111111111111111111111111111112" placeholder="From mint"></div>
+        <div class="swap-input"><input id="swap-amt" class="filter-input" type="number" value="1" min="0" step="0.1"></div>
+      </label>
+      <div class="swap-arrow">↓</div>
+      <label class="swap-row"><span>You receive</span>
+        <div class="swap-input"><input id="swap-to" class="filter-input" value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" placeholder="To mint"></div>
+        <div class="swap-input"><span id="swap-out" class="muted">—</span></div>
+      </label>
+      <button id="swap-quote" class="primary-btn small">Get quote</button>
+      <div id="swap-result" class="muted small"></div>
+      <p class="muted small note">Read-only quote via Jupiter. Real swap execution requires a wallet adapter, not included.</p>
+    </div>`;
+  $('#swap-quote').addEventListener('click', async () => {
+    const from = $('#swap-from').value.trim();
+    const to = $('#swap-to').value.trim();
+    const amt = parseFloat($('#swap-amt').value || '0');
+    if (!isValidAddress(from) || !isValidAddress(to) || !(amt > 0)) {
+      $('#swap-result').textContent = 'Enter valid mints and amount.';
+      return;
+    }
+    $('#swap-result').textContent = 'Fetching quote…';
+    try {
+      // Need decimals of input mint to compute lamports
+      const sup = await rpc('getTokenSupply', [from]).catch(() => null);
+      const dec = sup?.value?.decimals ?? 9;
+      const amount = BigInt(Math.round(amt * 10 ** dec)).toString();
+      const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${from}&outputMint=${to}&amount=${amount}&slippageBps=50&restrictIntermediateTokens=true`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Jupiter: ${r.status}`);
+      const q = await r.json();
+      const outSup = await rpc('getTokenSupply', [to]).catch(() => null);
+      const outDec = outSup?.value?.decimals ?? 9;
+      const outAmt = Number(q.outAmount) / 10 ** outDec;
+      $('#swap-out').textContent = `≈ ${fmt(outAmt, 6)}`;
+      $('#swap-result').innerHTML = `Best route via <strong>${q.routePlan?.map(r => r.swapInfo?.label).join(' → ') || '—'}</strong>. Price impact ${(Number(q.priceImpactPct || 0) * 100).toFixed(3)}%.`;
+    } catch (err) {
+      $('#swap-result').textContent = `Quote failed: ${err.message}`;
+    }
+  });
+}
+
+function openInfoModal(title, sub, bodyHtml) {
+  openModal(title, sub);
+  $('#modal-body').innerHTML = bodyHtml;
+}
+
+const PRODUCT_INFO = {
+  'data-api':  ['Data API',         'Comprehensive Solana blockchain data API',
+    `<p>This demo uses public APIs (Solana JSON-RPC, DexScreener, Jupiter). A production "Data API" service would offer historical trades, OHLCV bars, holder snapshots, and wallet PnL with cost-basis.</p>`],
+  'rpc':       ['Solana RPC',       'High-performance, low-latency Solana RPC nodes',
+    `<p>The current network is <code>${state.network}</code>. Public RPC endpoints rate-limit heavily; a dedicated RPC plan removes the limits and adds priority fee estimation, gRPC streams, and isolated mempool access.</p>`],
+  'dedicated': ['Dedicated Nodes',  'Fully managed dedicated Solana infrastructure',
+    `<p>Dedicated nodes give you predictable latency under load — co-located in <em>fra1 / nyc1 / sgp1</em> with hot-swap failover. Not part of this demo.</p>`],
+  'grpc':      ['Yellowstone gRPC', 'Real-time Solana data streaming',
+    `<p>Subscribe to account, slot, transaction, and block updates over gRPC. The demo polls JSON-RPC; production trackers stream Geyser to keep PnL realtime.</p>`],
+  'raptor':    ['Raptor Swap API',  'Integrate seamless token swaps into your apps',
+    `<p>This demo wires the <code>Swap</code> link to <em>Jupiter Lite</em> for quotes (read-only). A first-party swap API would add MEV-protection, priority-fee tuning, and your own fee bps.</p>`],
+  'teams':     ['Teams',            'Collaborate and share access with your team',
+    `<p>Share saved wallets, alerts, and dashboards across an org. Not implemented in this demo.</p>`],
+};
+
+const DEVELOPERS_INFO = ['Developers', 'API reference & guides',
+  `<p>This static demo talks directly to:</p>
+   <ul class="dev-list">
+     <li><strong>Solana JSON-RPC</strong> — <code>getBalance</code>, <code>getTokenAccountsByOwner</code>, <code>getSignaturesForAddress</code>, <code>getTransaction</code>, <code>getTokenSupply</code>, <code>getTokenLargestAccounts</code>.</li>
+     <li><strong>DexScreener</strong> — <code>/latest/dex/tokens</code>, <code>/latest/dex/search</code>, <code>/token-profiles/latest/v1</code>, <code>/token-boosts/top/v1</code>.</li>
+     <li><strong>Jupiter</strong> — <code>tokens.jup.ag</code> (registry) and <code>lite-api.jup.ag/swap/v1/quote</code> (quotes).</li>
+   </ul>
+   <p>Deep-link to a wallet: <code>?addr=&lt;ADDRESS&gt;</code></p>`];
+
+/* ---------------- UI wiring ---------------- */
+function init() {
+  $('#search-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#address').value.trim();
+    if (v) trackAddress(v);
+  });
+
+  $('#paste-btn').addEventListener('click', async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      if (t) { $('#address').value = t.trim(); $('#address').focus(); }
+    } catch {
+      showStatus('Clipboard blocked — paste manually.', 'error');
+    }
+  });
+
+  $('#copy-btn').addEventListener('click', async () => {
+    const a = $('#account-addr').textContent;
+    if (!a || a === '—') return;
+    try {
+      await navigator.clipboard.writeText(a);
+      const btn = $('#copy-btn'); const prev = btn.textContent;
+      btn.textContent = 'Copied'; setTimeout(() => btn.textContent = prev, 1200);
+    } catch {}
+  });
+
+  $('.chip').forEach(c => c.addEventListener('click', () => {
+    const v = c.dataset.addr;
+    $('#address').value = v;
+    trackAddress(v);
+  }));
+
+  $('.net-btn').forEach(btn => btn.addEventListener('click', () => {
+    $('.net-btn').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+    });
+    state.network = btn.dataset.network;
+    loadTrendingTicker();
+    const v = $('#address').value.trim();
+    if (v && isValidAddress(v)) trackAddress(v);
+  }));
+
+  $('.tab').forEach(t => t.addEventListener('click', () => {
+    $('.tab').forEach(b => {
+      b.classList.toggle('active', b === t);
+      b.setAttribute('aria-selected', b === t ? 'true' : 'false');
+    });
+    const target = t.dataset.tab;
+    $('.tab-panel').forEach(p => p.hidden = (p.dataset.panel !== target));
+  }));
+
+  $('#holdings-filter').addEventListener('input', (e) => {
+    state.filter = e.target.value;
+    renderHoldings();
+  });
+
+  $('#hide-dust').addEventListener('click', (e) => {
+    state.hideDust = !state.hideDust;
+    e.currentTarget.setAttribute('aria-pressed', state.hideDust ? 'true' : 'false');
+    renderHoldings();
+  });
+
+  $('#load-more-tx').addEventListener('click', loadMoreTx);
+
+  // Trading dropdown items
+  $('.ddi[data-trading]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const v = el.dataset.trading;
+    if (v === 'wallet') return; // we're already here
+    loadTradingView(v);
+  }));
+
+  // Tools dropdown items
+  $('.ddi[data-tool]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const t = el.dataset.tool;
+    if (t === 'checker')  promptModal('Token Checker', 'Heuristic safety analysis — paste an SPL mint', 'Paste an SPL mint address…', toolTokenChecker);
+    else if (t === 'holders')  promptModal('Holder Insights', 'Top holders & concentration for a token', 'Paste an SPL mint address…', toolHolderInsights);
+    else if (t === 'decoder')  promptModal('Transaction Decoder', 'Parse and explain any Solana transaction', 'Paste a transaction signature…', toolDecoder);
+  }));
+
+  // Products dropdown items
+  $('.ddi[data-product]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const p = el.dataset.product;
+    const info = PRODUCT_INFO[p];
+    if (info) openInfoModal(info[0], info[1], info[2]);
+  }));
+
+  // Top-bar action links (Swap / Developers)
+  $('[data-action]').forEach(el => el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const a = el.dataset.action;
+    if (a === 'swap') openSwap();
+    else if (a === 'developers') openInfoModal(DEVELOPERS_INFO[0], DEVELOPERS_INFO[1], DEVELOPERS_INFO[2]);
+  }));
+
+  // Click ticker items to open token detail
+  $('#ticker-track').addEventListener('click', (e) => {
+    const item = e.target.closest('.ticker-item');
+    if (item?.dataset.mint) openTokenDetail(item.dataset.mint);
+  });
+
+  // Click a holdings row to open token detail
+  $('#holdings-body').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr');
+    if (tr?.dataset.mint) openTokenDetail(tr.dataset.mint);
+  });
+
+  // Modal close
+  $('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
+  });
+
+  // Trending ticker
+  loadTrendingTicker();
+  setInterval(loadTrendingTicker, 60_000);
+
+  // Deep-link support: /?addr=...
+  const params = new URLSearchParams(location.search);
+  const initAddr = params.get('addr');
+  if (initAddr) {
+    $('#address').value = initAddr;
+    trackAddress(initAddr);
+  }
+}
+
+init();
+
+</script>
 </body>
 </html>
