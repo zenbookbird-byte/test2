@@ -584,6 +584,40 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .breadcrumb .sep { opacity: .5; }
 .page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
+/* Source chips for Trading pages */
+.source-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 2px 0;
+}
+.source-chip {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 500;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.source-chip:hover { color: var(--text); border-color: var(--stroke-strong); }
+.source-chip.active {
+  color: var(--text);
+  background: hsl(var(--src-hue, 260) 70% 28% / .35);
+  border-color: hsl(var(--src-hue, 260) 80% 60% / .55);
+  box-shadow: 0 0 0 1px hsl(var(--src-hue, 260) 80% 60% / .25);
+}
+.source-chip .src-count {
+  font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+  background: rgba(255, 255, 255, .06); color: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.source-pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 999px;
+  background: hsl(var(--src-hue, 260) 70% 25% / .45);
+  color: hsl(var(--src-hue, 260) 85% 80%);
+  border: 1px solid hsl(var(--src-hue, 260) 75% 55% / .35);
+  font-size: 11px; font-weight: 600;
+}
+
 /* Range tabs */
 .range-tabs {
   display: inline-flex; gap: 2px; padding: 3px;
@@ -1967,6 +2001,7 @@ async function fetchDexscreenerForMints(mints) {
           symbol: p.baseToken?.symbol,
           name: p.baseToken?.name,
           logoURI: p.info?.imageUrl || null,
+          dexId: (p.dexId || '').toLowerCase(),
         });
       }
     } catch (_) { /* network: skip */ }
@@ -2570,9 +2605,13 @@ function closeModal() {
 }
 
 async function fetchSolanaPairs() {
-  // DexScreener search returns up to ~30 pairs per query. We aggregate a few popular base symbols
-  // to get a broader set, then dedupe by base token mint.
-  const queries = ['SOL', 'USDC', 'BONK', 'WIF', 'JUP'];
+  // Aggregate from multiple search queries so we cover both blue-chip pairs and
+  // memecoin-launchpad pairs (Pump.fun, Pump.swap, Bags). Dedupe by base token
+  // mint, keeping whichever pair has the highest 24h volume.
+  const queries = [
+    'SOL', 'USDC', 'BONK', 'WIF', 'JUP',
+    'pump', 'bags', 'meme', 'cat', 'dog', 'pepe',
+  ];
   const seen = new Map();
   await Promise.all(queries.map(async q => {
     try {
@@ -2591,6 +2630,19 @@ async function fetchSolanaPairs() {
   }));
   return Array.from(seen.values());
 }
+
+// Recognised Solana DEX / launchpad ids on DexScreener, with display label and color.
+const SOURCES = [
+  { id: '',         label: 'All',       hue: 260 },
+  { id: 'pumpfun',  label: 'Pump.fun',  hue:  18 },
+  { id: 'pumpswap', label: 'Pump.swap', hue:   8 },
+  { id: 'bags',     label: 'Bags',      hue: 320 },
+  { id: 'raydium',  label: 'Raydium',   hue: 200 },
+  { id: 'orca',     label: 'Orca',      hue: 175 },
+  { id: 'meteora',  label: 'Meteora',   hue: 280 },
+];
+const SOURCE_LABEL = Object.fromEntries(SOURCES.map(s => [s.id, s.label]));
+const SOURCE_HUE   = Object.fromEntries(SOURCES.map(s => [s.id, s.hue]));
 
 async function fetchLatestTokenProfiles() {
   try {
@@ -3275,7 +3327,7 @@ const RANGE_TABS = [
   { id: 'h24', label: '24h', default: true },
 ];
 
-const tradingState = { view: null, range: 'h24', sort: 'volume', dir: -1, rows: [] };
+const tradingState = { view: null, range: 'h24', sort: 'volume', dir: -1, rows: [], source: '' };
 
 async function renderTradingPage(view) {
   const meta = TRADING_PAGE_META[view];
@@ -3294,6 +3346,9 @@ async function renderTradingPage(view) {
         </div>
         <button class="ghost-btn small" id="refresh-page">Refresh</button>`,
     })}
+    <div class="source-chips" id="source-chips">
+      ${SOURCES.map(s => `<button data-source="${s.id}" class="source-chip${s.id === tradingState.source ? ' active' : ''}" style="--src-hue:${s.hue}">${escapeHtml(s.label)}<span class="src-count" data-source-count="${s.id}">—</span></button>`).join('')}
+    </div>
     <div class="card glass page-table">
       <div id="trading-rows"><div class="modal-loading">Loading…</div></div>
     </div>
@@ -3303,7 +3358,12 @@ async function renderTradingPage(view) {
   $$('#range-tabs button').forEach(b => b.addEventListener('click', () => {
     $$('#range-tabs button').forEach(x => x.classList.toggle('active', x === b));
     tradingState.range = b.dataset.range;
-    if (view === 'gainers' || view === 'volume' || view === 'trending') paintTradingRows();
+    paintTradingRows();
+  }));
+  $$('#source-chips .source-chip').forEach(b => b.addEventListener('click', () => {
+    tradingState.source = b.dataset.source;
+    $$('#source-chips .source-chip').forEach(x => x.classList.toggle('active', x === b));
+    paintTradingRows();
   }));
 
   loadTradingRows();
@@ -3331,6 +3391,8 @@ async function loadTradingRows() {
       rows = pairs.map(p => ({
         mint: p.baseToken?.address, symbol: p.baseToken?.symbol, name: p.baseToken?.name,
         logo: p.info?.imageUrl, url: p.url,
+        dexId: (p.dexId || '').toLowerCase(),
+        pairAddress: p.pairAddress,
         price: Number(p.priceUsd) || null,
         change: { m5: Number(p.priceChange?.m5 ?? 0), h1: Number(p.priceChange?.h1 ?? 0), h6: Number(p.priceChange?.h6 ?? 0), h24: Number(p.priceChange?.h24 ?? 0) },
         volume: { m5: Number(p.volume?.m5 ?? 0), h1: Number(p.volume?.h1 ?? 0), h6: Number(p.volume?.h6 ?? 0), h24: Number(p.volume?.h24 ?? 0) },
@@ -3353,6 +3415,7 @@ function buildRow(mint, px, extra = {}) {
     name: px?.name || extra.description?.slice(0, 40) || '',
     logo: extra.icon || px?.logoURI || null,
     url: extra.url || `https://dexscreener.com/solana/${mint}`,
+    dexId: (px?.dexId || '').toLowerCase(),
     price: px?.price ?? null,
     change: { m5: 0, h1: 0, h6: 0, h24: Number(px?.change24h ?? 0) },
     volume:  { m5: 0, h1: 0, h6: 0, h24: 0 },
@@ -3372,8 +3435,21 @@ function paintTradingRows() {
   else if (view === 'trending') rows.sort((a, b) => (b.volume[r] || 0) - (a.volume[r] || 0));
   else if (view === 'latest') {/* keep order from API */}
 
+  // Update per-source counts in the chip bar
+  const counts = {};
+  for (const row of rows) counts[row.dexId || ''] = (counts[row.dexId || ''] || 0) + 1;
+  document.querySelectorAll('[data-source-count]').forEach(el => {
+    const id = el.dataset.sourceCount;
+    el.textContent = id === '' ? rows.length : (counts[id] || 0);
+  });
+
+  // Apply the source filter
+  if (tradingState.source) {
+    rows = rows.filter(row => row.dexId === tradingState.source);
+  }
+
   if (!rows.length) {
-    container.innerHTML = `<div class="page-empty"><h3>No data right now</h3><p>The provider didn't return any rows. Try again in a moment.</p></div>`;
+    container.innerHTML = `<div class="page-empty"><h3>No matching rows</h3><p>${tradingState.source ? `No ${SOURCE_LABEL[tradingState.source]} tokens in the current set — try another source or hit Refresh.` : `The provider didn't return any rows. Try again in a moment.`}</p></div>`;
     return;
   }
 
@@ -3384,6 +3460,7 @@ function paintTradingRows() {
           <tr>
             <th>#</th>
             <th>Token</th>
+            <th>Source</th>
             <th class="num">Price</th>
             <th class="num">${tradingState.range.toUpperCase()}</th>
             <th class="num">Liquidity</th>
@@ -3397,6 +3474,8 @@ function paintTradingRows() {
           ${rows.map((row, i) => {
             const ch = row.change[r] ?? 0;
             const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+            const label = SOURCE_LABEL[row.dexId] || (row.dexId ? row.dexId : '—');
+            const hue = SOURCE_HUE[row.dexId] ?? 260;
             return `<tr data-mint="${escapeHtml(row.mint)}">
               <td class="rank-cell">${i + 1}</td>
               <td>
@@ -3408,6 +3487,7 @@ function paintTradingRows() {
                   </div>
                 </div>
               </td>
+              <td>${row.dexId ? `<span class="source-pill" style="--src-hue:${hue}">${escapeHtml(label)}</span>` : '<span class="muted">—</span>'}</td>
               <td class="num">${row.price ? fmtUSD(row.price, row.price < 1 ? 6 : 2) : '—'}</td>
               <td class="num delta ${cls}">${fmtPct(ch)}</td>
               <td class="num">${row.liquidity ? fmtUSD(row.liquidity) : '—'}</td>
