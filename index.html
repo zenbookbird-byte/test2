@@ -745,6 +745,130 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .page-empty h3 { color: var(--text); margin: 0 0 6px; font-size: 18px; }
 .page-empty p { margin: 0; font-size: 13px; }
 
+/* User menu */
+.user-menu { position: relative; flex-shrink: 0; }
+.user-btn {
+  appearance: none; border: 1px solid var(--stroke); background: var(--surface);
+  color: var(--text); font: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 10px 4px 4px; border-radius: 999px;
+  transition: background .15s, border-color .15s;
+}
+.user-btn:hover { background: var(--surface-2); border-color: var(--stroke-strong); }
+.user-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, hsl(280 85% 60%), hsl(160 80% 55%));
+  color: #0a0820; font-weight: 700; font-size: 11.5px;
+  border: 1px solid rgba(255,255,255,.18);
+}
+.user-label { font-size: 12.5px; font-weight: 500; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-dropdown {
+  display: none;
+  position: absolute; top: calc(100% + 8px); right: 0;
+  min-width: 280px; padding: 8px;
+  background: rgba(13, 11, 29, .98);
+  border: 1px solid var(--stroke-strong);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .65);
+  z-index: 50;
+}
+.user-dropdown.open { display: block; }
+.user-dropdown-head {
+  padding: 10px 12px 12px; border-bottom: 1px solid var(--stroke); margin-bottom: 6px;
+}
+.user-dropdown-head .name { font-size: 14px; font-weight: 700; }
+.user-dropdown-head .email { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.user-dropdown-body { display: grid; gap: 2px; }
+.user-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; color: var(--text); text-decoration: none;
+  background: transparent; border: 0; font: inherit; width: 100%; text-align: left;
+}
+.user-row:hover { background: var(--surface-2); }
+.user-row .ico {
+  width: 22px; height: 22px; display: grid; place-items: center;
+  color: var(--muted);
+}
+.user-row.danger { color: #ffb0bd; }
+.user-row .badge {
+  margin-left: auto; font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke); color: var(--muted);
+}
+.user-divider { height: 1px; background: var(--stroke); margin: 6px 4px; }
+
+/* Auth / account forms */
+.auth-card {
+  padding: 28px; max-width: 460px; margin: 0 auto;
+  display: grid; gap: 14px;
+}
+.auth-card h3 { margin: 0; font-size: 18px; }
+.auth-card label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+.auth-card input {
+  background: var(--surface); border: 1px solid var(--stroke); color: var(--text);
+  padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 14px;
+  outline: none;
+}
+.auth-card input:focus { border-color: rgba(153, 69, 255, .55); box-shadow: 0 0 0 3px rgba(153, 69, 255, .15); }
+.auth-existing {
+  display: grid; gap: 8px;
+}
+.auth-existing-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--stroke);
+}
+.auth-existing-row:hover { background: var(--surface-2); }
+.auth-existing-row .meta { flex: 1; min-width: 0; }
+.auth-existing-row .meta strong { display: block; font-size: 13px; }
+.auth-existing-row .meta span { font-size: 11px; color: var(--muted); }
+
+/* Watchlist */
+.watchlist-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.wl-card {
+  padding: 18px; display: grid; gap: 8px;
+  border-radius: 14px; background: var(--surface); border: 1px solid var(--stroke);
+  transition: transform .15s, border-color .15s;
+}
+.wl-card:hover { transform: translateY(-2px); border-color: var(--stroke-strong); }
+.wl-card .top { display: flex; align-items: center; gap: 10px; }
+.wl-card .av {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: conic-gradient(from 180deg, #9945ff, #14f195, #4f8bff, #9945ff);
+  flex-shrink: 0;
+}
+.wl-card .label { font-weight: 600; font-size: 14px; }
+.wl-card .addr { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--muted); }
+.wl-card .stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.wl-card .stats > div { flex: 1; }
+.wl-card .stats .lbl { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+.wl-card .stats .v   { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.wl-card .acts { display: flex; gap: 6px; }
+
+/* Status page */
+.status-grid {
+  display: grid; gap: 10px;
+}
+.status-row {
+  display: grid; grid-template-columns: 36px minmax(0, 1.2fr) minmax(0, 2fr) auto;
+  gap: 14px; align-items: center;
+  padding: 14px 16px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+}
+.status-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--muted); box-shadow: 0 0 8px var(--muted);
+}
+.status-dot.ok  { background: var(--pos); box-shadow: 0 0 8px var(--pos); }
+.status-dot.bad { background: var(--neg); box-shadow: 0 0 8px var(--neg); }
+.status-row .name { font-weight: 600; font-size: 13.5px; }
+.status-row .url  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
+.status-row .right { text-align: right; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+
 /* Modal */
 .modal {
   position: fixed; inset: 0; z-index: 100;
@@ -999,6 +1123,10 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2zm-9-2h10V8H12zm4-2.5a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5"/></svg></span>
                 <div><div class="ddi-title">Wallet Tracker <span class="here-pill">you are here</span></div><div class="ddi-sub">Portfolio &amp; PnL for any wallet</div></div>
               </a>
+              <a class="ddi" href="#/watchlist" data-route="watchlist">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21z"/></svg></span>
+                <div><div class="ddi-title">My Watchlist</div><div class="ddi-sub">Wallets you've saved</div></div>
+              </a>
               <a class="ddi" href="#/trading/copy" data-route="trading/copy">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m-3-4H4a2 2 0 0 0-2 2v14h2V3h12z"/></svg></span>
                 <div><div class="ddi-title">Copy Trading</div><div class="ddi-sub">Mirror top wallets automatically</div></div>
@@ -1024,6 +1152,10 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 14l-4-4l1.4-1.4L10 14.2l6.6-6.6L18 9z"/></svg></span>
                 <div><div class="ddi-title">Transaction Decoder</div><div class="ddi-sub">Parse any Solana tx signature</div></div>
               </a>
+              <a class="ddi" href="#/status" data-route="status">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 2a8 8 0 0 1 8 8a8 8 0 0 1-8 8a8 8 0 0 1-8-8a8 8 0 0 1 8-8m-1 4v5l4 2.5l.7-1.2l-3.2-2V8z"/></svg></span>
+                <div><div class="ddi-title">API Status</div><div class="ddi-sub">Health and latency of every endpoint</div></div>
+              </a>
             </div>
           </div>
         </div>
@@ -1036,6 +1168,18 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
           <button class="net-btn" data-network="devnet" role="tab" aria-selected="false">Devnet</button>
         </nav>
+
+        <div class="user-menu" id="user-menu">
+          <button class="user-btn" id="user-btn" aria-haspopup="true" aria-expanded="false">
+            <span class="user-avatar" id="user-avatar">?</span>
+            <span class="user-label" id="user-label">Sign in</span>
+            <span class="caret">▾</span>
+          </button>
+          <div class="dropdown user-dropdown" id="user-dropdown" hidden>
+            <div class="user-dropdown-head" id="user-dropdown-head"></div>
+            <div class="user-dropdown-body" id="user-dropdown-body"></div>
+          </div>
+        </div>
 
         <form id="search-form" class="search-nav" autocomplete="off">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
@@ -3393,6 +3537,441 @@ GET https://lite-api.jup.ag/swap/v1/quote?inputMint=&lt;A&gt;&outputMint=&lt;B&g
     </div>
   `);
 }
+
+/* ================================================================
+ *  User accounts + watchlist (localStorage)
+ * ================================================================ */
+const userStore = {
+  KEY_USERS: 'solscope:users',
+  KEY_CURRENT: 'solscope:currentUser',
+  list() {
+    try { return JSON.parse(localStorage.getItem(this.KEY_USERS) || '[]'); }
+    catch { return []; }
+  },
+  save(users) { localStorage.setItem(this.KEY_USERS, JSON.stringify(users)); },
+  current() {
+    const id = localStorage.getItem(this.KEY_CURRENT);
+    return this.list().find(u => u.id === id) || null;
+  },
+  setCurrent(id) {
+    if (id) localStorage.setItem(this.KEY_CURRENT, id);
+    else localStorage.removeItem(this.KEY_CURRENT);
+    paintUserMenu();
+  },
+  create(name, email) {
+    const users = this.list();
+    if (users.some(u => u.name.toLowerCase() === name.toLowerCase())) {
+      throw new Error('A user with that name already exists.');
+    }
+    const u = {
+      id: 'u_' + Math.random().toString(36).slice(2, 10),
+      name: name.trim(),
+      email: (email || '').trim() || null,
+      createdAt: Date.now(),
+      avatarHue: Math.floor(Math.random() * 360),
+      watchlist: [],
+    };
+    users.push(u);
+    this.save(users);
+    this.setCurrent(u.id);
+    return u;
+  },
+  delete(id) {
+    const users = this.list().filter(u => u.id !== id);
+    this.save(users);
+    if (localStorage.getItem(this.KEY_CURRENT) === id) this.setCurrent(null);
+  },
+  addWallet(address, label) {
+    const u = this.current(); if (!u) throw new Error('Sign in to save wallets.');
+    if (u.watchlist.some(w => w.address === address)) return false;
+    u.watchlist.unshift({ address, label: label || shorten(address, 4, 4), addedAt: Date.now() });
+    const users = this.list().map(x => x.id === u.id ? u : x);
+    this.save(users);
+    return true;
+  },
+  removeWallet(address) {
+    const u = this.current(); if (!u) return;
+    u.watchlist = u.watchlist.filter(w => w.address !== address);
+    const users = this.list().map(x => x.id === u.id ? u : x);
+    this.save(users);
+  },
+  renameWallet(address, label) {
+    const u = this.current(); if (!u) return;
+    const w = u.watchlist.find(x => x.address === address);
+    if (w) { w.label = label; const users = this.list().map(x => x.id === u.id ? u : x); this.save(users); }
+  },
+};
+
+function avatarFor(user) {
+  if (!user) return { initials: '?', hue: 280 };
+  const initials = user.name.split(/\s+/).map(s => s[0]).join('').slice(0, 2).toUpperCase();
+  return { initials, hue: user.avatarHue ?? 280 };
+}
+
+function paintUserMenu() {
+  const u = userStore.current();
+  const { initials, hue } = avatarFor(u);
+  const av = $('#user-avatar');
+  av.textContent = initials;
+  av.style.background = `linear-gradient(135deg, hsl(${hue} 85% 60%), hsl(${(hue + 100) % 360} 80% 55%))`;
+  $('#user-label').textContent = u ? u.name : 'Sign in';
+  const head = $('#user-dropdown-head');
+  const body = $('#user-dropdown-body');
+  if (u) {
+    head.innerHTML = `<div class="name">${escapeHtml(u.name)}</div>${u.email ? `<div class="email">${escapeHtml(u.email)}</div>` : `<div class="email">${u.watchlist.length} saved wallet${u.watchlist.length === 1 ? '' : 's'}</div>`}`;
+    body.innerHTML = `
+      <a class="user-row" href="#/watchlist"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21z"/></svg></span>My Watchlist<span class="badge">${u.watchlist.length}</span></a>
+      <a class="user-row" href="#/account"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.62l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.04-.7-1.62-.93l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.55-1.62.93l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.86c-.12.21-.08.47.12.62l2.03 1.58c-.05.3-.07.62-.07.94c0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.62l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.04.7 1.62.93l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.55 1.62-.93l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.62zM12 15.6A3.6 3.6 0 0 1 8.4 12A3.6 3.6 0 0 1 12 8.4a3.6 3.6 0 0 1 3.6 3.6a3.6 3.6 0 0 1-3.6 3.6"/></svg></span>Account settings</a>
+      <a class="user-row" href="#/status"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2m-1 6h2v5l4.25 2.52l-1 1.64L11 13z"/></svg></span>API Status</a>
+      <div class="user-divider"></div>
+      <button class="user-row" id="user-switch"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 17l5-5l-5-5v3H4v4h12zM4 19h6v-2H4z"/></svg></span>Switch user</button>
+      <button class="user-row danger" id="user-signout"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M10.09 15.59L11.5 17l5-5l-5-5l-1.41 1.41L12.67 11H3v2h9.67z"/></svg></span>Sign out</button>`;
+    $('#user-switch')?.addEventListener('click', () => { closeUserMenu(); location.hash = '#/account'; });
+    $('#user-signout')?.addEventListener('click', () => { userStore.setCurrent(null); closeUserMenu(); });
+  } else {
+    head.innerHTML = `<div class="name">Not signed in</div><div class="email">Create a local account to save wallets.</div>`;
+    body.innerHTML = `
+      <a class="user-row" href="#/account"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg></span>Sign in / Create user</a>
+      <a class="user-row" href="#/status"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2m-1 6h2v5l4.25 2.52l-1 1.64L11 13z"/></svg></span>API Status</a>`;
+  }
+}
+
+function openUserMenu() { $('#user-dropdown').classList.add('open'); $('#user-btn').setAttribute('aria-expanded', 'true'); }
+function closeUserMenu() { $('#user-dropdown').classList.remove('open'); $('#user-btn').setAttribute('aria-expanded', 'false'); }
+
+/* ----- Account / sign-in page ----- */
+function renderAccountPage() {
+  const u = userStore.current();
+  const users = userStore.list();
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Account</span>`,
+      title: u ? 'Account settings' : 'Sign in or create user',
+      sub: u ? `Signed in as ${escapeHtml(u.name)}.` : 'Pick an existing local user or create a new one. Everything is stored on this device.',
+    })}
+    <div class="card glass auth-card">
+      ${users.length ? `
+        <h3>${u ? 'Switch user' : 'Existing users'}</h3>
+        <div class="auth-existing">
+          ${users.map(x => {
+            const av = avatarFor(x);
+            return `<div class="auth-existing-row">
+              <span class="user-avatar" style="background:linear-gradient(135deg,hsl(${av.hue} 85% 60%),hsl(${(av.hue+100)%360} 80% 55%))">${escapeHtml(av.initials)}</span>
+              <div class="meta">
+                <strong>${escapeHtml(x.name)}</strong>
+                <span>${x.email ? escapeHtml(x.email) + ' · ' : ''}${x.watchlist.length} wallet${x.watchlist.length === 1 ? '' : 's'} · joined ${timeAgo(Math.floor(x.createdAt/1000))}</span>
+              </div>
+              ${u && u.id === x.id
+                ? `<button class="ghost-btn small" data-delete="${x.id}">Delete</button>`
+                : `<button class="primary-btn small" data-switch="${x.id}">${u ? 'Switch' : 'Sign in'}</button>`}
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="user-divider"></div>` : ''}
+      <h3>${users.length ? 'Or create a new user' : 'Create your first user'}</h3>
+      <form id="signup-form">
+        <label>Name<input id="signup-name" required minlength="1" maxlength="40" placeholder="Your display name" autofocus></label>
+        <label>Email (optional)<input id="signup-email" type="email" placeholder="you@example.com (stored locally only)"></label>
+        <button class="primary-btn" type="submit" style="margin-top:6px">Create user</button>
+        <div id="signup-err" class="muted small" style="color:var(--neg)"></div>
+      </form>
+    </div>
+  `);
+  $$('[data-switch]').forEach(b => b.addEventListener('click', () => {
+    userStore.setCurrent(b.dataset.switch);
+    location.hash = '#/wallet';
+  }));
+  $$('[data-delete]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('Delete this user and their watchlist? Stored locally only — cannot be undone.')) {
+      userStore.delete(b.dataset.delete);
+      renderAccountPage();
+    }
+  }));
+  $('#signup-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('#signup-name').value.trim();
+    const email = $('#signup-email').value.trim();
+    if (!name) return;
+    try {
+      userStore.create(name, email);
+      location.hash = '#/wallet';
+    } catch (err) {
+      $('#signup-err').textContent = err.message;
+    }
+  });
+}
+
+/* ----- Watchlist page ----- */
+async function renderWatchlistPage() {
+  const u = userStore.current();
+  if (!u) {
+    showPageView(`
+      ${pageHeader({
+        crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Watchlist</span>`,
+        title: 'My Watchlist',
+        sub: 'Sign in to save wallets and track them in one place.',
+      })}
+      <div class="page-empty">
+        <h3>Not signed in</h3>
+        <p>Create a local user to keep a watchlist on this device.</p>
+        <p style="margin-top:12px"><a class="primary-btn small" href="#/account">Sign in or create user</a></p>
+      </div>`);
+    return;
+  }
+  if (!u.watchlist.length) {
+    showPageView(`
+      ${pageHeader({
+        crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Watchlist</span>`,
+        title: 'My Watchlist',
+        sub: `Saved wallets for ${escapeHtml(u.name)}.`,
+      })}
+      <div class="page-empty">
+        <h3>No saved wallets yet</h3>
+        <p>Track any wallet, then click "Save to watchlist" to add it here.</p>
+        <p style="margin-top:12px"><a class="primary-btn small" href="#/wallet">Go to wallet tracker</a></p>
+      </div>`);
+    return;
+  }
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Watchlist</span>`,
+      title: 'My Watchlist',
+      sub: `${u.watchlist.length} saved wallet${u.watchlist.length === 1 ? '' : 's'} for ${escapeHtml(u.name)}.`,
+      actions: `<button class="ghost-btn small" id="refresh-page">Refresh values</button>`,
+    })}
+    <div class="watchlist-grid" id="wl-grid">
+      ${u.watchlist.map(w => `
+        <div class="wl-card" data-addr="${escapeHtml(w.address)}">
+          <div class="top">
+            <span class="av" style="background:conic-gradient(from 180deg, hsl(${[...w.address].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0)%360} 80% 60%), #14f195, #4f8bff)"></span>
+            <div style="flex:1;min-width:0">
+              <div class="label">${escapeHtml(w.label)}</div>
+              <div class="addr">${shorten(w.address, 8, 8)}</div>
+            </div>
+          </div>
+          <div class="stats">
+            <div><div class="lbl">SOL</div><div class="v" data-sol>—</div></div>
+            <div><div class="lbl">Tokens</div><div class="v" data-tokens>—</div></div>
+            <div><div class="lbl">Saved</div><div class="v" style="font-size:12px;font-weight:500;color:var(--muted)">${timeAgo(Math.floor(w.addedAt/1000))}</div></div>
+          </div>
+          <div class="acts">
+            <button class="primary-btn small" data-open>Open ↗</button>
+            <button class="ghost-btn small" data-rename>Rename</button>
+            <button class="ghost-btn small" data-remove>Remove</button>
+          </div>
+        </div>`).join('')}
+    </div>
+  `);
+
+  // Wire actions
+  $$('#wl-grid .wl-card').forEach(card => {
+    const addr = card.dataset.addr;
+    $('[data-open]', card).addEventListener('click', () => {
+      $('#address').value = addr;
+      location.hash = '#/wallet';
+      trackAddress(addr);
+    });
+    $('[data-rename]', card).addEventListener('click', () => {
+      const label = prompt('Label for this wallet:', card.querySelector('.label').textContent);
+      if (label && label.trim()) { userStore.renameWallet(addr, label.trim()); renderWatchlistPage(); paintUserMenu(); }
+    });
+    $('[data-remove]', card).addEventListener('click', () => {
+      if (confirm('Remove from watchlist?')) { userStore.removeWallet(addr); renderWatchlistPage(); paintUserMenu(); }
+    });
+  });
+
+  $('#refresh-page').addEventListener('click', loadWatchlistStats);
+  loadWatchlistStats();
+}
+
+async function loadWatchlistStats() {
+  const u = userStore.current(); if (!u) return;
+  await Promise.all(u.watchlist.map(async w => {
+    try {
+      const [bal, splV1] = await Promise.all([
+        rpc('getBalance', [w.address]).then(r => r?.value ?? 0).catch(() => 0),
+        rpc('getTokenAccountsByOwner', [w.address, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }])
+          .then(r => r?.value ?? []).catch(() => []),
+      ]);
+      const card = document.querySelector(`.wl-card[data-addr="${CSS.escape(w.address)}"]`);
+      if (!card) return;
+      const sol = (bal || 0) / LAMPORTS_PER_SOL;
+      const nonzero = splV1.filter(a => Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0) > 0).length;
+      $('[data-sol]', card).textContent = fmt(sol, 4);
+      $('[data-tokens]', card).textContent = nonzero;
+    } catch {}
+  }));
+}
+
+/* ----- Wallet page "Save to watchlist" wiring ----- */
+function paintWatchlistButton() {
+  const u = userStore.current();
+  const addr = state.address;
+  const row = $('.account-meta .row');
+  if (!row) return;
+  // Remove any previous wl button
+  row.querySelectorAll('[data-wl]').forEach(b => b.remove());
+  if (!addr) return;
+  const saved = u && u.watchlist.some(w => w.address === addr);
+  const btn = document.createElement('button');
+  btn.className = 'ghost-btn small';
+  btn.dataset.wl = '1';
+  btn.textContent = u ? (saved ? '★ Saved' : '☆ Save to watchlist') : '☆ Sign in to save';
+  btn.addEventListener('click', () => {
+    if (!u) { location.hash = '#/account'; return; }
+    if (saved) { userStore.removeWallet(addr); }
+    else {
+      const label = prompt('Label for this wallet:', shorten(addr, 6, 6)) || shorten(addr, 6, 6);
+      userStore.addWallet(addr, label);
+    }
+    paintWatchlistButton();
+    paintUserMenu();
+  });
+  row.appendChild(btn);
+}
+
+/* ================================================================
+ *  API status page
+ * ================================================================ */
+const STATUS_ENDPOINTS = [
+  { name: 'Solana RPC (Mainnet)', url: 'https://api.mainnet-beta.solana.com', test: async () => {
+      const r = await fetch('https://api.mainnet-beta.solana.com', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+      });
+      const j = await r.json();
+      return j.result === 'ok' || j.error ? 'ok' : 'ok';
+    }},
+  { name: 'Solana RPC (Devnet)', url: 'https://api.devnet.solana.com', test: async () => {
+      const r = await fetch('https://api.devnet.solana.com', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+      });
+      const j = await r.json();
+      return j.result === 'ok' || j.error ? 'ok' : 'ok';
+    }},
+  { name: 'DexScreener — tokens', url: 'https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112', test: async () => {
+      const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
+      const j = await r.json();
+      if (!j.pairs?.length) throw new Error('no pairs');
+      return `${j.pairs.length} pairs returned`;
+    }},
+  { name: 'DexScreener — search',  url: 'https://api.dexscreener.com/latest/dex/search?q=SOL', test: async () => {
+      const r = await fetch('https://api.dexscreener.com/latest/dex/search?q=SOL');
+      const j = await r.json();
+      return `${j.pairs?.length || 0} results`;
+    }},
+  { name: 'DexScreener — boosts',  url: 'https://api.dexscreener.com/token-boosts/top/v1', test: async () => {
+      const r = await fetch('https://api.dexscreener.com/token-boosts/top/v1');
+      const j = await r.json();
+      const list = Array.isArray(j) ? j : (j.boosts || []);
+      return `${list.length} boosted`;
+    }},
+  { name: 'DexScreener — latest profiles', url: 'https://api.dexscreener.com/token-profiles/latest/v1', test: async () => {
+      const r = await fetch('https://api.dexscreener.com/token-profiles/latest/v1');
+      const j = await r.json();
+      const list = Array.isArray(j) ? j : (j.profiles || []);
+      return `${list.length} profiles`;
+    }},
+  { name: 'Jupiter — verified token list', url: 'https://tokens.jup.ag/tokens?tags=verified', test: async () => {
+      const r = await fetch('https://tokens.jup.ag/tokens?tags=verified');
+      const list = await r.json();
+      return `${list.length} verified tokens`;
+    }},
+  { name: 'Jupiter — swap quote', url: 'https://lite-api.jup.ag/swap/v1/quote', test: async () => {
+      const r = await fetch('https://lite-api.jup.ag/swap/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000000&slippageBps=50');
+      const j = await r.json();
+      if (!j.outAmount) throw new Error('no quote');
+      return `quote returned (${j.routePlan?.length || 0}-hop route)`;
+    }},
+  { name: 'CoinGecko — Solana price', url: 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd', test: async () => {
+      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+      const j = await r.json();
+      if (!j?.solana?.usd) throw new Error('no price');
+      return `SOL = $${j.solana.usd}`;
+    }},
+];
+
+function renderStatusPage() {
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Tools</span><span class="sep">/</span><span>API Status</span>`,
+      title: 'API Status',
+      sub: 'Live health check of every external API this product depends on.',
+      actions: `<button class="ghost-btn small" id="refresh-page">Run checks</button>`,
+    })}
+    <div class="card glass" style="padding:14px">
+      <div class="status-grid" id="status-grid">
+        ${STATUS_ENDPOINTS.map((e, i) => `
+          <div class="status-row" data-i="${i}">
+            <span class="status-dot"></span>
+            <div>
+              <div class="name">${escapeHtml(e.name)}</div>
+              <div class="url">${escapeHtml(e.url)}</div>
+            </div>
+            <div class="muted small" data-detail>Checking…</div>
+            <div class="right" data-ms>—</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `);
+  $('#refresh-page').addEventListener('click', runStatusChecks);
+  runStatusChecks();
+}
+
+async function runStatusChecks() {
+  await Promise.all(STATUS_ENDPOINTS.map(async (e, i) => {
+    const row = document.querySelector(`.status-row[data-i="${i}"]`);
+    if (!row) return;
+    const dot = row.querySelector('.status-dot');
+    const ms = row.querySelector('[data-ms]');
+    const detail = row.querySelector('[data-detail]');
+    dot.classList.remove('ok', 'bad');
+    detail.textContent = 'Checking…';
+    ms.textContent = '—';
+    const t0 = performance.now();
+    try {
+      const result = await e.test();
+      const dt = Math.round(performance.now() - t0);
+      dot.classList.add('ok');
+      detail.textContent = result || 'OK';
+      ms.textContent = `${dt} ms`;
+    } catch (err) {
+      const dt = Math.round(performance.now() - t0);
+      dot.classList.add('bad');
+      detail.textContent = err.message || 'Error';
+      ms.textContent = `${dt} ms`;
+    }
+  }));
+}
+
+/* ================================================================
+ *  Route additions + init wiring
+ * ================================================================ */
+ROUTES['/watchlist'] = () => renderWatchlistPage();
+ROUTES['/account']   = () => renderAccountPage();
+ROUTES['/status']    = () => renderStatusPage();
+
+// User-menu wiring
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#user-btn')) {
+    const open = $('#user-dropdown').classList.contains('open');
+    if (open) closeUserMenu(); else openUserMenu();
+    e.stopPropagation();
+  } else if (!e.target.closest('#user-dropdown')) {
+    closeUserMenu();
+  }
+});
+
+// Re-paint user menu whenever the watchlist changes (covered) and on init
+paintUserMenu();
+
+// Hook into trackAddress to also paint the watchlist button after the dashboard renders.
+const _origRenderAccount = renderAccount;
+renderAccount = function(accountInfo) {
+  _origRenderAccount(accountInfo);
+  paintWatchlistButton();
+};
 
 init();
 
