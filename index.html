@@ -887,6 +887,166 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .wl-card .stats .v   { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .wl-card .acts { display: flex; gap: 6px; }
 
+/* Pricing */
+.pricing-hero {
+  padding: 36px clamp(20px, 4vw, 48px);
+  text-align: center;
+  display: grid; gap: 14px; justify-items: center;
+}
+.pricing-hero h2 {
+  margin: 0; font-size: clamp(32px, 4.5vw, 48px); letter-spacing: -.025em; font-weight: 800; line-height: 1.05;
+  background: linear-gradient(180deg, #ffffff, #c8c1ff 60%, #9be9c8);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.pricing-hero p { margin: 0; color: var(--muted); max-width: 60ch; font-size: 14.5px; }
+.billing-toggle {
+  display: inline-flex; gap: 4px; padding: 4px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 999px;
+  margin-top: 8px;
+}
+.billing-toggle button {
+  appearance: none; border: 0; background: transparent; color: var(--muted);
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 500;
+  transition: color .15s, background .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.billing-toggle button.active {
+  color: #0c0a1e;
+  background: linear-gradient(135deg, #c4b1ff, #9be9c8);
+  box-shadow: 0 6px 20px -10px rgba(153, 69, 255, .8);
+}
+.billing-toggle .save-pill {
+  font-size: 9.5px; padding: 2px 6px; border-radius: 999px; letter-spacing: .06em;
+  background: rgba(20, 241, 149, .25); color: #88f3c3;
+  border: 1px solid rgba(20, 241, 149, .4);
+}
+.billing-toggle button.active .save-pill {
+  background: rgba(255, 255, 255, .15); color: #0c0a1e; border-color: rgba(0,0,0,.15);
+}
+
+.tier-grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: stretch;
+}
+.tier {
+  position: relative;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--stroke); border-radius: 18px;
+  transition: transform .2s, border-color .2s;
+}
+.tier:hover { transform: translateY(-3px); border-color: var(--stroke-strong); }
+.tier.featured {
+  background: linear-gradient(180deg, rgba(153,69,255,.14), rgba(20,241,149,.06) 80%, transparent);
+  border-color: rgba(153, 69, 255, .45);
+  box-shadow: 0 30px 80px -30px rgba(153, 69, 255, .6);
+}
+.tier.featured::before {
+  content: 'Most popular';
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  padding: 4px 12px; border-radius: 999px;
+  background: linear-gradient(135deg, #c4b1ff, #9be9c8);
+  color: #0c0a1e; font-size: 10.5px; letter-spacing: .12em; font-weight: 700; text-transform: uppercase;
+}
+.tier-name {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: .04em;
+}
+.tier-name .badge {
+  font-size: 9.5px; padding: 2px 7px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--muted); letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+}
+.tier-tagline { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.tier-price { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.tier-price .num { font-size: 38px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+.tier-price .num.custom { font-size: 26px; }
+.tier-price .per { font-size: 12.5px; color: var(--muted); }
+.tier-price .strike { color: var(--muted); text-decoration: line-through; font-size: 14px; }
+.tier-features {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 6px;
+  font-size: 13px;
+}
+.tier-features li {
+  display: grid; grid-template-columns: 18px 1fr; gap: 8px;
+  align-items: flex-start;
+  color: var(--text);
+}
+.tier-features li::before {
+  content: ''; display: block; width: 16px; height: 16px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2388f3c3'><path d='M9 16.17L4.83 12l-1.42 1.41L9 19l12-12l-1.41-1.41z'/></svg>");
+  background-repeat: no-repeat; background-size: contain;
+}
+.tier-features li.muted { color: var(--muted); }
+.tier-features li.muted::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236a6790'><path d='M19 13H5v-2h14z'/></svg>");
+}
+.tier-cta {
+  margin-top: auto; padding: 12px 14px; border-radius: 12px;
+  font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  text-align: center; text-decoration: none;
+  display: block;
+}
+.tier-cta.primary {
+  color: #0a0820;
+  background: linear-gradient(135deg, #c4b1ff, #9be9c8);
+  border: 0;
+  box-shadow: 0 14px 30px -14px rgba(153, 69, 255, .7);
+}
+.tier-cta.secondary {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--stroke-strong);
+}
+.tier-cta:hover { transform: translateY(-1px); }
+.tier-cta.current {
+  background: rgba(20, 241, 149, .15); color: #88f3c3;
+  border: 1px solid rgba(20, 241, 149, .35);
+}
+
+.compare-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.compare-table thead th {
+  padding: 14px 12px; text-align: left;
+  border-bottom: 1px solid var(--stroke);
+  font-size: 12px; font-weight: 600; color: var(--text);
+}
+.compare-table thead th.center { text-align: center; font-weight: 600; }
+.compare-table tbody td {
+  padding: 11px 12px; border-bottom: 1px solid var(--stroke);
+  vertical-align: middle;
+}
+.compare-table tbody td:first-child { color: var(--muted); }
+.compare-table tbody td.center { text-align: center; }
+.compare-table tbody tr:last-child td { border-bottom: 0; }
+.compare-check { color: var(--pos); font-size: 14px; }
+.compare-dash  { color: var(--muted-2); }
+
+.faq { display: grid; gap: 10px; }
+.faq details {
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px;
+  padding: 14px 16px; transition: background .15s;
+}
+.faq details[open] { background: var(--surface-2); }
+.faq summary {
+  cursor: pointer; font-weight: 600; font-size: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  list-style: none;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; color: var(--muted); font-size: 18px; transition: transform .15s; }
+.faq details[open] summary::after { content: '−'; }
+.faq p { margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+.tier-pill-mini {
+  display: inline-flex; align-items: center;
+  padding: 1px 7px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(153,69,255,.35), rgba(20,241,149,.25));
+  border: 1px solid rgba(153,69,255,.45);
+  color: #d8c9ff; font-size: 9.5px; letter-spacing: .08em;
+  text-transform: uppercase; font-weight: 700; margin-left: 6px;
+}
+
 /* Docs */
 .docs-layout {
   display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px;
@@ -1318,6 +1478,10 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
               <a class="ddi" href="#/product/teams" data-route="product/teams">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3s-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5S5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span>
                 <div><div class="ddi-title">Teams</div><div class="ddi-sub">Collaborate and share access with your team</div></div>
+              </a>
+              <a class="ddi" href="#/pricing" data-route="pricing">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.41l9 9c.36.36.86.59 1.41.59c.55 0 1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42M5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4S7 4.67 7 5.5S6.33 7 5.5 7"/></svg></span>
+                <div><div class="ddi-title">Pricing</div><div class="ddi-sub">Plans &amp; pro upgrades</div></div>
               </a>
             </div>
           </div>
@@ -5040,6 +5204,7 @@ const PALETTE_PAGES = [
   { title: 'API Status',       sub: '#/status',         icon: '●', route: '#/status',         keys: ['status','health','api','uptime'] },
   { title: 'Account settings', sub: '#/account',        icon: '⚙', route: '#/account',        keys: ['account','user','settings','sign','login'] },
   { title: 'Documentation',    sub: '#/docs/introduction', icon: '📖', route: '#/docs/introduction', keys: ['docs','help','guide','api','reference'] },
+  { title: 'Pricing',          sub: '#/pricing',         icon: '$', route: '#/pricing',          keys: ['pricing','plan','pro','upgrade','billing','subscribe'] },
 ];
 
 const paletteState = { open: false, active: 0, items: [] };
@@ -5222,6 +5387,261 @@ setTimeout(() => {
   // Clicking the kbd hint also opens the palette
   $('#kbd-hint').addEventListener('click', openPalette);
 }, 0);
+
+/* ================================================================
+ *  Pricing page (#/pricing)
+ * ================================================================ */
+const TIERS = [
+  {
+    id: 'free', name: 'Starter',
+    monthly: 0, yearly: 0,
+    tagline: 'Track and explore Solana with no commitments.',
+    badge: null,
+    cta: 'Use Starter',
+    features: [
+      'Track unlimited wallets (read-only)',
+      'Up to 3 saved wallets',
+      '60-second refresh',
+      '5-endpoint RPC fallback',
+      'All trading pages (Trending, Latest, Memescope)',
+      'Basic Token Checker',
+      'Public WebSocket alerts',
+    ],
+    missing: ['Pro / Plus features'],
+  },
+  {
+    id: 'pro', name: 'Pro',
+    monthly: 9, yearly: 90,
+    tagline: 'Real-time data, faster refresh, alerts, and full Pump.fun / Bags coverage.',
+    badge: 'Most popular', featured: true,
+    cta: 'Upgrade to Pro',
+    features: [
+      'Everything in Starter, plus:',
+      'Up to 25 saved wallets',
+      'Sub-15-second refresh on prices &amp; signatures',
+      'Real-time logsSubscribe + Telegram alerts',
+      'CSV export of transactions and PnL',
+      'Pump.fun / Pump.swap / Bags filters with source pills',
+      'Live Token Checker with rug risk',
+      'Cost-basis PnL with realised / unrealised split',
+      '5 Copy-Trade slots',
+    ],
+    missing: [],
+  },
+  {
+    id: 'plus', name: 'Plus',
+    monthly: 29, yearly: 290,
+    tagline: 'Sub-second updates, API access, custom RPC, white-label.',
+    badge: null,
+    cta: 'Upgrade to Plus',
+    features: [
+      'Everything in Pro, plus:',
+      'Unlimited saved wallets',
+      'Sub-second portfolio refresh',
+      'Dedicated RPC endpoint',
+      'Sol Scope API access (10,000 req/day)',
+      'Custom webhooks &amp; Slack alerts',
+      '25 Copy-Trade slots',
+      'White-label theming',
+      'Priority support (24h)',
+    ],
+    missing: [],
+  },
+  {
+    id: 'enterprise', name: 'Enterprise',
+    monthly: null, yearly: null, custom: true,
+    tagline: 'Custom tooling, SSO, SLA. For funds, market makers, and protocols.',
+    badge: 'Contact', cta: 'Contact sales',
+    features: [
+      'Everything in Plus, plus:',
+      'Unlimited API requests',
+      'Dedicated Geyser gRPC stream',
+      'SSO + SAML, audit logs',
+      'Multi-seat team workspaces',
+      'Dedicated account manager + 99.99% SLA',
+      'Custom on-prem deployment',
+    ],
+    missing: [],
+  },
+];
+
+const COMPARE_ROWS = [
+  ['Saved wallets',              '3',            '25',            'Unlimited',         'Unlimited'],
+  ['Refresh interval',           '60s',          '< 15s',         'Sub-second',        'Custom'],
+  ['Real-time logsSubscribe',    'check',        'check',         'check',             'check'],
+  ['Pump.fun / Bags filters',    'check',        'check',         'check',             'check'],
+  ['Telegram alerts',            'dash',         'check',         'check',             'check'],
+  ['Slack / Webhook alerts',     'dash',         'dash',          'check',             'check'],
+  ['Cost-basis PnL',             'dash',         'check',         'check',             'check'],
+  ['CSV export',                 'dash',         'check',         'check',             'check'],
+  ['Copy-Trade slots',           '0',            '5',             '25',                'Unlimited'],
+  ['Sol Scope API',              'dash',         'dash',          '10k req/day',       'Unlimited'],
+  ['Dedicated RPC endpoint',     'dash',         'dash',          'check',             'check'],
+  ['White-label theming',        'dash',         'dash',          'check',             'check'],
+  ['SSO + SAML',                 'dash',         'dash',          'dash',              'check'],
+  ['SLA',                        'Best effort',  '99.5%',         '99.9%',             '99.99%'],
+  ['Support',                    'Community',    'Email',         '24h priority',      'Dedicated CSM'],
+];
+
+const FAQ_ITEMS = [
+  ['How does billing work?',
+   'Monthly plans bill on a rolling 30-day cycle. Yearly plans bill once and save you 20% compared to the monthly rate. You can switch or cancel at any time from the Account page.'],
+  ['Is this connected to a real payment processor?',
+   'This deployment runs entirely client-side, so upgrades only persist in your browser. The flows mirror what a real Stripe checkout would do — drop in your publishable key in app.js to wire it up live.'],
+  ['What happens to my watchlist if I downgrade?',
+   'Saved wallets are never deleted. If you exceed the new tier\'s cap, the oldest entries are simply read-only until you remove them or upgrade again.'],
+  ['Do you offer a free trial of Pro?',
+   'Every new account gets 14 days of Pro at sign-up, no card required. After the trial you drop back to Starter unless you upgrade.'],
+  ['Can I pay in SOL?',
+   'Yes — Plus and Enterprise plans accept SOL, USDC, and USDT on Solana mainnet. A wallet adapter is required to sign the payment.'],
+  ['What\'s the refund policy?',
+   'Monthly: cancel anytime, no refunds for the current cycle. Yearly: full refund within 14 days of purchase if you\'ve made no API calls beyond Starter limits.'],
+];
+
+const pricingState = { billing: 'monthly' };
+
+function currentTier() {
+  return userStore.current()?.tier || 'free';
+}
+function setTier(tierId) {
+  const u = userStore.current();
+  if (!u) return false;
+  const users = userStore.list().map(x => x.id === u.id ? { ...x, tier: tierId, tierBilling: pricingState.billing, tierSince: Date.now() } : x);
+  userStore.save(users);
+  paintUserMenu();
+  return true;
+}
+
+function renderPricingPage() {
+  const u = userStore.current();
+  const tier = currentTier();
+  const isYearly = pricingState.billing === 'yearly';
+
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Products</span><span class="sep">/</span><span>Pricing</span>`,
+      title: '',
+      sub: '',
+    })}
+    <div class="card glass pricing-hero">
+      <h2>Choose your plan</h2>
+      <p>Real-time Solana data, low-latency RPC, full launchpad coverage, and pro-grade alerts. Cancel any time.</p>
+      <div class="billing-toggle" role="tablist">
+        <button data-billing="monthly" class="${!isYearly ? 'active' : ''}">Monthly</button>
+        <button data-billing="yearly"  class="${isYearly ? 'active' : ''}">Yearly <span class="save-pill">Save 20%</span></button>
+      </div>
+      ${!u ? `<p class="muted small" style="margin-top:8px">Sign in from the top-right to save your plan on this device.</p>` : ''}
+    </div>
+
+    <div class="tier-grid">
+      ${TIERS.map(t => {
+        const isCurrent = t.id === tier;
+        const price = t.custom ? null : (isYearly ? t.yearly : t.monthly);
+        const per = t.custom ? '' : (price === 0 ? 'forever' : (isYearly ? '/ year' : '/ month'));
+        const strike = (isYearly && !t.custom && t.monthly > 0) ? `<span class="strike">$${t.monthly * 12}</span>` : '';
+        return `
+          <div class="tier${t.featured ? ' featured' : ''}">
+            <div class="tier-name">${escapeHtml(t.name)}${t.badge && !t.featured ? `<span class="badge">${escapeHtml(t.badge)}</span>` : ''}</div>
+            <div class="tier-tagline">${t.tagline}</div>
+            <div class="tier-price">
+              ${strike}
+              <span class="num ${t.custom ? 'custom' : ''}">${t.custom ? 'Custom' : '$' + price}</span>
+              <span class="per">${escapeHtml(per)}</span>
+            </div>
+            <ul class="tier-features">
+              ${t.features.map(f => `<li>${f}</li>`).join('')}
+            </ul>
+            ${isCurrent
+              ? `<button class="tier-cta current" disabled>✓ Current plan</button>`
+              : `<button class="tier-cta ${t.featured ? 'primary' : 'secondary'}" data-upgrade="${t.id}">${escapeHtml(t.cta)}</button>`}
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="card glass">
+      <div class="card-head"><h3>Feature comparison</h3>${u ? `<span class="muted">You're on <strong style="color:var(--text)">${escapeHtml(TIERS.find(t => t.id === tier).name)}</strong></span>` : ''}</div>
+      <div class="table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              ${TIERS.map(t => `<th class="center">${escapeHtml(t.name)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${COMPARE_ROWS.map(r => `
+              <tr>
+                <td>${escapeHtml(r[0])}</td>
+                ${r.slice(1).map(v =>
+                  v === 'check' ? `<td class="center"><span class="compare-check">✓</span></td>` :
+                  v === 'dash'  ? `<td class="center"><span class="compare-dash">—</span></td>` :
+                  `<td class="center">${escapeHtml(v)}</td>`
+                ).join('')}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card glass">
+      <div class="card-head"><h3>Frequently asked questions</h3></div>
+      <div class="faq">
+        ${FAQ_ITEMS.map(([q, a]) => `
+          <details>
+            <summary>${escapeHtml(q)}</summary>
+            <p>${escapeHtml(a)}</p>
+          </details>`).join('')}
+      </div>
+    </div>
+  `);
+
+  $$('.billing-toggle button').forEach(b => b.addEventListener('click', () => {
+    pricingState.billing = b.dataset.billing;
+    renderPricingPage();
+  }));
+  $$('[data-upgrade]').forEach(b => b.addEventListener('click', () => {
+    const tid = b.dataset.upgrade;
+    if (!userStore.current()) {
+      toast({ title: 'Sign in to upgrade', sub: 'Create a local user from the top right.', icon: '⚠', onClick: () => location.hash = '#/account' });
+      return;
+    }
+    if (tid === 'enterprise') {
+      toast({ title: 'Sales contact', sub: 'sales@solscope.example — a member of the team will reach out.', icon: '✉' });
+      return;
+    }
+    setTier(tid);
+    const t = TIERS.find(x => x.id === tid);
+    const period = pricingState.billing === 'yearly' ? 'year' : 'month';
+    toast({
+      title: `You're on ${t.name}`,
+      sub: tid === 'free' ? 'Switched back to the Starter plan.' : `Billed $${(pricingState.billing === 'yearly' ? t.yearly : t.monthly)} / ${period}. Welcome!`,
+      icon: '🎉',
+    });
+    renderPricingPage();
+  }));
+}
+
+ROUTES['/pricing'] = () => renderPricingPage();
+
+// Show the Pro badge in the user menu when applicable
+const _origPaintUserMenu = paintUserMenu;
+paintUserMenu = function () {
+  _origPaintUserMenu();
+  const u = userStore.current();
+  const tier = u?.tier;
+  if (u && tier && tier !== 'free') {
+    const label = $('#user-label');
+    if (label && !label.querySelector('.tier-pill-mini')) {
+      const t = TIERS.find(x => x.id === tier);
+      const pill = document.createElement('span');
+      pill.className = 'tier-pill-mini';
+      pill.textContent = t ? t.name : tier;
+      label.appendChild(pill);
+    }
+  }
+};
+paintUserMenu();
 
 init();
 
