@@ -1046,6 +1046,37 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   color: #d8c9ff; font-size: 9.5px; letter-spacing: .08em;
   text-transform: uppercase; font-weight: 700; margin-left: 6px;
 }
+.tier-pill-mini.trial {
+  background: linear-gradient(135deg, rgba(20,241,149,.35), rgba(153,69,255,.15));
+  border-color: rgba(20,241,149,.5);
+  color: #b9f7d8;
+}
+
+/* Trial banner used on the pricing page (and any future surfaces) */
+.trial-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(20,241,149,.18), rgba(153,69,255,.18));
+  border: 1px solid rgba(20,241,149,.4);
+  color: var(--text); font-size: 13.5px;
+  margin-bottom: -6px;
+}
+.trial-banner .pulse {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--pos); box-shadow: 0 0 12px var(--pos);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.25); opacity: .65; }
+}
+.trial-banner strong { color: var(--text); }
+.trial-banner .countdown {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums; font-size: 12.5px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.12);
+}
 
 /* Docs */
 .docs-layout {
@@ -3461,6 +3492,7 @@ const ROUTES = {
 };
 
 function router() {
+  if (typeof checkTrialExpiry === 'function') checkTrialExpiry();
   const hash = location.hash.replace(/^#/, '') || '/wallet';
   const fn = ROUTES[hash];
   // Mark active nav
@@ -4229,13 +4261,19 @@ const userStore = {
     if (users.some(u => u.name.toLowerCase() === name.toLowerCase())) {
       throw new Error('A user with that name already exists.');
     }
+    const now = Date.now();
     const u = {
       id: 'u_' + Math.random().toString(36).slice(2, 10),
       name: name.trim(),
       email: (email || '').trim() || null,
-      createdAt: Date.now(),
+      createdAt: now,
       avatarHue: Math.floor(Math.random() * 360),
       watchlist: [],
+      // Every new account gets a 24-hour Pro trial automatically.
+      tier: 'pro',
+      tierBilling: 'trial',
+      tierSince: now,
+      trialUntil: now + 24 * 3600 * 1000,
     };
     users.push(u);
     this.save(users);
@@ -4359,8 +4397,15 @@ function renderAccountPage() {
     const email = $('#signup-email').value.trim();
     if (!name) return;
     try {
-      userStore.create(name, email);
+      const u = userStore.create(name, email);
       location.hash = '#/wallet';
+      toast({
+        title: `Welcome, ${u.name}!`,
+        sub: 'Your 24-hour Pro trial is now active — all features unlocked.',
+        icon: '🎉',
+        timeout: 8000,
+        onClick: () => location.hash = '#/pricing',
+      });
     } catch (err) {
       $('#signup-err').textContent = err.message;
     }
@@ -4858,6 +4903,8 @@ const DOCS_PAGES = {
     </ul>
     <p>A random gradient avatar is generated from your name's first two characters and a random hue.</p>
 
+    <div class="docs-callout success"><strong>Free 24-hour Pro trial</strong>Every new account is automatically upgraded to Pro for 24 hours from sign-up — no card required. The trial ends automatically and your account drops back to Free unless you upgrade from the Pricing page.</div>
+
     <h3>Switching users</h3>
     <p>The account page lists every existing local user. Click <strong>Switch</strong> on any row to become that user. Your watchlist follows.</p>
 
@@ -4876,6 +4923,10 @@ const DOCS_PAGES = {
     "email": "alice@example.com" | null,
     "createdAt": 1715600000000,
     "avatarHue": 142,
+    "tier": "pro",             // free | pro | premium | business | enterprise
+    "tierBilling": "trial",    // trial | monthly | yearly | null
+    "tierSince": 1715600000000,
+    "trialUntil": 1715686400000,  // ms epoch; null after trial ends
     "watchlist": [
       { "address": "9WzD...AWWM", "label": "Treasury", "addedAt": 171... }
     ]
@@ -5514,7 +5565,7 @@ const FAQ_ITEMS = [
   ['What happens to my watchlist if I downgrade?',
    'Saved wallets are never deleted. If you exceed the new tier\'s cap, the oldest entries are simply read-only until you remove them or upgrade again.'],
   ['Do you offer a free trial of Pro?',
-   'Every new account gets 14 days of Pro at sign-up, no card required. After the trial you drop back to Starter unless you upgrade.'],
+   'Yes — every new account gets a 24-hour Pro trial at sign-up, no card required. All Pro features are unlocked during the trial. When it ends your account drops back to Free unless you upgrade.'],
   ['Can I pay in SOL?',
    'Yes — Plus and Enterprise plans accept SOL, USDC, and USDT on Solana mainnet. A wallet adapter is required to sign the payment.'],
   ['What\'s the refund policy?',
@@ -5526,14 +5577,57 @@ const pricingState = { billing: 'monthly' };
 function currentTier() {
   return userStore.current()?.tier || 'free';
 }
+function trialMsLeft(user) {
+  user = user || userStore.current();
+  if (!user || user.tierBilling !== 'trial' || !user.trialUntil) return 0;
+  return Math.max(0, user.trialUntil - Date.now());
+}
+function trialActive(user) { return trialMsLeft(user) > 0; }
+function fmtTrialLeft(ms) {
+  if (ms <= 0) return '0m';
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h >= 1) return `${h}h ${m}m`;
+  if (m >= 1) return `${m}m`;
+  return `${Math.max(1, Math.ceil(ms / 1000))}s`;
+}
 function setTier(tierId) {
   const u = userStore.current();
   if (!u) return false;
-  const users = userStore.list().map(x => x.id === u.id ? { ...x, tier: tierId, tierBilling: pricingState.billing, tierSince: Date.now() } : x);
+  const users = userStore.list().map(x => x.id === u.id ? {
+    ...x,
+    tier: tierId,
+    tierBilling: tierId === 'free' ? null : pricingState.billing,
+    tierSince: Date.now(),
+    // Manually choosing any plan ends the trial flag — even Free.
+    trialUntil: null,
+  } : x);
   userStore.save(users);
   paintUserMenu();
   return true;
 }
+
+/* Auto-downgrade expired trials. Runs on init + every 60s. */
+function checkTrialExpiry() {
+  const u = userStore.current();
+  if (!u) return;
+  if (u.tierBilling !== 'trial' || !u.trialUntil) return;
+  if (Date.now() > u.trialUntil && u.tier !== 'free') {
+    const users = userStore.list().map(x => x.id === u.id ? {
+      ...x, tier: 'free', tierBilling: null, trialUntil: null,
+    } : x);
+    userStore.save(users);
+    paintUserMenu();
+    toast({
+      title: 'Pro trial ended',
+      sub: 'Your account is now on Free. Click here to keep Pro features.',
+      icon: '⏰',
+      timeout: 12000,
+      onClick: () => location.hash = '#/pricing',
+    });
+  }
+}
+setInterval(checkTrialExpiry, 60_000);
 
 function renderPricingPage() {
   const u = userStore.current();
@@ -5546,14 +5640,24 @@ function renderPricingPage() {
       title: '',
       sub: '',
     })}
+    ${trialActive(u) ? `
+      <div class="trial-banner">
+        <span class="pulse"></span>
+        <div>
+          <div><strong>Pro trial active</strong> — every feature unlocked.</div>
+          <div class="muted small">Trial ends ${new Date(u.trialUntil).toLocaleString()}. Upgrade any time to keep Pro after that.</div>
+        </div>
+        <span class="countdown" id="trial-countdown">${fmtTrialLeft(trialMsLeft(u))} left</span>
+      </div>
+    ` : ''}
     <div class="card glass pricing-hero">
       <h2>Choose your plan</h2>
-      <p>Real-time Solana data, low-latency RPC, full launchpad coverage, and pro-grade alerts. Cancel any time.</p>
+      <p>Every new account gets <strong>24 hours of Pro free</strong> — no card required. Cancel any time. Real-time data, low-latency RPC, and full Pump.fun / Bags coverage included.</p>
       <div class="billing-toggle" role="tablist">
         <button data-billing="monthly" class="${!isYearly ? 'active' : ''}">Monthly</button>
         <button data-billing="yearly"  class="${isYearly ? 'active' : ''}">Yearly <span class="save-pill">Save 20%</span></button>
       </div>
-      ${!u ? `<p class="muted small" style="margin-top:8px">Sign in from the top-right to save your plan on this device.</p>` : ''}
+      ${!u ? `<p class="muted small" style="margin-top:8px">Sign in from the top-right to start your free 24-hour Pro trial.</p>` : ''}
     </div>
 
     <div class="tier-grid">
@@ -5659,12 +5763,19 @@ paintUserMenu = function () {
       const t = TIERS.find(x => x.id === tier);
       const pill = document.createElement('span');
       pill.className = 'tier-pill-mini';
-      pill.textContent = t ? t.name : tier;
+      const ms = trialMsLeft(u);
+      pill.textContent = ms > 0
+        ? `${t ? t.name : tier} · Trial ${fmtTrialLeft(ms)}`
+        : (t ? t.name : tier);
+      if (ms > 0) pill.classList.add('trial');
       label.appendChild(pill);
     }
   }
 };
 paintUserMenu();
+
+// Refresh the countdown pill every 60s while a trial is active.
+setInterval(() => { if (trialActive()) paintUserMenu(); }, 60_000);
 
 init();
 
