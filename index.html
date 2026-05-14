@@ -842,7 +842,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   flex: 0 0 auto;
   width: 480px; max-width: 100%;
   padding: 18px 18px 16px;
-  display: flex; flex-direction: column; gap: 4px;
+  display: flex; flex-direction: column; gap: 6px;
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border: 1px solid var(--stroke);
   border-radius: 22px;
@@ -941,29 +941,33 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .swap-meta .mono { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted-2); }
 .swap-meta .usd  { font-variant-numeric: tabular-nums; }
 
-/* Circular flip button between the two panels */
+/* Circular flip button — sits inside a 0-height row that overflows
+ * symmetrically into the panels above & below. No negative margins
+ * on the wrap, so the panel layout stays correct; the button just
+ * floats over the seam visually. */
 .swap-flip-wrap {
   position: relative; height: 0;
   display: flex; justify-content: center; align-items: center;
-  margin: -10px 0;
+  z-index: 3; overflow: visible;
 }
 .swap-flip {
-  position: relative; z-index: 2;
-  width: 38px; height: 38px;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px; height: 36px;
   border-radius: 12px; cursor: pointer;
-  background: var(--bg-1);
-  border: 4px solid var(--bg-0);
-  outline: 1px solid var(--stroke-strong);
+  background: var(--surface-2);
+  border: 4px solid #0b0a14;
   display: grid; place-items: center;
   color: var(--muted);
-  transition: transform .25s ease, color .15s, outline-color .15s;
+  box-shadow: 0 0 0 1px var(--stroke-strong);
+  transition: transform .25s ease, color .15s, box-shadow .15s;
 }
 .swap-flip:hover {
-  transform: rotate(180deg);
+  transform: translate(-50%, -50%) rotate(180deg);
   color: var(--text);
-  outline-color: rgba(153, 69, 255, .55);
+  box-shadow: 0 0 0 1px rgba(153, 69, 255, .55);
 }
-.swap-flip svg { width: 18px; height: 18px; }
+.swap-flip svg { width: 16px; height: 16px; }
 
 /* Quote info block */
 .swap-summary {
@@ -1196,8 +1200,8 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 
 /* Bottom token row (matches jup.ag) */
 .swap-token-row {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  max-width: 840px; margin: 0 auto; padding: 0 4px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  width: 480px; max-width: 100%; margin: 0 auto;
 }
 @media (max-width: 640px) { .swap-token-row { grid-template-columns: 1fr; } }
 .swap-token-card {
