@@ -1455,10 +1455,27 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
  *   - Jupiter token registry (symbol/name/logo, CORS-friendly)
  */
 
-const RPC = {
-  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
-  'devnet': 'https://api.devnet.solana.com',
+// Multi-endpoint fallback chain — first that succeeds wins, others tried on error.
+const RPC_ENDPOINTS = {
+  'mainnet-beta': [
+    'https://api.mainnet-beta.solana.com',
+    'https://solana-rpc.publicnode.com',
+    'https://rpc.ankr.com/solana',
+    'https://endpoints.omniatech.io/v1/sol/mainnet/public',
+    'https://api.metaplex.solana.com',
+  ],
+  'devnet': [
+    'https://api.devnet.solana.com',
+    'https://solana-devnet-rpc.publicnode.com',
+    'https://rpc.ankr.com/solana_devnet',
+  ],
 };
+// Keep RPC[] for any legacy uses
+const RPC = {
+  'mainnet-beta': RPC_ENDPOINTS['mainnet-beta'][0],
+  'devnet': RPC_ENDPOINTS.devnet[0],
+};
+const rpcHealth = { ok: new Set(), bad: new Set(), lastFail: null };
 const EXPLORER = 'https://explorer.solana.com';
 const SOLSCAN = 'https://solscan.io';
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
@@ -1598,17 +1615,47 @@ async function loadTrendingTicker() {
 
 function explorerCluster() { return state.network === 'mainnet-beta' ? 'mainnet' : state.network; }
 
-/* ---------------- RPC ---------------- */
+/* ---------------- RPC (with multi-endpoint fallback) ---------------- */
 async function rpc(method, params = []) {
-  const res = await fetch(RPC[state.network], {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  if (!res.ok) throw new Error(`RPC ${method}: ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(`${method}: ${json.error.message}`);
-  return json.result;
+  const endpoints = RPC_ENDPOINTS[state.network] || [RPC[state.network]];
+  // Order: known-good endpoints first
+  const ordered = [
+    ...endpoints.filter(u => rpcHealth.ok.has(u)),
+    ...endpoints.filter(u => !rpcHealth.ok.has(u) && !rpcHealth.bad.has(u)),
+    ...endpoints.filter(u => rpcHealth.bad.has(u)),
+  ];
+  let lastErr;
+  for (const url of ordered) {
+    const controller = new AbortController();
+    const to = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal: controller.signal,
+      });
+      clearTimeout(to);
+      if (!res.ok) { lastErr = new Error(`${url}: HTTP ${res.status}`); rpcHealth.bad.add(url); rpcHealth.ok.delete(url); continue; }
+      const json = await res.json();
+      if (json.error) {
+        // Method-level error — endpoint itself is fine, surface the message
+        rpcHealth.ok.add(url); rpcHealth.bad.delete(url);
+        throw new Error(`${method}: ${json.error.message || JSON.stringify(json.error)}`);
+      }
+      rpcHealth.ok.add(url); rpcHealth.bad.delete(url);
+      return json.result;
+    } catch (e) {
+      clearTimeout(to);
+      // If it's a method-level error we threw above, propagate without retry
+      if (e.message && e.message.startsWith(method + ':')) throw e;
+      lastErr = e;
+      rpcHealth.bad.add(url); rpcHealth.ok.delete(url);
+      rpcHealth.lastFail = `${url}: ${e.message}`;
+      continue;
+    }
+  }
+  throw lastErr || new Error(`All RPC endpoints failed for ${method}`);
 }
 
 /* ---------------- Token registry & prices ---------------- */
@@ -1677,21 +1724,34 @@ async function trackAddress(address) {
   state.address = address;
   state.txBefore = null;
   state.txs = [];
+  state.partialFailures = [];
   showStatus('Loading wallet…', 'loading');
   $('#empty-state').hidden = true;
   $('#dashboard').hidden = true;
+  // Route to wallet view in case caller didn't
+  if (!location.hash.startsWith('#/wallet')) location.hash = '#/wallet';
+
+  const failures = [];
+  const safeCall = async (label, p, fallback) => {
+    try { return await p; }
+    catch (err) { failures.push(`${label}: ${err.message}`); return fallback; }
+  };
 
   try {
     const [tokenMap, accountInfo, lamports, splV1, splV2, sigs] = await Promise.all([
       loadJupTokenMap(),
-      rpc('getAccountInfo', [address, { encoding: 'base64' }]).then(r => r?.value).catch(() => null),
-      rpc('getBalance', [address]).then(r => r?.value ?? 0).catch(() => 0),
-      rpc('getTokenAccountsByOwner', [address, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }])
-        .then(r => r?.value ?? []).catch(() => []),
-      rpc('getTokenAccountsByOwner', [address, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: 'jsonParsed' }])
-        .then(r => r?.value ?? []).catch(() => []),
-      rpc('getSignaturesForAddress', [address, { limit: 20 }]).catch(() => []),
+      safeCall('getAccountInfo',
+        rpc('getAccountInfo', [address, { encoding: 'base64' }]).then(r => r?.value), null),
+      safeCall('getBalance',
+        rpc('getBalance', [address]).then(r => r?.value ?? 0), 0),
+      safeCall('getTokenAccountsByOwner (SPL)',
+        rpc('getTokenAccountsByOwner', [address, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }]).then(r => r?.value ?? []), []),
+      safeCall('getTokenAccountsByOwner (Token-2022)',
+        rpc('getTokenAccountsByOwner', [address, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: 'jsonParsed' }]).then(r => r?.value ?? []), []),
+      safeCall('getSignaturesForAddress',
+        rpc('getSignaturesForAddress', [address, { limit: 20 }]), []),
     ]);
+    state.partialFailures = failures;
 
     // Build holdings (SOL + SPL)
     const splAccounts = [...splV1, ...splV2].map(a => {
@@ -1745,7 +1805,11 @@ async function trackAddress(address) {
 
     renderAll(accountInfo, lamports);
     $('#dashboard').hidden = false;
-    clearStatus();
+    if (failures.length) {
+      showStatus(`Loaded with ${failures.length} provider error${failures.length === 1 ? '' : 's'}. Data may be partial — try Refresh.`, 'error');
+    } else {
+      clearStatus();
+    }
     startLiveLoop(address);
   } catch (err) {
     console.error(err);
@@ -1910,7 +1974,11 @@ function renderAccount(accountInfo) {
   const owner = accountInfo?.owner;
   $('#tag-executable').hidden = !exec;
   $('#tag-system').hidden = !(owner === '11111111111111111111111111111111' && !exec);
-  $('#tag-empty').hidden = !!accountInfo;
+  // Truly empty = no account info AND no holdings AND no signatures
+  const trulyEmpty = !accountInfo
+    && !(state.holdings || []).some(h => h.uiAmount > 0)
+    && !(state.txs || []).length;
+  $('#tag-empty').hidden = !trulyEmpty;
 
   // Avatar gradient from address hash
   const hue = [...a].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 0) % 360;
@@ -1967,7 +2035,12 @@ function renderHoldings() {
   }
 
   if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="6"><div class="empty">No holdings to show.</div></td></tr>`;
+    const trulyEmpty = state.totalValue === 0 && (state.holdings || []).every(h => h.uiAmount === 0) && !(state.txs || []).length;
+    body.innerHTML = `<tr><td colspan="6"><div class="empty">${
+      trulyEmpty
+        ? 'No on-chain footprint yet. Send any SOL or token to this address to activate it.'
+        : (state.partialFailures?.length ? 'Couldn\'t reach the token providers. Try Refresh.' : 'No SPL token balances.')
+    }</div></td></tr>`;
     return;
   }
 
@@ -2891,6 +2964,8 @@ function router() {
     const route = '/' + a.dataset.route;
     a.classList.toggle('is-active', route === hash);
   });
+  // Stop page-specific timers when leaving
+  if (hash !== '/watchlist' && typeof stopWatchlistAutoRefresh === 'function') stopWatchlistAutoRefresh();
   if (fn) fn();
   else showWalletView();
 }
@@ -3782,25 +3857,45 @@ async function renderWatchlistPage() {
 
   $('#refresh-page').addEventListener('click', loadWatchlistStats);
   loadWatchlistStats();
+  startWatchlistAutoRefresh();
 }
 
+let watchlistTimer = null;
 async function loadWatchlistStats() {
   const u = userStore.current(); if (!u) return;
   await Promise.all(u.watchlist.map(async w => {
     try {
-      const [bal, splV1] = await Promise.all([
-        rpc('getBalance', [w.address]).then(r => r?.value ?? 0).catch(() => 0),
+      const [bal, splV1, splV2] = await Promise.all([
+        rpc('getBalance', [w.address]).then(r => r?.value ?? 0).catch(() => null),
         rpc('getTokenAccountsByOwner', [w.address, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }])
+          .then(r => r?.value ?? []).catch(() => []),
+        rpc('getTokenAccountsByOwner', [w.address, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: 'jsonParsed' }])
           .then(r => r?.value ?? []).catch(() => []),
       ]);
       const card = document.querySelector(`.wl-card[data-addr="${CSS.escape(w.address)}"]`);
       if (!card) return;
-      const sol = (bal || 0) / LAMPORTS_PER_SOL;
-      const nonzero = splV1.filter(a => Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0) > 0).length;
-      $('[data-sol]', card).textContent = fmt(sol, 4);
+      if (bal === null) {
+        $('[data-sol]', card).textContent = '—';
+        $('[data-sol]', card).title = 'RPC unreachable';
+      } else {
+        const sol = bal / LAMPORTS_PER_SOL;
+        $('[data-sol]', card).textContent = fmt(sol, 4);
+      }
+      const nonzero = [...splV1, ...splV2].filter(a => Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0) > 0).length;
       $('[data-tokens]', card).textContent = nonzero;
+      // Light pulse so it's clear the values just refreshed
+      card.animate?.([{ borderColor: 'rgba(20,241,149,.5)' }, { borderColor: 'var(--stroke)' }], { duration: 700 });
     } catch {}
   }));
+}
+function startWatchlistAutoRefresh() {
+  stopWatchlistAutoRefresh();
+  watchlistTimer = setInterval(() => {
+    if (location.hash === '#/watchlist') loadWatchlistStats();
+  }, 30_000);
+}
+function stopWatchlistAutoRefresh() {
+  if (watchlistTimer) { clearInterval(watchlistTimer); watchlistTimer = null; }
 }
 
 /* ----- Wallet page "Save to watchlist" wiring ----- */
