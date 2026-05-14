@@ -273,29 +273,198 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 }
 
 /* Hero (empty state) */
-.hero { padding: clamp(28px, 4vw, 48px); position: relative; overflow: hidden; }
-.hero::before {
-  content: ""; position: absolute; inset: -1px;
-  background: radial-gradient(600px 200px at 20% 0%, rgba(153, 69, 255, .25), transparent 60%),
-              radial-gradient(500px 200px at 80% 100%, rgba(20, 241, 149, .15), transparent 60%);
-  pointer-events: none; border-radius: inherit;
+/* Landing page (empty-state) */
+.landing { display: grid; gap: 32px; padding-bottom: 16px; }
+.landing-hero {
+  position: relative; overflow: hidden;
+  padding: clamp(48px, 7vw, 96px) clamp(24px, 4vw, 64px) clamp(40px, 5vw, 64px);
+  border-radius: var(--radius);
+  border: 1px solid var(--stroke);
+  background:
+    radial-gradient(900px 360px at 20% 0%, rgba(153, 69, 255, .18), transparent 60%),
+    radial-gradient(700px 280px at 85% 90%, rgba(20, 241, 149, .12), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  text-align: center;
 }
-.hero h2 {
-  position: relative; margin: 0; font-size: clamp(24px, 3.4vw, 36px);
-  letter-spacing: -0.02em; line-height: 1.1; font-weight: 800;
-  background: linear-gradient(180deg, #ffffff, #b9b3ff 70%, #14f195);
+.landing-hero::before {
+  content: ''; position: absolute; inset: -1px; pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(153, 69, 255, .25), transparent 40%);
+  border-radius: inherit;
+}
+.landing-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgba(20, 241, 149, .08);
+  border: 1px solid rgba(20, 241, 149, .25);
+  color: #a3e8c8; font-size: 11.5px; font-weight: 500; letter-spacing: .04em;
+  position: relative;
+}
+.dot-live {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--pos); box-shadow: 0 0 10px var(--pos);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+.landing-title {
+  position: relative;
+  margin: 18px auto 14px; max-width: 18ch;
+  font-size: clamp(32px, 5.5vw, 60px);
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.04;
+  color: var(--text);
+}
+.gradient-text {
+  background: linear-gradient(135deg, #c4b1ff 0%, #9be9c8 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.hero .lede { position: relative; margin: 10px 0 18px; color: var(--muted); max-width: 60ch; }
-.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; position: relative; }
-.chip-label { color: var(--muted); font-size: 12px; margin-right: 4px; }
-.chip {
-  appearance: none; border: 1px dashed var(--stroke-strong); background: transparent;
-  color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
-  padding: 6px 10px; border-radius: 999px;
-  transition: color .2s, border-color .2s, background .2s;
+.landing-lede {
+  position: relative; margin: 0 auto 28px; max-width: 56ch;
+  color: var(--muted); font-size: 15px; line-height: 1.55;
 }
-.chip:hover { color: var(--text); background: var(--surface); border-style: solid; }
+
+/* Big hero search */
+.hero-search {
+  position: relative;
+  display: flex; align-items: center; gap: 6px;
+  max-width: 640px; margin: 0 auto 22px;
+  padding: 6px 6px 6px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--stroke-strong);
+  border-radius: 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.hero-search:focus-within {
+  border-color: rgba(153, 69, 255, .55);
+  box-shadow: 0 0 0 4px rgba(153, 69, 255, .15);
+}
+.hero-search .icon { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
+.hero-search input {
+  flex: 1; min-width: 0;
+  appearance: none; border: 0; background: transparent;
+  color: var(--text); font: inherit; font-size: 14.5px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 14px 8px; outline: none;
+}
+.hero-search input::placeholder { color: var(--muted-2); font-family: 'Inter', sans-serif; }
+.hero-search .primary-btn { padding: 12px 18px; font-size: 13.5px; }
+
+/* Live stats row */
+.landing-stats {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 0;
+  padding: 10px 14px; border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  margin: 8px auto 18px;
+  flex-wrap: wrap; justify-content: center;
+}
+.lstat {
+  display: grid; gap: 2px; padding: 4px 18px;
+  text-align: center;
+}
+.lstat-num {
+  font-size: 18px; font-weight: 700; letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums; color: var(--text);
+}
+.lstat-lbl {
+  font-size: 10.5px; color: var(--muted-2);
+  text-transform: uppercase; letter-spacing: .1em; font-weight: 500;
+}
+.lstat-sep {
+  width: 1px; height: 26px; background: var(--stroke); flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .lstat-sep { display: none; }
+  .lstat { padding: 4px 10px; }
+}
+
+.landing-cta-row {
+  display: inline-flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  position: relative;
+}
+
+/* Landing sections (cards) */
+.landing-section {
+  display: grid; gap: 14px;
+  padding: 0 clamp(0px, 1vw, 8px);
+}
+.landing-section-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 0 6px;
+}
+.landing-section-head h3 { margin: 0; font-size: 16px; font-weight: 600; }
+
+/* Sample-wallet cards */
+.sample-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.sample-card {
+  appearance: none; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  color: var(--text); font: inherit;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.sample-card:hover {
+  background: var(--surface-2); border-color: var(--stroke-strong);
+  transform: translateY(-2px);
+}
+.sample-av {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  position: relative; box-shadow: 0 6px 18px -10px rgba(153, 69, 255, .6);
+}
+.sample-av::after {
+  content: ''; position: absolute; inset: 5px; border-radius: 8px;
+  background: rgba(10, 8, 26, .55);
+}
+.sample-meta { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sample-name { font-weight: 600; font-size: 14px; }
+.sample-sub  { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.sample-tag {
+  font-size: 10px; padding: 3px 9px; border-radius: 999px;
+  background: rgba(153, 69, 255, .14); color: #c8b6ff;
+  border: 1px solid rgba(153, 69, 255, .3);
+  letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+}
+
+/* Feature cards */
+.landing-features {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.lfeat {
+  display: grid; gap: 8px; align-content: start;
+  padding: 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  color: var(--text); text-decoration: none;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.lfeat:hover {
+  background: var(--surface-2); border-color: var(--stroke-strong);
+  transform: translateY(-2px);
+}
+.lfeat-ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, rgba(153, 69, 255, .25), rgba(20, 241, 149, .18));
+  border: 1px solid rgba(153, 69, 255, .3);
+  color: #fff; margin-bottom: 4px;
+}
+.lfeat h4 { margin: 0; font-size: 14.5px; font-weight: 600; }
+.lfeat p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+/* Bottom CTA */
+.landing-footer-cta {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap;
+  padding: 22px clamp(20px, 3vw, 32px);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(153, 69, 255, .14), rgba(20, 241, 149, .1));
+  border: 1px solid rgba(153, 69, 255, .35);
+}
+.landing-footer-cta h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.landing-footer-cta p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
 
 /* Buttons */
 .primary-btn {
@@ -1766,14 +1935,142 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   </header>
 
   <main class="container">
-    <section id="empty-state" class="hero glass">
-      <h2>Track any Solana wallet — portfolio, holdings &amp; activity</h2>
-      <p class="lede">Total portfolio value, SPL token holdings with live prices, 24h change, and a real-time transaction feed for any wallet.</p>
-      <div class="chips">
-        <span class="chip-label">Try:</span>
-        <button class="chip" data-addr="vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg">Vines Validator</button>
-        <button class="chip" data-addr="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM">Treasury</button>
-        <button class="chip" data-addr="GDDMwNyyx8uB6zrqwBFHjLLG3TBYk2F8Az4yrQC5RzMp">Whale</button>
+    <section id="empty-state" class="landing">
+      <!-- Hero -->
+      <div class="landing-hero">
+        <div class="landing-eyebrow">
+          <span class="dot-live"></span>
+          <span>Real-time Solana wallet intelligence</span>
+        </div>
+        <h2 class="landing-title">
+          The fastest way to track <span class="gradient-text">any Solana wallet</span>
+        </h2>
+        <p class="landing-lede">
+          Live portfolio value, SPL holdings, 24h P&amp;L, and an instant transaction feed.
+          Pump.fun, Pump.swap &amp; Bags coverage built in. No login required.
+        </p>
+
+        <form id="hero-search" class="hero-search" autocomplete="off">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 1 1-4.47 10.03l-3.78 3.78l-1.5-1.5l3.78-3.78A6 6 0 0 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
+          <input id="hero-address" type="text" placeholder="Paste any Solana wallet address to start tracking…" spellcheck="false" />
+          <kbd class="search-hint">⌘ K</kbd>
+          <button type="submit" class="primary-btn">
+            Track wallet
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m13 5l7 7l-7 7l-1.4-1.4l4.6-4.6H4v-2h12.2l-4.6-4.6z"/></svg>
+          </button>
+        </form>
+
+        <div class="landing-stats">
+          <div class="lstat">
+            <span class="lstat-num" id="lstat-pairs">—</span>
+            <span class="lstat-lbl">Live pairs</span>
+          </div>
+          <div class="lstat-sep"></div>
+          <div class="lstat">
+            <span class="lstat-num" id="lstat-tokens">21+</span>
+            <span class="lstat-lbl">Hardcoded SPL fallback</span>
+          </div>
+          <div class="lstat-sep"></div>
+          <div class="lstat">
+            <span class="lstat-num">8</span>
+            <span class="lstat-lbl">RPC fallback endpoints</span>
+          </div>
+          <div class="lstat-sep"></div>
+          <div class="lstat">
+            <span class="lstat-num">5s</span>
+            <span class="lstat-lbl">Pro refresh interval</span>
+          </div>
+        </div>
+
+        <div class="landing-cta-row">
+          <a class="ghost-btn" href="#/account">Start free 24h Pro trial →</a>
+          <a class="ghost-btn" href="#/pricing">See pricing</a>
+        </div>
+      </div>
+
+      <!-- Try wallet cards -->
+      <div class="landing-section">
+        <div class="landing-section-head">
+          <h3>Try a sample wallet</h3>
+          <a class="ghost-btn small" href="#/trading/copy">Browse whales →</a>
+        </div>
+        <div class="sample-grid">
+          <button class="sample-card" data-addr="vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg">
+            <span class="sample-av" style="background:conic-gradient(from 180deg, #9945ff, #14f195, #4f8bff, #9945ff)"></span>
+            <span class="sample-meta">
+              <span class="sample-name">Vines Validator</span>
+              <span class="sample-sub">Active staker · vines1…NKPTg</span>
+            </span>
+            <span class="sample-tag">Validator</span>
+          </button>
+          <button class="sample-card" data-addr="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM">
+            <span class="sample-av" style="background:conic-gradient(from 90deg, #ffb347, #ff6ad5, #9945ff, #ffb347)"></span>
+            <span class="sample-meta">
+              <span class="sample-name">Treasury</span>
+              <span class="sample-sub">Multi-sig · 9WzD…AWWM</span>
+            </span>
+            <span class="sample-tag">Treasury</span>
+          </button>
+          <button class="sample-card" data-addr="GDDMwNyyx8uB6zrqwBFHjLLG3TBYk2F8Az4yrQC5RzMp">
+            <span class="sample-av" style="background:conic-gradient(from 0deg, #14f195, #4f8bff, #ff6ad5, #14f195)"></span>
+            <span class="sample-meta">
+              <span class="sample-name">Whale</span>
+              <span class="sample-sub">High-value trader · GDDM…RzMp</span>
+            </span>
+            <span class="sample-tag">Whale</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Feature grid -->
+      <div class="landing-section">
+        <div class="landing-section-head">
+          <h3>Everything you need</h3>
+          <a class="ghost-btn small" href="#/docs/introduction">Read the docs →</a>
+        </div>
+        <div class="landing-features">
+          <a class="lfeat" href="#/wallet">
+            <span class="lfeat-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2zm-9-2h10V8H12zm4-2.5a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5"/></svg></span>
+            <h4>Portfolio &amp; P&amp;L</h4>
+            <p>Live total value, SPL holdings table, 24h P&amp;L per asset, donut composition, and account history.</p>
+          </a>
+          <a class="lfeat" href="#/swap">
+            <span class="lfeat-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M7 10l-4 4l4 4v-3h8v-2H7zm10-6l-4 4v3H5v2h8v3z"/></svg></span>
+            <h4>Best-route Swap</h4>
+            <p>Quote any token pair across 20+ DEXes via Jupiter — slippage, price impact, multi-hop route in real time.</p>
+          </a>
+          <a class="lfeat" href="#/trading/trending">
+            <span class="lfeat-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="m3.5 18.5l6-6.5l4 4L22 6.92L20.59 5.5l-7.09 8l-4-4L2 17z"/></svg></span>
+            <h4>Trending across DEXes</h4>
+            <p>Filter Pump.fun, Pump.swap, Bags, Raydium, Orca, Meteora with live 5m / 1h / 6h / 24h rankings.</p>
+          </a>
+          <a class="lfeat" href="#/tool/checker">
+            <span class="lfeat-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 1a4 4 0 0 1 4 4v3h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V5a4 4 0 0 1 4-4m0 2a2 2 0 0 0-2 2v3h4V5a2 2 0 0 0-2-2"/></svg></span>
+            <h4>Safety check</h4>
+            <p>Heuristic rug score for any SPL token: authority renouncement, liquidity, registry status, 24h volume.</p>
+          </a>
+          <a class="lfeat" href="#/tool/holders">
+            <span class="lfeat-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3s-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5S5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg></span>
+            <h4>Holder insights</h4>
+            <p>Top 20 holders, top-10 concentration percentage, and Solscan deep-links for every account.</p>
+          </a>
+          <a class="lfeat" href="#/watchlist">
+            <span class="lfeat-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21z"/></svg></span>
+            <h4>Watchlist + alerts</h4>
+            <p>Save unlimited wallets, auto-refresh balances, and get Telegram / webhook alerts on every transaction.</p>
+          </a>
+        </div>
+      </div>
+
+      <div class="landing-footer-cta">
+        <div>
+          <h3>Ready to trade like a pro?</h3>
+          <p>24 hours of Pro free with every new account. No credit card.</p>
+        </div>
+        <div class="landing-cta-row">
+          <a class="primary-btn" href="#/account">Create account →</a>
+          <a class="ghost-btn" href="#/pricing">See all plans</a>
+        </div>
       </div>
     </section>
 
@@ -3493,11 +3790,32 @@ function init() {
     } catch {}
   });
 
-  $$('.chip').forEach(c => c.addEventListener('click', () => {
+  // Sample wallets in the landing page + any legacy chips
+  $$('.chip, .sample-card').forEach(c => c.addEventListener('click', () => {
     const v = c.dataset.addr;
+    if (!v) return;
     $('#address').value = v;
     trackAddress(v);
   }));
+
+  // Big hero search bar
+  $('#hero-search')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#hero-address').value.trim();
+    if (v) {
+      $('#address').value = v;
+      trackAddress(v);
+    }
+  });
+
+  // Live "pairs" counter for the landing stats row
+  (async function paintLandingStats() {
+    const el = $('#lstat-pairs'); if (!el) return;
+    try {
+      const pairs = await fetchSolanaPairs();
+      el.textContent = pairs.length ? pairs.length.toLocaleString() : '—';
+    } catch { el.textContent = '—'; }
+  })();
 
   $$('.net-btn').forEach(btn => btn.addEventListener('click', () => {
     $$('.net-btn').forEach(b => {
