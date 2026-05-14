@@ -561,6 +561,190 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 }
 .footer .dot { opacity: .5; }
 
+/* Page view (full page sections rendered into #page-view) */
+.page-view { display: grid; gap: 18px; }
+.page-view[hidden] { display: none; }
+.page-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.page-title {
+  margin: 0; font-size: clamp(24px, 3.2vw, 34px); font-weight: 800; letter-spacing: -.02em;
+  background: linear-gradient(180deg, #ffffff, #c8c1ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.05;
+}
+.page-sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 70ch; }
+.breadcrumb { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
+.breadcrumb a { color: var(--muted); text-decoration: none; }
+.breadcrumb a:hover { color: var(--text); }
+.breadcrumb .sep { opacity: .5; }
+.page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Range tabs */
+.range-tabs {
+  display: inline-flex; gap: 2px; padding: 3px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px;
+}
+.range-tabs button {
+  appearance: none; border: 0; background: transparent; color: var(--muted);
+  padding: 6px 12px; border-radius: 8px; font: inherit; font-size: 12px; cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.range-tabs button.active { color: var(--text); background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--stroke-strong); }
+
+/* Generic full-page table card */
+.page-table { padding: 0 !important; overflow: hidden; }
+.page-table .table-wrap { margin: 0; }
+.page-table .table thead th { padding: 14px 16px; background: rgba(255,255,255,.02); }
+.page-table .table tbody td { padding: 14px 16px; }
+.page-table .table tbody tr { cursor: pointer; }
+.page-table .table th.sortable { cursor: pointer; user-select: none; }
+.page-table .table th.sortable:hover { color: var(--text); }
+.page-table .table th .sort-ind { opacity: 0; margin-left: 4px; }
+.page-table .table th.sorted .sort-ind { opacity: 1; }
+
+/* Nav link active state */
+.nav-link.is-active,
+.ddi.is-active { color: var(--text); }
+.ddi.is-active { background: rgba(153, 69, 255, .14); box-shadow: inset 0 0 0 1px rgba(153, 69, 255, .3); }
+.nav-link.is-active { background: var(--surface); }
+
+/* Swap page */
+.swap-page {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px;
+}
+@media (max-width: 900px) { .swap-page { grid-template-columns: 1fr; } }
+.swap-card {
+  padding: 22px;
+  display: grid; gap: 10px;
+}
+.swap-token {
+  padding: 14px 16px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  display: grid; gap: 8px;
+}
+.swap-token-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase;
+}
+.swap-token-body {
+  display: flex; align-items: center; gap: 12px;
+}
+.swap-pick {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  cursor: pointer; min-width: 120px; font: inherit; color: var(--text);
+}
+.swap-pick:hover { background: var(--surface-3); }
+.swap-pick img { width: 22px; height: 22px; border-radius: 50%; }
+.swap-pick .swap-pick-sym { font-weight: 600; font-size: 13px; }
+.swap-pick .swap-pick-caret { margin-left: auto; opacity: .6; }
+.swap-amount {
+  flex: 1; min-width: 0;
+  appearance: none; border: 0; background: transparent;
+  color: var(--text); font: inherit; font-size: 22px; font-weight: 700;
+  outline: none; font-variant-numeric: tabular-nums; text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+}
+.swap-amount::placeholder { color: var(--muted-2); }
+.swap-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--muted);
+}
+.swap-flip {
+  width: 36px; height: 36px; margin: -4px auto;
+  border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface-2); border: 1px solid var(--stroke-strong);
+  cursor: pointer; transition: transform .25s;
+}
+.swap-flip:hover { transform: rotate(180deg); }
+.swap-quote-info {
+  display: grid; gap: 8px; padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px;
+  font-size: 12.5px;
+}
+.swap-quote-info .row {
+  display: flex; justify-content: space-between; gap: 8px;
+}
+.swap-quote-info .label { color: var(--muted); }
+.swap-quote-info .value { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
+.swap-route { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.swap-route .hop {
+  font-size: 11px; padding: 3px 8px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+}
+.swap-cta {
+  padding: 14px; border-radius: 12px; font: inherit; font-weight: 700; font-size: 14px;
+  background: linear-gradient(135deg, #c4b1ff 0%, #9be9c8 100%);
+  color: #0a0820; border: 0; cursor: pointer;
+  margin-top: 4px;
+  box-shadow: 0 14px 30px -14px rgba(153, 69, 255, .8);
+}
+.swap-cta:hover { transform: translateY(-1px); }
+.swap-side .card-head { margin-bottom: 12px; }
+.swap-pair-list { display: grid; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+
+/* Token picker modal list */
+.token-picker { max-height: 60vh; overflow: auto; display: grid; gap: 4px; }
+.token-picker input.filter-input { width: 100%; margin-bottom: 8px; }
+.token-picker-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  background: transparent; border: 1px solid transparent;
+}
+.token-picker-row:hover { background: var(--surface); border-color: var(--stroke); }
+.token-picker-row img { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); }
+.token-picker-row .name { flex: 1; min-width: 0; }
+.token-picker-row .sym { font-weight: 600; font-size: 13px; }
+.token-picker-row .sub { font-size: 11px; color: var(--muted); }
+
+/* Product / Developers landing pages */
+.product-hero {
+  padding: 28px 32px;
+  display: grid; gap: 12px;
+}
+.product-hero .badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(153, 69, 255, .15); color: #d8c9ff;
+  border: 1px solid rgba(153, 69, 255, .3);
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase; width: max-content;
+}
+.feature-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.feature {
+  padding: 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  display: grid; gap: 8px; align-content: start;
+}
+.feature .f-ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(153,69,255,.3), rgba(20,241,149,.25));
+  border: 1px solid var(--stroke);
+  display: grid; place-items: center; color: #ecebff;
+}
+.feature h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.feature p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+.code-block {
+  margin: 0;
+  padding: 14px 16px; border-radius: 12px;
+  background: rgba(0,0,0,.45); border: 1px solid var(--stroke);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6;
+  color: #cfcaff; overflow: auto; white-space: pre;
+}
+
+/* Empty page state */
+.page-empty {
+  padding: 60px 24px; text-align: center; color: var(--muted);
+  border-radius: 14px; border: 1px dashed var(--stroke-strong);
+}
+.page-empty h3 { color: var(--text); margin: 0 0 6px; font-size: 18px; }
+.page-empty p { margin: 0; font-size: 13px; }
+
 /* Modal */
 .modal {
   position: fixed; inset: 0; z-index: 100;
@@ -725,7 +909,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 
   <header class="topbar">
     <div class="topbar-main">
-      <a class="brand" href="#">
+      <a class="brand" href="#/wallet">
         <span class="logo-mark">
           <svg viewBox="0 0 32 32" aria-hidden="true">
             <defs>
@@ -745,37 +929,37 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
       </a>
 
       <nav class="primary-nav" aria-label="Primary">
-        <a class="nav-link" href="#" data-action="swap"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l-4 4l4 4v-3h8v-2H7zm10-6l-4 4v3H5v2h8v3z"/></svg>Swap</a>
+        <a class="nav-link" href="#/swap" data-route="swap"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l-4 4l4 4v-3h8v-2H7zm10-6l-4 4v3H5v2h8v3z"/></svg>Swap</a>
 
         <div class="nav-item">
           <button class="nav-link" aria-haspopup="true" aria-expanded="false">Products <span class="caret">▾</span></button>
           <div class="dropdown wide">
             <div class="dropdown-section">
               <h4>Infrastructure</h4>
-              <a class="ddi" data-product="data-api">
+              <a class="ddi" href="#/product/data-api" data-route="product/data-api">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3c4.97 0 9 1.34 9 3v12c0 1.66-4.03 3-9 3s-9-1.34-9-3V6c0-1.66 4.03-3 9-3m0 2c-3.87 0-7 .9-7 2s3.13 2 7 2s7-.9 7-2s-3.13-2-7-2m7 4.34C17.4 10.4 14.85 11 12 11s-5.4-.6-7-1.66V12c0 1.1 3.13 2 7 2s7-.9 7-2zm0 6C17.4 16.4 14.85 17 12 17s-5.4-.6-7-1.66V18c0 1.1 3.13 2 7 2s7-.9 7-2z"/></svg></span>
                 <div><div class="ddi-title">Data API</div><div class="ddi-sub">Comprehensive Solana blockchain data API</div></div>
               </a>
-              <a class="ddi" data-product="rpc">
+              <a class="ddi" href="#/product/rpc" data-route="product/rpc">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L3 7v6c0 5 3.84 9.74 9 11c5.16-1.26 9-6 9-11V7zm0 2.18L19 8v5c0 3.91-2.99 7.69-7 8.93C7.99 20.69 5 16.91 5 13V8z"/></svg></span>
                 <div><div class="ddi-title">Solana RPC</div><div class="ddi-sub">High-performance, low-latency RPC nodes</div></div>
               </a>
-              <a class="ddi" data-product="dedicated">
+              <a class="ddi" href="#/product/dedicated" data-route="product/dedicated">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v6H4zm0 10h16v6H4zm2-7v2h2V7zm0 10v2h2v-2z"/></svg></span>
                 <div><div class="ddi-title">Dedicated Nodes</div><div class="ddi-sub">Fully managed dedicated Solana infrastructure</div></div>
               </a>
-              <a class="ddi" data-product="grpc">
+              <a class="ddi" href="#/product/grpc" data-route="product/grpc">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 21V11l-7 1l9-12v10l7-1z"/></svg></span>
                 <div><div class="ddi-title">Yellowstone gRPC</div><div class="ddi-sub">Real-time Solana data streaming</div></div>
               </a>
-              <a class="ddi" data-product="raptor">
+              <a class="ddi" href="#/product/raptor" data-route="product/raptor">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 17v-3H8v3l-5-5l5-5v3h8V7l5 5z"/></svg></span>
                 <div><div class="ddi-title">Raptor Swap API</div><div class="ddi-sub">Integrate seamless token swaps into your apps</div></div>
               </a>
             </div>
             <div class="dropdown-section">
               <h4>Enterprise</h4>
-              <a class="ddi" data-product="teams">
+              <a class="ddi" href="#/product/teams" data-route="product/teams">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3s-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5S5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span>
                 <div><div class="ddi-title">Teams</div><div class="ddi-sub">Collaborate and share access with your team</div></div>
               </a>
@@ -788,34 +972,34 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           <div class="dropdown">
             <div class="dropdown-section">
               <h4>Market Analysis</h4>
-              <a class="ddi" data-trading="latest">
+              <a class="ddi" href="#/trading/latest" data-route="trading/latest">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m1-13h-2v5l4.25 2.52l1-1.64L13 11.25z"/></svg></span>
                 <div><div class="ddi-title">Latest Tokens</div><div class="ddi-sub">Track recently launched tokens in real-time</div></div>
               </a>
-              <a class="ddi" data-trading="trending">
+              <a class="ddi" href="#/trading/trending" data-route="trading/trending">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="m3.5 18.5l6-6.5l4 4L22 6.92L20.59 5.5l-7.09 8l-4-4L2 17z"/></svg></span>
                 <div><div class="ddi-title">Trending</div><div class="ddi-sub">Discover top trending tokens by volume</div></div>
               </a>
-              <a class="ddi" data-trading="gainers">
+              <a class="ddi" href="#/trading/gainers" data-route="trading/gainers">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19z"/></svg></span>
                 <div><div class="ddi-title">Top Gainers</div><div class="ddi-sub">Top performing tokens by price gains</div></div>
               </a>
-              <a class="ddi" data-trading="volume">
+              <a class="ddi" href="#/trading/volume" data-route="trading/volume">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 21V11h3v10zm5.5 0V3h3v18zM16 21v-7h3v7z"/></svg></span>
                 <div><div class="ddi-title">High Volume</div><div class="ddi-sub">Analyze tokens with the highest volume</div></div>
               </a>
-              <a class="ddi" data-trading="memescope">
+              <a class="ddi" href="#/trading/memescope" data-route="trading/memescope">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27H15l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14S14 12 14 9.5S12 5 9.5 5"/></svg></span>
                 <div><div class="ddi-title">Memescope</div><div class="ddi-sub">Advanced analytics for launchpad tokens</div></div>
               </a>
             </div>
             <div class="dropdown-section">
               <h4>Wallets</h4>
-              <a class="ddi active-link" data-trading="wallet">
+              <a class="ddi active-link" href="#/wallet" data-route="wallet">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2zm-9-2h10V8H12zm4-2.5a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5"/></svg></span>
                 <div><div class="ddi-title">Wallet Tracker <span class="here-pill">you are here</span></div><div class="ddi-sub">Portfolio &amp; PnL for any wallet</div></div>
               </a>
-              <a class="ddi" data-trading="copy">
+              <a class="ddi" href="#/trading/copy" data-route="trading/copy">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m-3-4H4a2 2 0 0 0-2 2v14h2V3h12z"/></svg></span>
                 <div><div class="ddi-title">Copy Trading</div><div class="ddi-sub">Mirror top wallets automatically</div></div>
               </a>
@@ -828,15 +1012,15 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           <div class="dropdown">
             <div class="dropdown-section">
               <h4>Utilities</h4>
-              <a class="ddi" data-tool="checker">
+              <a class="ddi" href="#/tool/checker" data-route="tool/checker">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a4 4 0 0 1 4 4v3h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V5a4 4 0 0 1 4-4m0 2a2 2 0 0 0-2 2v3h4V5a2 2 0 0 0-2-2"/></svg></span>
                 <div><div class="ddi-title">Token Checker</div><div class="ddi-sub">Rug score &amp; safety analysis</div></div>
               </a>
-              <a class="ddi" data-tool="holders">
+              <a class="ddi" href="#/tool/holders" data-route="tool/holders">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h2v-2H3zm0 4h2v-2H3zm0-8h2V7H3zm4 4h14v-2H7zm0 4h14v-2H7zM7 7v2h14V7z"/></svg></span>
                 <div><div class="ddi-title">Holder Insights</div><div class="ddi-sub">Top holders &amp; concentration</div></div>
               </a>
-              <a class="ddi" data-tool="decoder">
+              <a class="ddi" href="#/tool/decoder" data-route="tool/decoder">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 14l-4-4l1.4-1.4L10 14.2l6.6-6.6L18 9z"/></svg></span>
                 <div><div class="ddi-title">Transaction Decoder</div><div class="ddi-sub">Parse any Solana tx signature</div></div>
               </a>
@@ -844,7 +1028,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           </div>
         </div>
 
-        <a class="nav-link" href="#" data-action="developers"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2"/></svg>Developers</a>
+        <a class="nav-link" href="#/developers" data-route="developers"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2"/></svg>Developers</a>
       </nav>
 
       <div class="topbar-right">
@@ -885,6 +1069,9 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
     </section>
 
     <section id="status" class="status" hidden></section>
+
+    <!-- Routed page view (Swap, Trading, Tools, Products, Developers) -->
+    <section id="page-view" class="page-view" hidden></section>
 
     <section id="dashboard" class="dashboard" hidden>
       <!-- Wallet header / portfolio summary -->
@@ -2458,39 +2645,6 @@ function init() {
 
   $('#load-more-tx').addEventListener('click', loadMoreTx);
 
-  // Trading dropdown items
-  $$('.ddi[data-trading]').forEach(el => el.addEventListener('click', (e) => {
-    e.preventDefault();
-    const v = el.dataset.trading;
-    if (v === 'wallet') return; // we're already here
-    loadTradingView(v);
-  }));
-
-  // Tools dropdown items
-  $$('.ddi[data-tool]').forEach(el => el.addEventListener('click', (e) => {
-    e.preventDefault();
-    const t = el.dataset.tool;
-    if (t === 'checker')  promptModal('Token Checker', 'Safety analysis for any SPL token', 'Paste an SPL mint address…', toolTokenChecker);
-    else if (t === 'holders')  promptModal('Holder Insights', 'Top holders & concentration for a token', 'Paste an SPL mint address…', toolHolderInsights);
-    else if (t === 'decoder')  promptModal('Transaction Decoder', 'Parse and explain any Solana transaction', 'Paste a transaction signature…', toolDecoder);
-  }));
-
-  // Products dropdown items
-  $$('.ddi[data-product]').forEach(el => el.addEventListener('click', (e) => {
-    e.preventDefault();
-    const p = el.dataset.product;
-    const info = PRODUCT_INFO[p];
-    if (info) openInfoModal(info[0], info[1], info[2]);
-  }));
-
-  // Top-bar action links (Swap / Developers)
-  $$('[data-action]').forEach(el => el.addEventListener('click', (e) => {
-    e.preventDefault();
-    const a = el.dataset.action;
-    if (a === 'swap') openSwap();
-    else if (a === 'developers') openInfoModal(DEVELOPERS_INFO[0], DEVELOPERS_INFO[1], DEVELOPERS_INFO[2]);
-  }));
-
   // Click ticker items to open token detail
   $('#ticker-track').addEventListener('click', (e) => {
     const item = e.target.closest('.ticker-item');
@@ -2509,6 +2663,10 @@ function init() {
     if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
   });
 
+  // Hash router
+  window.addEventListener('hashchange', router);
+  router();
+
   // Trending ticker
   loadTrendingTicker();
   setInterval(loadTrendingTicker, 60_000);
@@ -2520,6 +2678,720 @@ function init() {
     $('#address').value = initAddr;
     trackAddress(initAddr);
   }
+}
+
+/* ================================================================
+ *  Router and full-page renderers
+ * ================================================================ */
+function showWalletView() {
+  $('#page-view').hidden = true;
+  // Show appropriate wallet sub-view (empty or dashboard)
+  if (state.address) {
+    $('#empty-state').hidden = true;
+    $('#dashboard').hidden = false;
+  } else {
+    $('#empty-state').hidden = false;
+    $('#dashboard').hidden = true;
+  }
+}
+
+function showPageView(html) {
+  $('#empty-state').hidden = true;
+  $('#status').hidden = true;
+  $('#dashboard').hidden = true;
+  const view = $('#page-view');
+  view.innerHTML = html;
+  view.hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function pageHeader({ crumb, title, sub, actions = '' }) {
+  return `
+    <div class="page-head">
+      <div>
+        <div class="breadcrumb">${crumb}</div>
+        <h2 class="page-title">${escapeHtml(title)}</h2>
+        ${sub ? `<p class="page-sub">${sub}</p>` : ''}
+      </div>
+      ${actions ? `<div class="page-actions">${actions}</div>` : ''}
+    </div>`;
+}
+
+const ROUTES = {
+  '/':                () => showWalletView(),
+  '/wallet':          () => showWalletView(),
+  '/swap':            () => renderSwapPage(),
+  '/trading/latest':    () => renderTradingPage('latest'),
+  '/trading/trending':  () => renderTradingPage('trending'),
+  '/trading/gainers':   () => renderTradingPage('gainers'),
+  '/trading/volume':    () => renderTradingPage('volume'),
+  '/trading/memescope': () => renderTradingPage('memescope'),
+  '/trading/copy':      () => renderCopyTradingPage(),
+  '/tool/checker':    () => renderToolPage('checker'),
+  '/tool/holders':    () => renderToolPage('holders'),
+  '/tool/decoder':    () => renderToolPage('decoder'),
+  '/product/data-api':  () => renderProductPage('data-api'),
+  '/product/rpc':       () => renderProductPage('rpc'),
+  '/product/dedicated': () => renderProductPage('dedicated'),
+  '/product/grpc':      () => renderProductPage('grpc'),
+  '/product/raptor':    () => renderProductPage('raptor'),
+  '/product/teams':     () => renderProductPage('teams'),
+  '/developers':      () => renderDevelopersPage(),
+};
+
+function router() {
+  const hash = location.hash.replace(/^#/, '') || '/wallet';
+  const fn = ROUTES[hash];
+  // Mark active nav
+  $$('[data-route]').forEach(a => {
+    const route = '/' + a.dataset.route;
+    a.classList.toggle('is-active', route === hash);
+  });
+  if (fn) fn();
+  else showWalletView();
+}
+
+/* ----- Trading pages (Latest / Trending / Gainers / Volume / Memescope) ----- */
+const TRADING_PAGE_META = {
+  latest:    { title: 'Latest Tokens', sub: 'Recently launched Solana tokens, tracked in real time.', crumb: 'Trading' },
+  trending:  { title: 'Trending',      sub: 'Top Solana tokens by 24-hour trading volume.',           crumb: 'Trading' },
+  gainers:   { title: 'Top Gainers',   sub: 'Best price performance over the selected timeframe.',    crumb: 'Trading' },
+  volume:    { title: 'High Volume',   sub: 'Highest trading volume across Solana DEXes.',            crumb: 'Trading' },
+  memescope: { title: 'Memescope',     sub: 'Boosted launchpad tokens and active memecoins.',         crumb: 'Trading' },
+};
+
+const RANGE_TABS = [
+  { id: 'm5',  label: '5m' },
+  { id: 'h1',  label: '1h' },
+  { id: 'h6',  label: '6h' },
+  { id: 'h24', label: '24h', default: true },
+];
+
+const tradingState = { view: null, range: 'h24', sort: 'volume', dir: -1, rows: [] };
+
+async function renderTradingPage(view) {
+  const meta = TRADING_PAGE_META[view];
+  tradingState.view = view;
+  if (view === 'gainers') tradingState.sort = 'change';
+  else tradingState.sort = 'volume';
+
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>${meta.crumb}</span><span class="sep">/</span><span>${escapeHtml(meta.title)}</span>`,
+      title: meta.title,
+      sub: meta.sub,
+      actions: `
+        <div class="range-tabs" id="range-tabs">
+          ${RANGE_TABS.map(r => `<button data-range="${r.id}" class="${r.default ? 'active' : ''}">${r.label}</button>`).join('')}
+        </div>
+        <button class="ghost-btn small" id="refresh-page">Refresh</button>`,
+    })}
+    <div class="card glass page-table">
+      <div id="trading-rows"><div class="modal-loading">Loading…</div></div>
+    </div>
+  `);
+
+  $('#refresh-page').addEventListener('click', () => loadTradingRows());
+  $$('#range-tabs button').forEach(b => b.addEventListener('click', () => {
+    $$('#range-tabs button').forEach(x => x.classList.toggle('active', x === b));
+    tradingState.range = b.dataset.range;
+    if (view === 'gainers' || view === 'volume' || view === 'trending') paintTradingRows();
+  }));
+
+  loadTradingRows();
+}
+
+async function loadTradingRows() {
+  const view = tradingState.view;
+  const container = $('#trading-rows');
+  if (!container) return;
+  container.innerHTML = '<div class="modal-loading">Loading…</div>';
+  try {
+    let rows = [];
+    if (view === 'latest') {
+      const profiles = await fetchLatestTokenProfiles();
+      const mints = profiles.slice(0, 40).map(p => p.tokenAddress);
+      const prices = await fetchDexscreenerForMints(mints);
+      rows = profiles.slice(0, 40).map(p => buildRow(p.tokenAddress, prices.get(p.tokenAddress), p));
+    } else if (view === 'memescope') {
+      const boosts = await fetchBoostedTokens();
+      const mints = boosts.slice(0, 40).map(b => b.tokenAddress);
+      const prices = await fetchDexscreenerForMints(mints);
+      rows = boosts.slice(0, 40).map(b => buildRow(b.tokenAddress, prices.get(b.tokenAddress), b));
+    } else {
+      const pairs = await fetchSolanaPairs();
+      rows = pairs.map(p => ({
+        mint: p.baseToken?.address, symbol: p.baseToken?.symbol, name: p.baseToken?.name,
+        logo: p.info?.imageUrl, url: p.url,
+        price: Number(p.priceUsd) || null,
+        change: { m5: Number(p.priceChange?.m5 ?? 0), h1: Number(p.priceChange?.h1 ?? 0), h6: Number(p.priceChange?.h6 ?? 0), h24: Number(p.priceChange?.h24 ?? 0) },
+        volume: { m5: Number(p.volume?.m5 ?? 0), h1: Number(p.volume?.h1 ?? 0), h6: Number(p.volume?.h6 ?? 0), h24: Number(p.volume?.h24 ?? 0) },
+        liquidity: Number(p.liquidity?.usd ?? 0),
+        mcap: Number(p.marketCap ?? p.fdv ?? 0),
+        createdAt: p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : null,
+      })).filter(r => r.mint);
+    }
+    tradingState.rows = rows;
+    paintTradingRows();
+  } catch (err) {
+    container.innerHTML = `<div class="page-empty"><h3>Couldn't load data</h3><p>${escapeHtml(err.message)}</p></div>`;
+  }
+}
+
+function buildRow(mint, px, extra = {}) {
+  return {
+    mint,
+    symbol: px?.symbol || extra.label || '?',
+    name: px?.name || extra.description?.slice(0, 40) || '',
+    logo: extra.icon || px?.logoURI || null,
+    url: extra.url || `https://dexscreener.com/solana/${mint}`,
+    price: px?.price ?? null,
+    change: { m5: 0, h1: 0, h6: 0, h24: Number(px?.change24h ?? 0) },
+    volume:  { m5: 0, h1: 0, h6: 0, h24: 0 },
+    liquidity: 0, mcap: 0, createdAt: null,
+  };
+}
+
+function paintTradingRows() {
+  const container = $('#trading-rows');
+  if (!container) return;
+  const view = tradingState.view;
+  const r = tradingState.range;
+  let rows = tradingState.rows.slice();
+
+  if (view === 'gainers') rows.sort((a, b) => (b.change[r] || -Infinity) - (a.change[r] || -Infinity));
+  else if (view === 'volume') rows.sort((a, b) => (b.volume[r] || 0) - (a.volume[r] || 0));
+  else if (view === 'trending') rows.sort((a, b) => (b.volume[r] || 0) - (a.volume[r] || 0));
+  else if (view === 'latest') {/* keep order from API */}
+
+  if (!rows.length) {
+    container.innerHTML = `<div class="page-empty"><h3>No data right now</h3><p>The provider didn't return any rows. Try again in a moment.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Token</th>
+            <th class="num">Price</th>
+            <th class="num">${tradingState.range.toUpperCase()}</th>
+            <th class="num">Liquidity</th>
+            <th class="num">Volume ${tradingState.range.toUpperCase()}</th>
+            <th class="num">Market Cap</th>
+            <th class="num">Age</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, i) => {
+            const ch = row.change[r] ?? 0;
+            const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+            return `<tr data-mint="${escapeHtml(row.mint)}">
+              <td class="rank-cell">${i + 1}</td>
+              <td>
+                <div class="token-id">
+                  ${row.logo ? `<img class="token-logo" src="${row.logo}" alt="" onerror="this.remove()">` : `<span class="token-logo fallback" style="display:inline-flex;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:#0a0820;font-weight:700;font-size:11px;background:linear-gradient(135deg,#9945ff,#14f195)">${escapeHtml((row.symbol||'?').slice(0,2).toUpperCase())}</span>`}
+                  <div class="token-text">
+                    <div class="token-sym">${escapeHtml(row.symbol || '?')}</div>
+                    <div class="token-sub muted">${escapeHtml(row.name || shorten(row.mint, 4, 4))}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="num">${row.price ? fmtUSD(row.price, row.price < 1 ? 6 : 2) : '—'}</td>
+              <td class="num delta ${cls}">${fmtPct(ch)}</td>
+              <td class="num">${row.liquidity ? fmtUSD(row.liquidity) : '—'}</td>
+              <td class="num">${row.volume[r] ? fmtUSD(row.volume[r]) : '—'}</td>
+              <td class="num">${row.mcap ? fmtUSD(row.mcap) : '—'}</td>
+              <td class="num">${row.createdAt ? timeAgo(row.createdAt).replace(' ago','') : '—'}</td>
+              <td class="num"><a class="ext" href="${row.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">DEX ↗</a></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  $$('#trading-rows tbody tr').forEach(tr => tr.addEventListener('click', () => {
+    const m = tr.dataset.mint; if (m) openTokenDetail(m);
+  }));
+}
+
+/* ----- Copy Trading page (top holders of high-volume tokens) ----- */
+async function renderCopyTradingPage() {
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Copy Trading</span>`,
+      title: 'Copy Trading',
+      sub: 'Top holders of the most-traded Solana tokens. Click any wallet to track it.',
+      actions: `<button class="ghost-btn small" id="refresh-page">Refresh</button>`,
+    })}
+    <div class="card glass page-table">
+      <div id="copy-rows"><div class="modal-loading">Loading…</div></div>
+    </div>`);
+  $('#refresh-page').addEventListener('click', loadCopyRows);
+  loadCopyRows();
+}
+async function loadCopyRows() {
+  const container = $('#copy-rows');
+  container.innerHTML = '<div class="modal-loading">Loading…</div>';
+  try {
+    const pairs = await fetchSolanaPairs();
+    const topTokens = pairs.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0)).slice(0, 6);
+    const wallets = [];
+    await Promise.all(topTokens.map(async p => {
+      try {
+        const r = await rpc('getTokenLargestAccounts', [p.baseToken.address]);
+        for (const a of (r?.value || []).slice(0, 4)) {
+          if (Number(a.uiAmount || 0) > 0) {
+            wallets.push({
+              ata: a.address, token: p.baseToken, amount: Number(a.uiAmount),
+              value: Number(a.uiAmount) * Number(p.priceUsd || 0),
+              vol24: Number(p.volume?.h24 || 0),
+            });
+          }
+        }
+      } catch {}
+    }));
+    wallets.sort((a, b) => b.value - a.value);
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>#</th><th>Wallet</th><th>Holds</th><th class="num">Amount</th><th class="num">Est. value</th><th class="num">Token vol 24h</th><th></th></tr></thead>
+          <tbody>${wallets.slice(0, 30).map((w, i) => `
+            <tr>
+              <td class="rank-cell">${i + 1}</td>
+              <td><span class="mono">${shorten(w.ata, 8, 8)}</span></td>
+              <td>${escapeHtml(w.token.symbol)}</td>
+              <td class="num">${fmt(w.amount)}</td>
+              <td class="num">${w.value ? fmtUSD(w.value) : '—'}</td>
+              <td class="num">${fmtUSD(w.vol24)}</td>
+              <td class="num"><button class="ghost-btn small" data-mirror="${escapeHtml(w.ata)}">Track wallet →</button></td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+    container.querySelectorAll('[data-mirror]').forEach(b => b.addEventListener('click', () => {
+      const ata = b.dataset.mirror;
+      $('#address').value = ata;
+      location.hash = '#/wallet';
+      trackAddress(ata);
+    }));
+  } catch (err) {
+    container.innerHTML = `<div class="page-empty"><h3>Couldn't load</h3><p>${escapeHtml(err.message)}</p></div>`;
+  }
+}
+
+/* ----- Tools pages ----- */
+const TOOL_META = {
+  checker: { title: 'Token Checker',       sub: 'Safety analysis for any SPL token mint.',     run: toolTokenChecker,  ph: 'Paste an SPL mint address…' },
+  holders: { title: 'Holder Insights',     sub: 'Top holders and supply concentration.',       run: toolHolderInsights, ph: 'Paste an SPL mint address…' },
+  decoder: { title: 'Transaction Decoder', sub: 'Parse and explain any Solana transaction.',   run: toolDecoder,        ph: 'Paste a transaction signature…' },
+};
+
+function renderToolPage(tool) {
+  const meta = TOOL_META[tool];
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Tools</span><span class="sep">/</span><span>${escapeHtml(meta.title)}</span>`,
+      title: meta.title,
+      sub: meta.sub,
+    })}
+    <div class="card glass">
+      <form id="tool-form" class="prompt-form">
+        <input id="tool-input" class="filter-input" placeholder="${escapeHtml(meta.ph)}"
+               style="flex:1;min-width:0;font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px" autofocus />
+        <button class="primary-btn small" type="submit">Analyze →</button>
+      </form>
+      <div id="tool-result"></div>
+    </div>`);
+  $('#tool-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const v = $('#tool-input').value.trim();
+    if (!v) return;
+    const out = $('#tool-result');
+    out.innerHTML = '<div class="modal-loading">Analyzing…</div>';
+    try { await meta.run(v, out); }
+    catch (err) { out.innerHTML = `<div class="page-empty"><h3>Error</h3><p>${escapeHtml(err.message)}</p></div>`; }
+  });
+}
+
+/* ----- Swap page ----- */
+const swapState = { from: 'So11111111111111111111111111111111111111112', to: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', amount: '1', slippageBps: 50, quote: null, fromMeta: null, toMeta: null };
+
+async function tokenMeta(mint) {
+  const map = await loadJupTokenMap();
+  let meta = map.get(mint) || {};
+  if (!meta.symbol) {
+    const ds = await fetchDexscreenerForMints([mint]);
+    const px = ds.get(mint);
+    if (px) meta = { symbol: px.symbol, name: px.name, logoURI: px.logoURI, decimals: meta.decimals };
+  }
+  if (meta.decimals == null) {
+    try { const r = await rpc('getTokenSupply', [mint]); if (r?.value?.decimals != null) meta.decimals = r.value.decimals; } catch {}
+  }
+  return meta;
+}
+
+async function renderSwapPage() {
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Swap</span>`,
+      title: 'Swap',
+      sub: 'Quote any token pair across Solana DEXes via Jupiter.',
+    })}
+    <div class="swap-page">
+      <div class="card glass swap-card">
+        <div class="swap-token">
+          <div class="swap-token-head"><span>You pay</span><span class="muted" id="from-price">—</span></div>
+          <div class="swap-token-body">
+            <button class="swap-pick" id="from-pick"><span class="swap-pick-sym">SOL</span><span class="swap-pick-caret">▾</span></button>
+            <input class="swap-amount" id="swap-amount" type="number" min="0" step="any" value="${swapState.amount}" />
+          </div>
+          <div class="swap-meta">
+            <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)}</span>
+            <span id="from-usd">—</span>
+          </div>
+        </div>
+        <div class="swap-flip" id="swap-flip" title="Flip direction">↕</div>
+        <div class="swap-token">
+          <div class="swap-token-head"><span>You receive</span><span class="muted" id="to-price">—</span></div>
+          <div class="swap-token-body">
+            <button class="swap-pick" id="to-pick"><span class="swap-pick-sym">USDC</span><span class="swap-pick-caret">▾</span></button>
+            <div class="swap-amount" id="swap-out" style="opacity:.9">—</div>
+          </div>
+          <div class="swap-meta">
+            <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)}</span>
+            <span id="to-usd">—</span>
+          </div>
+        </div>
+
+        <div class="swap-quote-info" id="quote-info">
+          <div class="row"><span class="label">Rate</span><span class="value" id="q-rate">—</span></div>
+          <div class="row"><span class="label">Price impact</span><span class="value" id="q-impact">—</span></div>
+          <div class="row"><span class="label">Slippage tolerance</span>
+            <span class="value">
+              <select id="slippage" class="filter-input" style="min-width:0;padding:4px 8px;font-size:11px">
+                <option value="10">0.1%</option>
+                <option value="50" selected>0.5%</option>
+                <option value="100">1.0%</option>
+                <option value="300">3.0%</option>
+              </select>
+            </span></div>
+          <div class="row"><span class="label">Min received</span><span class="value" id="q-min">—</span></div>
+          <div class="row"><span class="label">Route</span><span class="swap-route" id="q-route">—</span></div>
+        </div>
+        <button class="swap-cta" id="swap-cta">Get quote</button>
+      </div>
+
+      <div class="card glass swap-side">
+        <div class="card-head"><h3>Top pairs</h3><span class="muted" id="pairs-sub">—</span></div>
+        <div class="swap-pair-list" id="pairs-list"><div class="modal-loading">Loading…</div></div>
+      </div>
+    </div>
+  `);
+
+  await refreshSwapMeta();
+  await getSwapQuote();
+  loadTopPairs();
+
+  $('#swap-amount').addEventListener('input', debounce(getSwapQuote, 350));
+  $('#slippage').addEventListener('change', getSwapQuote);
+  $('#swap-cta').addEventListener('click', getSwapQuote);
+  $('#swap-flip').addEventListener('click', () => {
+    [swapState.from, swapState.to] = [swapState.to, swapState.from];
+    renderSwapPage();
+  });
+  $('#from-pick').addEventListener('click', () => openTokenPicker((mint) => { swapState.from = mint; renderSwapPage(); }));
+  $('#to-pick').addEventListener('click',   () => openTokenPicker((mint) => { swapState.to = mint;   renderSwapPage(); }));
+}
+
+let debTimer;
+function debounce(fn, ms) { return (...a) => { clearTimeout(debTimer); debTimer = setTimeout(() => fn(...a), ms); }; }
+
+async function refreshSwapMeta() {
+  const [fm, tm] = await Promise.all([tokenMeta(swapState.from), tokenMeta(swapState.to)]);
+  swapState.fromMeta = fm; swapState.toMeta = tm;
+  const setPick = (sel, mint, meta) => {
+    const b = $(sel);
+    b.innerHTML = `${meta.logoURI ? `<img src="${meta.logoURI}" alt="" onerror="this.remove()">` : ''}<span class="swap-pick-sym">${escapeHtml(meta.symbol || shorten(mint, 4, 4))}</span><span class="swap-pick-caret">▾</span>`;
+  };
+  setPick('#from-pick', swapState.from, fm);
+  setPick('#to-pick',   swapState.to,   tm);
+  $('#from-mint').textContent = shorten(swapState.from, 6, 6);
+  $('#to-mint').textContent   = shorten(swapState.to,   6, 6);
+  // Live prices
+  const px = await fetchDexscreenerForMints([swapState.from, swapState.to]);
+  const fp = px.get(swapState.from)?.price; const tp = px.get(swapState.to)?.price;
+  if (fp) $('#from-price').textContent = fmtUSD(fp, fp < 1 ? 6 : 2);
+  if (tp) $('#to-price').textContent   = fmtUSD(tp, tp < 1 ? 6 : 2);
+  swapState._fp = fp; swapState._tp = tp;
+}
+
+async function getSwapQuote() {
+  const cta = $('#swap-cta'); if (!cta) return;
+  cta.textContent = 'Quoting…'; cta.disabled = true;
+  try {
+    const fm = swapState.fromMeta; const tm = swapState.toMeta;
+    if (!fm || !tm || fm.decimals == null || tm.decimals == null) throw new Error('Token metadata unavailable');
+    const amt = parseFloat($('#swap-amount').value);
+    swapState.amount = String(amt);
+    swapState.slippageBps = parseInt($('#slippage').value, 10);
+    if (!(amt > 0)) { cta.textContent = 'Enter an amount'; cta.disabled = true; return; }
+    const lamports = BigInt(Math.round(amt * 10 ** fm.decimals)).toString();
+    const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${swapState.from}&outputMint=${swapState.to}&amount=${lamports}&slippageBps=${swapState.slippageBps}&restrictIntermediateTokens=true`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`Quote failed: ${r.status}`);
+    const q = await r.json();
+    swapState.quote = q;
+    const outAmt = Number(q.outAmount) / 10 ** tm.decimals;
+    const minAmt = Number(q.otherAmountThreshold) / 10 ** tm.decimals;
+    $('#swap-out').textContent = fmt(outAmt, 6);
+    const rate = outAmt / amt;
+    $('#q-rate').textContent = `1 ${fm.symbol || ''} = ${fmt(rate, 6)} ${tm.symbol || ''}`;
+    $('#q-impact').textContent = `${(Number(q.priceImpactPct || 0) * 100).toFixed(3)}%`;
+    $('#q-min').textContent = `${fmt(minAmt, 6)} ${tm.symbol || ''}`;
+    $('#q-route').innerHTML = (q.routePlan || []).map(s => `<span class="hop">${escapeHtml(s.swapInfo?.label || 'DEX')}</span>`).join('<span class="muted small">→</span>') || '<span class="muted small">direct</span>';
+    if (swapState._fp) $('#from-usd').textContent = fmtUSD(amt * swapState._fp);
+    if (swapState._tp) $('#to-usd').textContent   = fmtUSD(outAmt * swapState._tp);
+    cta.textContent = 'Quote ready ✓';
+    cta.disabled = false;
+  } catch (err) {
+    cta.textContent = 'Retry quote';
+    cta.disabled = false;
+    $('#q-rate').textContent = `Error: ${err.message}`;
+  }
+}
+
+async function loadTopPairs() {
+  const list = $('#pairs-list');
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${swapState.from},${swapState.to}`);
+    const json = r.ok ? await r.json() : {};
+    const pairs = (json.pairs || []).filter(p => p.chainId === 'solana')
+      .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0))
+      .slice(0, 10);
+    $('#pairs-sub').textContent = `${pairs.length} active`;
+    list.innerHTML = pairs.length ? pairs.map(p => {
+      const c = Number(p.priceChange?.h24 ?? 0);
+      const cls = c > 0 ? 'pos' : c < 0 ? 'neg' : 'neutral';
+      return `<a class="ddi" target="_blank" rel="noopener" href="${p.url}" style="text-decoration:none">
+        <span class="ddi-ico" style="background:var(--surface-2)">${escapeHtml(p.dexId?.[0]?.toUpperCase() || '?')}</span>
+        <div>
+          <div class="ddi-title">${escapeHtml(p.baseToken?.symbol)}/${escapeHtml(p.quoteToken?.symbol)}</div>
+          <div class="ddi-sub">${escapeHtml(p.dexId)} · liq ${fmtUSD(Number(p.liquidity?.usd || 0))} · 24h ${fmtUSD(Number(p.volume?.h24 || 0))} <span class="delta ${cls}">${fmtPct(c)}</span></div>
+        </div>
+      </a>`;
+    }).join('') : '<div class="empty">No active pairs.</div>';
+  } catch {
+    list.innerHTML = '<div class="empty">Couldn’t load pairs.</div>';
+  }
+}
+
+/* ----- Token picker (modal) ----- */
+async function openTokenPicker(onPick) {
+  const map = await loadJupTokenMap();
+  const items = Array.from(map.entries())
+    .filter(([_, v]) => v.symbol && v.logoURI)
+    .map(([mint, v]) => ({ mint, ...v }));
+  openModal('Select a token', `${items.length} verified tokens`);
+  $('#modal-body').innerHTML = `
+    <div class="token-picker">
+      <input class="filter-input" id="picker-filter" placeholder="Search symbol, name, or mint…" autofocus />
+      <div id="picker-list"></div>
+    </div>`;
+  const draw = (q) => {
+    const ql = q.toLowerCase();
+    const filtered = (q ? items.filter(t =>
+      t.symbol?.toLowerCase().includes(ql) || t.name?.toLowerCase().includes(ql) || t.mint.toLowerCase().includes(ql)
+    ) : items).slice(0, 80);
+    $('#picker-list').innerHTML = filtered.map(t => `
+      <div class="token-picker-row" data-mint="${t.mint}">
+        <img src="${t.logoURI}" onerror="this.remove()">
+        <div class="name">
+          <div class="sym">${escapeHtml(t.symbol)}</div>
+          <div class="sub">${escapeHtml(t.name || '')} · ${shorten(t.mint, 4, 4)}</div>
+        </div>
+      </div>`).join('');
+    $$('#picker-list .token-picker-row').forEach(r => r.addEventListener('click', () => {
+      onPick(r.dataset.mint); closeModal();
+    }));
+  };
+  $('#picker-filter').addEventListener('input', e => draw(e.target.value));
+  draw('');
+}
+
+/* ----- Product pages ----- */
+const PRODUCT_PAGES = {
+  'data-api': {
+    title: 'Data API',
+    tag: 'Infrastructure',
+    sub: 'Comprehensive Solana blockchain data API — REST and WebSocket.',
+    features: [
+      ['Tokens', 'Search, profile, price, liquidity, and holder data for every SPL token.'],
+      ['Pairs', 'OHLCV bars across 5m, 1h, 6h, 24h and 7d for every DEX pool.'],
+      ['Wallets', 'Balance snapshots, signature history, and live PnL with cost-basis.'],
+      ['Events', 'Token launches, large transfers, and DEX swaps in real time.'],
+    ],
+    code:
+`# Search Solana tokens
+curl https://api.dexscreener.com/latest/dex/search?q=SOL
+
+# Token + pair data
+curl https://api.dexscreener.com/latest/dex/tokens/<MINT>
+
+# Live token boosts
+curl https://api.dexscreener.com/token-boosts/top/v1`,
+  },
+  'rpc': {
+    title: 'Solana RPC',
+    tag: 'Infrastructure',
+    sub: 'High-performance, low-latency Solana RPC nodes with global edge.',
+    features: [
+      ['Sub-50ms responses', 'Geo-routed PoPs in NA, EU, and APAC.'],
+      ['Priority fees', 'getRecentPrioritizationFees built into every plan.'],
+      ['WebSocket subscriptions', 'logsSubscribe, accountSubscribe, signatureSubscribe.'],
+      ['99.99% uptime', 'Multi-region failover and 24/7 monitoring.'],
+    ],
+    code:
+`curl https://api.mainnet-beta.solana.com -X POST \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"getBalance","params":["<ADDRESS>"]}'`,
+  },
+  'dedicated': {
+    title: 'Dedicated Nodes',
+    tag: 'Infrastructure',
+    sub: 'Fully managed dedicated Solana RPC and validator infrastructure.',
+    features: [
+      ['Single-tenant', 'Reserved hardware, predictable performance under load.'],
+      ['Co-located', 'fra1, nyc1, sgp1 deployments next to top validators.'],
+      ['Hot-swap failover', 'Synchronous replicas with automated cutover.'],
+      ['Geyser plugins', 'Custom indexing pipelines per node.'],
+    ],
+    code: `# Provision via API
+curl https://api.example.com/v1/nodes \\
+  -H "Authorization: Bearer <KEY>" \\
+  -d '{"region":"fra1","plan":"dedicated-xl"}'`,
+  },
+  'grpc': {
+    title: 'Yellowstone gRPC',
+    tag: 'Infrastructure',
+    sub: 'Real-time Solana data streaming over gRPC with millisecond latency.',
+    features: [
+      ['Slot, block, account, transaction streams', 'Subscribe to any combination with filters.'],
+      ['Per-program filtering', 'Stream only accounts owned by your program.'],
+      ['Replays', 'Catch up from any slot on reconnect.'],
+      ['Geyser plugin protocol', 'Drop-in compatible with stock Solana nodes.'],
+    ],
+    code:
+`# Subscribe to account updates
+grpcurl -d '{"accounts":{"my":{"account":["<PUBKEY>"]}}}' \\
+  yellowstone.example.com:443 geyser.Geyser/Subscribe`,
+  },
+  'raptor': {
+    title: 'Raptor Swap API',
+    tag: 'Infrastructure',
+    sub: 'Integrate seamless token swaps into your apps with one endpoint.',
+    features: [
+      ['Aggregated routing', 'Best execution across 20+ Solana DEXes.'],
+      ['MEV protection', 'Private mempool and Jito tips.'],
+      ['Priority-fee tuning', 'Auto-adjusts based on network congestion.'],
+      ['Custom fee bps', 'Take a cut of every swap routed through your app.'],
+    ],
+    code:
+`# Quote any pair
+curl "https://lite-api.jup.ag/swap/v1/quote?inputMint=<A>&outputMint=<B>&amount=<lamports>"
+
+# Build a swap tx
+curl https://lite-api.jup.ag/swap/v1/swap \\
+  -d '{"quoteResponse": ..., "userPublicKey": "<PK>"}'`,
+  },
+  'teams': {
+    title: 'Teams',
+    tag: 'Enterprise',
+    sub: 'Collaborate and share access with your team across every product.',
+    features: [
+      ['Shared watchlists', 'Saved wallets, tokens, and alerts visible to the whole org.'],
+      ['Role-based access', 'Owner, admin, member, and viewer roles.'],
+      ['Audit logs', 'Every API key and dashboard change tracked.'],
+      ['SSO + SCIM', 'Plug into Okta, Google Workspace, or Azure AD.'],
+    ],
+    code: null,
+  },
+};
+
+function renderProductPage(key) {
+  const p = PRODUCT_PAGES[key];
+  if (!p) return showWalletView();
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Products</span><span class="sep">/</span><span>${escapeHtml(p.title)}</span>`,
+      title: p.title,
+      sub: p.sub,
+    })}
+    <div class="card glass product-hero">
+      <span class="badge">${escapeHtml(p.tag)}</span>
+      <div class="feature-grid">
+        ${p.features.map(([h, body]) => `
+          <div class="feature">
+            <span class="f-ico"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19l12-12l-1.41-1.41z"/></svg></span>
+            <h4>${escapeHtml(h)}</h4>
+            <p>${escapeHtml(body)}</p>
+          </div>`).join('')}
+      </div>
+    </div>
+    ${p.code ? `<div class="card glass">
+      <div class="card-head"><h3>Quick start</h3></div>
+      <pre class="code-block">${escapeHtml(p.code)}</pre>
+    </div>` : ''}
+  `);
+}
+
+/* ----- Developers page ----- */
+function renderDevelopersPage() {
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Developers</span>`,
+      title: 'Developers',
+      sub: 'Every API this product uses, with copy-paste examples.',
+    })}
+    <div class="card glass">
+      <div class="card-head"><h3>Solana JSON-RPC</h3></div>
+      <p class="muted small">Read on-chain state directly from a validator. Mainnet endpoint: <code>https://api.mainnet-beta.solana.com</code></p>
+      <pre class="code-block">curl https://api.mainnet-beta.solana.com -X POST \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"getBalance","params":["&lt;ADDRESS&gt;"]}'
+
+# Token holdings
+{"jsonrpc":"2.0","method":"getTokenAccountsByOwner",
+ "params":["&lt;ADDRESS&gt;",
+   {"programId":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"},
+   {"encoding":"jsonParsed"}]}
+
+# Live transaction feed (WebSocket)
+wss://api.mainnet-beta.solana.com
+{"jsonrpc":"2.0","method":"logsSubscribe",
+ "params":[{"mentions":["&lt;ADDRESS&gt;"]},{"commitment":"confirmed"}]}</pre>
+    </div>
+    <div class="card glass">
+      <div class="card-head"><h3>DexScreener</h3></div>
+      <p class="muted small">Token prices, 24h change, liquidity, and pair data across Solana DEXes. No auth required.</p>
+      <pre class="code-block">GET https://api.dexscreener.com/latest/dex/tokens/&lt;MINT&gt;
+GET https://api.dexscreener.com/latest/dex/search?q=SOL
+GET https://api.dexscreener.com/token-profiles/latest/v1
+GET https://api.dexscreener.com/token-boosts/top/v1</pre>
+    </div>
+    <div class="card glass">
+      <div class="card-head"><h3>Jupiter</h3></div>
+      <p class="muted small">Verified token registry and best-route swap quoting across 20+ Solana DEXes.</p>
+      <pre class="code-block">GET https://tokens.jup.ag/tokens?tags=verified
+GET https://lite-api.jup.ag/swap/v1/quote?inputMint=&lt;A&gt;&outputMint=&lt;B&gt;&amount=&lt;lamports&gt;&slippageBps=50</pre>
+    </div>
+    <div class="card glass">
+      <div class="card-head"><h3>Deep linking</h3></div>
+      <p class="muted small">Open the app pre-loaded with a wallet:</p>
+      <pre class="code-block">${location.origin}${location.pathname}?addr=&lt;WALLET_ADDRESS&gt;</pre>
+    </div>
+  `);
 }
 
 init();
