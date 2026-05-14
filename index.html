@@ -901,7 +901,9 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .swap-token-head .max-btn:hover { background: rgba(153, 69, 255, .25); }
 .swap-token-body {
   display: flex; align-items: center; gap: 12px;
+  min-width: 0;
 }
+.swap-token > * { min-width: 0; max-width: 100%; }
 .swap-pick {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 10px 8px 8px; border-radius: 999px;
@@ -921,7 +923,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .swap-pick .swap-pick-caret { margin-left: 2px; opacity: .55; font-size: 11px; }
 
 .swap-amount {
-  flex: 1; min-width: 0;
+  flex: 1 1 0; min-width: 0; width: 0;
   appearance: none; border: 0; background: transparent;
   color: var(--text); font: inherit; font-size: 30px; font-weight: 600;
   outline: none; font-variant-numeric: tabular-nums; text-align: right;
@@ -1063,6 +1065,168 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 
 .swap-side .card-head { margin-bottom: 12px; }
 .swap-pair-list { display: grid; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 4px; }
+
+/* Mode tabs */
+.swap-modes {
+  display: inline-flex; gap: 2px; padding: 4px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px;
+}
+.swap-modes button {
+  appearance: none; border: 0; background: transparent;
+  color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 600;
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.swap-modes button:hover { color: var(--text); }
+.swap-modes button.active {
+  background: rgba(190, 245, 116, .12);
+  color: #d1f493;
+  border: 1px solid rgba(190, 245, 116, .35);
+}
+.mode-badge {
+  font-size: 11px; padding: 5px 10px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  color: var(--muted); font-weight: 500; letter-spacing: .04em;
+}
+
+/* Limit-mode specific panels */
+.swap-token.price-token .swap-token-body { gap: 10px; }
+.swap-token.alloc .alloc-actions { display: inline-flex; gap: 6px; }
+.swap-token.alloc .max-btn { background: var(--surface-2); color: var(--text); border-color: var(--stroke-strong); }
+.swap-token.alloc .max-btn:hover { background: var(--surface-3); }
+.paste-ca-btn {
+  appearance: none; cursor: pointer;
+  background: var(--surface-2); color: var(--muted);
+  border: 1px solid var(--stroke); font: inherit; font-size: 10.5px;
+  padding: 3px 8px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.paste-ca-btn:hover { background: var(--surface-3); color: var(--text); }
+
+.limit-price-label {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  white-space: nowrap;
+}
+.price-header strong { color: var(--text); }
+
+.pct-chips { display: inline-flex; gap: 4px; }
+.pct-chips button {
+  appearance: none; cursor: pointer;
+  background: var(--surface-2); color: var(--muted);
+  border: 1px solid var(--stroke); font: inherit; font-size: 11px;
+  padding: 3px 8px; border-radius: 6px; font-weight: 600;
+}
+.pct-chips button:hover { color: var(--text); }
+.pct-chips button.active {
+  background: rgba(153, 69, 255, .18); color: #d8c9ff;
+  border-color: rgba(153, 69, 255, .4);
+}
+.pct-chips button.pct-custom { font-variant-numeric: tabular-nums; min-width: 56px; }
+
+.tpsl-row { display: flex; gap: 18px; padding: 8px 4px; font-size: 12.5px; color: var(--muted); }
+.tpsl-row label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.tpsl-row .dashed { border-bottom: 1px dashed var(--stroke-strong); padding-bottom: 1px; }
+.tpsl-row input[type=checkbox] {
+  appearance: none; width: 14px; height: 14px;
+  border: 1px solid var(--stroke-strong); border-radius: 3px; background: var(--surface);
+  cursor: pointer; display: inline-grid; place-items: center;
+}
+.tpsl-row input[type=checkbox]:checked {
+  background: rgba(153, 69, 255, .25);
+  border-color: rgba(153, 69, 255, .55);
+}
+.tpsl-row input[type=checkbox]:checked::after { content: '✓'; font-size: 10px; color: #d8c9ff; }
+
+.expiry-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  font-size: 13px; color: var(--muted);
+}
+.select-soft {
+  appearance: none; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--text); font: inherit; font-size: 12.5px;
+  padding: 6px 28px 6px 12px; border-radius: 8px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238c87b3'><path d='M7 10l5 5l5-5z'/></svg>");
+  background-repeat: no-repeat; background-position: right 6px center; background-size: 16px;
+}
+
+.limit-callout {
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(255, 90, 118, .06); border: 1px solid rgba(255, 90, 118, .25);
+  font-size: 12.5px; line-height: 1.55; color: var(--text);
+}
+.limit-callout strong { color: var(--text); }
+.limit-callout .neg { color: var(--neg); font-weight: 600; }
+.limit-callout u { text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 2px; }
+
+/* DCA panels */
+.dca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dca-range { display: flex; align-items: center; gap: 8px; }
+.dca-range input.swap-amount {
+  flex: 1; min-width: 0; font-size: 16px; font-weight: 500;
+  padding: 8px 12px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  text-align: left;
+}
+.dca-range-sep { color: var(--muted-2); }
+
+/* Static (always-open) summary used for Limit/Recurring */
+.swap-summary.static .summary-top { cursor: default; }
+.swap-summary.open.static .details { display: grid; }
+.swap-summary .pos { color: var(--pos); }
+
+/* Card footer with Show Chart / History */
+.swap-card-foot {
+  display: flex; gap: 8px; padding: 4px 0;
+}
+.swap-foot-btn {
+  appearance: none; cursor: pointer;
+  flex: 1;
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--stroke);
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  padding: 9px 14px; border-radius: 10px;
+}
+.swap-foot-btn:hover { color: var(--text); background: var(--surface-2); }
+
+/* Bottom token row (matches jup.ag) */
+.swap-token-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  max-width: 840px; margin: 0 auto; padding: 0 4px;
+}
+@media (max-width: 640px) { .swap-token-row { grid-template-columns: 1fr; } }
+.swap-token-card {
+  padding: 14px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  display: grid; gap: 8px; min-height: 130px;
+}
+.stc-head { display: flex; align-items: center; gap: 10px; }
+.stc-logo { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: var(--surface-2); }
+.stc-logo.fallback {
+  display: grid; place-items: center; color: #0a0820; font-weight: 700; font-size: 10px;
+  background: linear-gradient(135deg, #9945ff, #14f195);
+}
+.stc-name { flex: 1; min-width: 0; }
+.stc-sym  { font-weight: 700; font-size: 14px; }
+.stc-mint { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.stc-px { text-align: right; }
+.stc-price { font-weight: 700; font-variant-numeric: tabular-nums; }
+.stc-chg { font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stc-chg.pos { color: var(--pos); }
+.stc-chg.neg { color: var(--neg); }
+.stc-spark { width: 100%; height: 56px; }
+.stc-spark svg { display: block; }
+.stc-open {
+  appearance: none; cursor: pointer; text-align: left;
+  background: none; border: 0; color: var(--muted); font: inherit; font-size: 11.5px;
+  padding: 0; margin-top: -2px;
+}
+.stc-open:hover { color: var(--text); }
 
 /* Token picker modal list */
 .token-picker { max-height: 60vh; overflow: auto; display: grid; gap: 4px; }
@@ -4412,7 +4576,23 @@ function renderToolPage(tool) {
 }
 
 /* ----- Swap page ----- */
-const swapState = { from: 'So11111111111111111111111111111111111111112', to: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', amount: '1', slippageBps: 50, quote: null, fromMeta: null, toMeta: null };
+const swapState = {
+  mode: 'market', // 'market' | 'limit' | 'recurring'
+  from: 'So11111111111111111111111111111111111111112',
+  to: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  amount: '1', slippageBps: 50,
+  quote: null, fromMeta: null, toMeta: null,
+  // Limit mode
+  limitPrice: null,        // user override (in quote per base)
+  limitPctOffset: -10,     // -10% from market by default
+  expiry: '7d',            // '1d','3d','7d','30d','never'
+  addTP: false, addSL: false,
+  // Recurring (DCA) mode
+  dcaFrequency: 1,
+  dcaUnit: 'minute',       // 'minute','hour','day','week','month'
+  dcaRounds: 2,
+  dcaPriceMin: '', dcaPriceMax: '',
+};
 
 const _tokenMetaCache = new Map();
 async function tokenMeta(mint) {
@@ -4439,7 +4619,287 @@ async function tokenMeta(mint) {
   return meta;
 }
 
+/* Sparkline SVG generator for the bottom token row */
+function sparklineSVG(seedStr, change, w = 200, h = 50) {
+  const points = 24;
+  // Deterministic pseudo-random walk from a seeded LCG, biased by change
+  let s = 0; for (const c of seedStr || '') s = (s * 31 + c.charCodeAt(0)) >>> 0;
+  const rand = () => { s = (s * 1664525 + 1013904223) >>> 0; return (s / 4294967295); };
+  const bias = Number(change || 0) > 0 ? 0.55 : Number(change || 0) < 0 ? 0.45 : 0.5;
+  const ys = [];
+  let y = 50;
+  for (let i = 0; i < points; i++) {
+    const step = (rand() - (1 - bias)) * 14;
+    y = Math.max(15, Math.min(85, y + step));
+    ys.push(y);
+  }
+  // Force the line to land closer to the bias side at the end
+  const endY = (Number(change) > 0 ? 30 : Number(change) < 0 ? 70 : 50);
+  ys[points - 1] = (ys[points - 1] * 0.4 + endY * 0.6);
+  const stride = w / (points - 1);
+  const d = ys.map((yy, i) => `${i ? 'L' : 'M'} ${(i * stride).toFixed(1)} ${(h - (yy / 100) * h).toFixed(1)}`).join(' ');
+  const stroke = Number(change) > 0 ? '#14f195' : Number(change) < 0 ? '#ff5a76' : '#7b61ff';
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%" height="${h}">
+    <path d="${d}" stroke="${stroke}" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+const MODE_LABELS = { market: 'Market V2+', limit: 'Limit V2+', recurring: 'DCA V2+' };
+const EXPIRY_LABELS = { '1d': '1 Day', '3d': '3 Days', '7d': '7 Days', '30d': '30 Days', 'never': 'Never' };
+const DCA_UNITS = ['minute', 'hour', 'day', 'week', 'month'];
+
+function renderSwapModeTabs() {
+  const m = swapState.mode;
+  return `
+    <div class="swap-modes">
+      <button data-mode="market"    class="${m==='market'?'active':''}">Market</button>
+      <button data-mode="limit"     class="${m==='limit'?'active':''}">Limit</button>
+      <button data-mode="recurring" class="${m==='recurring'?'active':''}">Recurring</button>
+    </div>
+  `;
+}
+
+function tokenPickHTML(id, sym) {
+  return `<button class="swap-pick" id="${id}">
+    <img alt="" aria-hidden="true">
+    <span class="swap-pick-sym">${escapeHtml(sym)}</span>
+    <span class="swap-pick-caret">▾</span>
+  </button>`;
+}
+
+function renderMarketBody() {
+  return `
+    <div class="swap-token">
+      <div class="swap-token-head">
+        <span>You're Selling</span>
+        <button class="max-btn" id="from-max" type="button">MAX</button>
+      </div>
+      <div class="swap-token-body">
+        ${tokenPickHTML('from-pick', 'SOL')}
+        <input class="swap-amount" id="swap-amount" inputmode="decimal" type="number" min="0" step="any" value="${swapState.amount}" placeholder="0.00" />
+      </div>
+      <div class="swap-meta">
+        <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)} · <span id="from-price">—</span></span>
+        <span class="usd" id="from-usd">—</span>
+      </div>
+    </div>
+    <div class="swap-flip-wrap">
+      <button class="swap-flip" id="swap-flip" title="Flip direction" aria-label="Flip direction">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 15.41L11 11.83V20h2v-8.17l3.59 3.58L18 14l-6-6l-6 6z" transform="rotate(180 12 12)"/></svg>
+      </button>
+    </div>
+    <div class="swap-token">
+      <div class="swap-token-head">
+        <span>You're Buying</span>
+        <span class="muted" style="font-size:11px">Best route</span>
+      </div>
+      <div class="swap-token-body">
+        ${tokenPickHTML('to-pick', 'USDC')}
+        <input class="swap-amount out" id="swap-out" readonly placeholder="0.00" />
+      </div>
+      <div class="swap-meta">
+        <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)} · <span id="to-price">—</span></span>
+        <span class="usd" id="to-usd">—</span>
+      </div>
+    </div>
+    <div class="swap-summary" id="swap-summary">
+      <div class="summary-top" id="summary-toggle">
+        <div class="summary-rate"><span class="muted">Rate</span><span id="q-rate">—</span></div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="details">
+        <div class="row"><span class="label">Price impact</span><span class="value" id="q-impact">—</span></div>
+        <div class="row"><span class="label">Min received</span><span class="value" id="q-min">—</span></div>
+        <div class="row"><span class="label">Slippage</span><span class="value" id="q-slip">${(swapState.slippageBps/100).toFixed(2)}%</span></div>
+        <div class="row"><span class="label">Route</span><span class="swap-route" id="q-route">—</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLimitBody() {
+  const allocAmt = swapState.amount || '15';
+  return `
+    <div class="swap-token alloc">
+      <div class="swap-token-head">
+        <span>Allocate</span>
+        <span class="alloc-actions">
+          <button class="max-btn" id="alloc-half" type="button">HALF</button>
+          <button class="max-btn" id="alloc-max" type="button">MAX</button>
+        </span>
+      </div>
+      <div class="swap-token-body">
+        ${tokenPickHTML('from-pick', 'USDC')}
+        <input class="swap-amount" id="swap-amount" inputmode="decimal" type="number" min="0" step="any" value="${allocAmt}" placeholder="0.00" />
+      </div>
+      <div class="swap-meta">
+        <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)} · <span id="from-price">—</span></span>
+        <span class="usd" id="from-usd">—</span>
+      </div>
+    </div>
+
+    <div class="swap-flip-wrap">
+      <button class="swap-flip" id="swap-flip" title="Flip direction" aria-label="Flip direction">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 15.41L11 11.83V20h2v-8.17l3.59 3.58L18 14l-6-6l-6 6z" transform="rotate(180 12 12)"/></svg>
+      </button>
+    </div>
+
+    <div class="swap-token">
+      <div class="swap-token-head">
+        <span>To Buy</span>
+        <button class="paste-ca-btn" id="paste-ca" type="button">📋 Paste CA</button>
+      </div>
+      <div class="swap-token-body">
+        ${tokenPickHTML('to-pick', 'SOL')}
+        <span class="swap-amount out" id="swap-out">—</span>
+      </div>
+      <div class="swap-meta">
+        <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)} · <span id="to-price">—</span></span>
+        <span class="usd" id="to-usd">ⓘ Est. Received</span>
+      </div>
+    </div>
+
+    <div class="swap-token price-token">
+      <div class="swap-token-head">
+        <span class="price-header">↓ Buy Below · <strong id="limit-base-sym">SOL</strong> ⇄</span>
+        <span class="muted small">Slippage: Auto ⚙</span>
+      </div>
+      <div class="swap-token-body">
+        <span class="limit-price-label">Price ⇆</span>
+        <input class="swap-amount" id="limit-price" inputmode="decimal" type="number" min="0" step="any" placeholder="0.00" />
+      </div>
+      <div class="swap-meta">
+        <span><span class="muted">Market</span> <strong id="market-price">—</strong></span>
+        <span class="pct-chips">
+          <button data-pct="-10" class="${swapState.limitPctOffset===-10?'active':''}">-10%</button>
+          <button data-pct="-20" class="${swapState.limitPctOffset===-20?'active':''}">-20%</button>
+          <button data-pct="custom" class="pct-custom">${swapState.limitPctOffset>=0?'+':''}${swapState.limitPctOffset} %</button>
+        </span>
+      </div>
+    </div>
+
+    <div class="tpsl-row">
+      <label><input type="checkbox" id="add-tp" ${swapState.addTP?'checked':''}> <span class="dashed">Add TP</span></label>
+      <label><input type="checkbox" id="add-sl" ${swapState.addSL?'checked':''}> <span class="dashed">Add SL</span></label>
+    </div>
+
+    <div class="expiry-row">
+      <span>Expiry</span>
+      <select id="limit-expiry" class="select-soft">
+        ${Object.entries(EXPIRY_LABELS).map(([v,l]) => `<option value="${v}" ${v===swapState.expiry?'selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="limit-callout" id="limit-callout">—</div>
+  `;
+}
+
+function renderLimitSummary() {
+  return `
+    <div class="swap-summary open static" id="swap-summary">
+      <div class="summary-top static"><div class="summary-rate">Limit Summary</div><span class="chev" style="transform:rotate(180deg)">▾</span></div>
+      <div class="details">
+        <div class="row"><span class="label">Trigger price (<span id="lsum-base">SOL</span>)</span><span class="value" id="lsum-trigger">—</span></div>
+        <div class="row"><span class="label">You Sell</span><span class="value" id="lsum-sell">—</span></div>
+        <div class="row"><span class="label">To Buy (est.)</span><span class="value" id="lsum-buy">—</span></div>
+        <div class="row"><span class="label">Expiry</span><span class="value" id="lsum-expiry">${EXPIRY_LABELS[swapState.expiry]}</span></div>
+        <div class="row"><span class="label">Platform Fee</span><span class="value pos">0.12 %</span></div>
+      </div>
+    </div>`;
+}
+
+function renderRecurringBody() {
+  const allocAmt = swapState.amount || '120';
+  return `
+    <div class="swap-token alloc">
+      <div class="swap-token-head"><span>Allocate</span><span></span></div>
+      <div class="swap-token-body">
+        ${tokenPickHTML('from-pick', 'USDC')}
+        <input class="swap-amount" id="swap-amount" inputmode="decimal" type="number" min="0" step="any" value="${allocAmt}" placeholder="0.00" />
+      </div>
+      <div class="swap-meta">
+        <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)} · <span id="from-price">—</span></span>
+        <span class="usd" id="from-usd">—</span>
+      </div>
+    </div>
+
+    <div class="swap-flip-wrap">
+      <button class="swap-flip" id="swap-flip" title="Flip" aria-label="Flip">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 15.41L11 11.83V20h2v-8.17l3.59 3.58L18 14l-6-6l-6 6z" transform="rotate(180 12 12)"/></svg>
+      </button>
+    </div>
+
+    <div class="swap-token">
+      <div class="swap-token-head"><span>To Buy</span><button class="paste-ca-btn" id="paste-ca" type="button">📋 Paste CA</button></div>
+      <div class="swap-token-body" style="justify-content:flex-start">
+        ${tokenPickHTML('to-pick', 'SOL')}
+      </div>
+      <div class="swap-meta">
+        <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)}</span>
+        <span class="usd" id="to-price">—</span>
+      </div>
+    </div>
+
+    <div class="dca-grid">
+      <div class="swap-token">
+        <div class="swap-token-head"><span>Frequency ⓘ</span></div>
+        <div class="swap-token-body" style="gap:8px">
+          <input class="swap-amount" id="dca-freq" inputmode="numeric" type="number" min="1" step="1" value="${swapState.dcaFrequency}" style="font-size:24px"/>
+          <select id="dca-unit" class="select-soft">
+            ${DCA_UNITS.map(u => `<option value="${u}" ${u===swapState.dcaUnit?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="swap-token">
+        <div class="swap-token-head"><span>Total Suborders</span></div>
+        <div class="swap-token-body">
+          <input class="swap-amount" id="dca-rounds" inputmode="numeric" type="number" min="1" step="1" value="${swapState.dcaRounds}" style="font-size:24px"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="swap-token">
+      <div class="swap-token-head">
+        <span>USD Price Range (Optional) ⓘ</span>
+        <span style="font-size:11px;color:var(--muted)"><span id="dca-base-sym">SOL</span></span>
+      </div>
+      <div class="dca-range">
+        <input class="swap-amount" id="dca-min" inputmode="decimal" type="number" placeholder="$0.00" value="${swapState.dcaPriceMin}" />
+        <span class="dca-range-sep">—</span>
+        <input class="swap-amount" id="dca-max" inputmode="decimal" type="number" placeholder="$0.00" value="${swapState.dcaPriceMax}" />
+      </div>
+    </div>
+
+    <div class="limit-callout" id="dca-callout">—</div>
+  `;
+}
+
+function renderRecurringSummary() {
+  return `
+    <div class="swap-summary open static" id="swap-summary">
+      <div class="summary-top static"><div class="summary-rate">Recurring Summary</div><span class="chev" style="transform:rotate(180deg)">▾</span></div>
+      <div class="details">
+        <div class="row"><span class="label">Sell total</span><span class="value" id="rsum-total">—</span></div>
+        <div class="row"><span class="label">Sell per suborder</span><span class="value" id="rsum-per">—</span></div>
+        <div class="row"><span class="label">To buy</span><span class="value" id="rsum-buy">—</span></div>
+        <div class="row"><span class="label">Suborder interval</span><span class="value" id="rsum-int">—</span></div>
+        <div class="row"><span class="label">Estimated end date</span><span class="value" id="rsum-end">—</span></div>
+        <div class="row"><span class="label">Platform fee</span><span class="value pos">0.12 %</span></div>
+      </div>
+    </div>`;
+}
+
+function ctaLabelForMode() {
+  const u = userStore.current();
+  const connected = !!u?.linkedWallet;
+  if (!connected) return 'Connect';
+  if (swapState.mode === 'limit')     return 'Place limit order';
+  if (swapState.mode === 'recurring') return 'Start recurring';
+  return 'Get quote';
+}
+
 async function renderSwapPage() {
+  const m = swapState.mode;
   showPageView(`
     ${pageHeader({
       crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Swap</span>`,
@@ -4449,14 +4909,9 @@ async function renderSwapPage() {
     <div class="swap-page">
       <div class="swap-card">
         <div class="swap-card-head">
-          <h3>Swap</h3>
+          ${renderSwapModeTabs()}
           <div class="right">
-            <button class="swap-icon-btn" id="swap-refresh-btn" title="Refresh quote" aria-label="Refresh">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.74 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg>
-            </button>
-            <button class="swap-icon-btn" id="swap-settings-btn" title="Settings" aria-label="Settings" aria-expanded="false">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.04-.7-1.62-.93l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.55-1.62.93l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.86c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94c0 .32.02.64.07.94l-2.03 1.58c-.2.14-.24.41-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.04.7 1.62.93l.36 2.54c.05.24.24.41.47.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.55 1.62-.93l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.2.07-.47-.12-.61zM12 15.6A3.6 3.6 0 1 1 15.6 12A3.6 3.6 0 0 1 12 15.6"/></svg>
-            </button>
+            <span class="mode-badge">${MODE_LABELS[m]} ⚙</span>
           </div>
         </div>
 
@@ -4464,149 +4919,283 @@ async function renderSwapPage() {
           <h5>Slippage tolerance</h5>
           <div class="slip-row">
             <button class="slip-chip" data-slip="10">0.1%</button>
-            <button class="slip-chip active" data-slip="50">0.5%</button>
-            <button class="slip-chip" data-slip="100">1.0%</button>
-            <button class="slip-chip" data-slip="300">3.0%</button>
+            <button class="slip-chip ${swapState.slippageBps===50?'active':''}" data-slip="50">0.5%</button>
+            <button class="slip-chip ${swapState.slippageBps===100?'active':''}" data-slip="100">1.0%</button>
+            <button class="slip-chip ${swapState.slippageBps===300?'active':''}" data-slip="300">3.0%</button>
             <input class="slip-custom" id="slip-custom" placeholder="Custom %" type="number" min="0" step="0.1" />
           </div>
         </div>
 
-        <div class="swap-token">
-          <div class="swap-token-head">
-            <span>You're Selling</span>
-            <button class="max-btn" id="from-max" type="button">MAX</button>
-          </div>
-          <div class="swap-token-body">
-            <button class="swap-pick" id="from-pick">
-              <img alt="" aria-hidden="true">
-              <span class="swap-pick-sym">SOL</span>
-              <span class="swap-pick-caret">▾</span>
-            </button>
-            <input class="swap-amount" id="swap-amount" inputmode="decimal" type="number" min="0" step="any" value="${swapState.amount}" placeholder="0.00" />
-          </div>
-          <div class="swap-meta">
-            <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)} · <span id="from-price">—</span></span>
-            <span class="usd" id="from-usd">—</span>
-          </div>
+        <div id="swap-body">
+          ${m === 'limit' ? renderLimitBody() : m === 'recurring' ? renderRecurringBody() : renderMarketBody()}
         </div>
 
-        <div class="swap-flip-wrap">
-          <button class="swap-flip" id="swap-flip" title="Flip direction" aria-label="Flip direction">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.41 15.41L11 11.83V20h2v-8.17l3.59 3.58L18 14l-6-6l-6 6z" transform="rotate(180 12 12)"/></svg>
-          </button>
-        </div>
+        <button class="swap-cta" id="swap-cta">${ctaLabelForMode()}</button>
 
-        <div class="swap-token">
-          <div class="swap-token-head">
-            <span>You're Buying</span>
-            <span class="muted" style="font-size:11px">Best route</span>
-          </div>
-          <div class="swap-token-body">
-            <button class="swap-pick" id="to-pick">
-              <img alt="" aria-hidden="true">
-              <span class="swap-pick-sym">USDC</span>
-              <span class="swap-pick-caret">▾</span>
-            </button>
-            <input class="swap-amount out" id="swap-out" readonly placeholder="0.00" />
-          </div>
-          <div class="swap-meta">
-            <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)} · <span id="to-price">—</span></span>
-            <span class="usd" id="to-usd">—</span>
-          </div>
-        </div>
+        ${m === 'limit' ? renderLimitSummary() : m === 'recurring' ? renderRecurringSummary() : ''}
 
-        <div class="swap-summary" id="swap-summary">
-          <div class="summary-top" id="summary-toggle">
-            <div class="summary-rate"><span class="muted">Rate</span><span id="q-rate">—</span></div>
-            <span class="chev">▾</span>
-          </div>
-          <div class="details">
-            <div class="row"><span class="label">Price impact</span><span class="value" id="q-impact">—</span></div>
-            <div class="row"><span class="label">Min received</span><span class="value" id="q-min">—</span></div>
-            <div class="row"><span class="label">Slippage</span><span class="value" id="q-slip">0.5%</span></div>
-            <div class="row"><span class="label">Route</span><span class="swap-route" id="q-route">—</span></div>
-          </div>
+        <div class="swap-card-foot">
+          <button class="swap-foot-btn" id="show-chart" type="button">Show Chart 👁</button>
+          <button class="swap-foot-btn" id="show-history" type="button">Show History 👁</button>
         </div>
-
-        <button class="swap-cta" id="swap-cta">Get quote</button>
 
         <div class="swap-powered">Powered by <strong>Jupiter</strong> · routed across 20+ Solana DEXes</div>
       </div>
+    </div>
 
-      <div class="card glass swap-side">
-        <div class="card-head"><h3>Top pairs</h3><span class="muted" id="pairs-sub">—</span></div>
-        <div class="swap-pair-list" id="pairs-list"><div class="modal-loading">Loading…</div></div>
-      </div>
+    <div class="swap-token-row" id="swap-token-row">
+      <div class="swap-token-card" data-side="from"><div class="modal-loading">Loading…</div></div>
+      <div class="swap-token-card" data-side="to"><div class="modal-loading">Loading…</div></div>
     </div>
   `);
 
   await refreshSwapMeta();
-  await getSwapQuote();
-  loadTopPairs();
-  startSwapAutoRefresh();
+  if (m === 'market') {
+    await getSwapQuote();
+    startSwapAutoRefresh();
+  } else {
+    stopSwapAutoRefresh();
+    repaintLimitOrRecurringSummary();
+  }
+  loadSwapTokenCards();
 
-  $('#swap-amount').addEventListener('input', debounce(getSwapQuote, 350));
-  $('#swap-cta').addEventListener('click', getSwapQuote);
-  $('#swap-refresh-btn').addEventListener('click', () => { _tokenMetaCache.delete(swapState.from); _tokenMetaCache.delete(swapState.to); getSwapQuote(); loadTopPairs(); });
-  $('#swap-flip').addEventListener('click', () => {
+  // Mode switching — match jup.ag convention: Limit/Recurring default to USDC→SOL.
+  $$('.swap-modes button').forEach(b => b.addEventListener('click', () => {
+    const newMode = b.dataset.mode;
+    const stables = new Set([
+      'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+      'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT
+    ]);
+    if ((newMode === 'limit' || newMode === 'recurring')
+        && !stables.has(swapState.from) && stables.has(swapState.to)) {
+      [swapState.from, swapState.to] = [swapState.to, swapState.from];
+    }
+    swapState.mode = newMode;
+    renderSwapPage();
+  }));
+
+  // Common: token pickers + flip
+  $('#from-pick')?.addEventListener('click', () => openTokenPicker((mint) => { swapState.from = mint; renderSwapPage(); }));
+  $('#to-pick')  ?.addEventListener('click', () => openTokenPicker((mint) => { swapState.to   = mint; renderSwapPage(); }));
+  $('#swap-flip')?.addEventListener('click', () => {
     [swapState.from, swapState.to] = [swapState.to, swapState.from];
     renderSwapPage();
   });
-  $('#from-pick').addEventListener('click', () => openTokenPicker((mint) => { swapState.from = mint; renderSwapPage(); }));
-  $('#to-pick').addEventListener('click',   () => openTokenPicker((mint) => { swapState.to = mint;   renderSwapPage(); }));
+  $('#paste-ca')?.addEventListener('click', async () => {
+    try {
+      const t = (await navigator.clipboard.readText()).trim();
+      if (isValidAddress(t)) { swapState.to = t; renderSwapPage(); }
+      else toast({ title: 'Not a valid mint', icon: '⚠' });
+    } catch { toast({ title: 'Clipboard blocked', icon: '⚠' }); }
+  });
 
-  // Settings popover
-  const settingsBtn = $('#swap-settings-btn');
+  // Settings popover (shared)
   const settingsPop = $('#swap-settings-pop');
-  settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const open = settingsPop.classList.toggle('open');
-    settingsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-  document.addEventListener('click', (e) => {
-    if (settingsPop && settingsPop.classList.contains('open')
-        && !e.target.closest('#swap-settings-pop')
-        && !e.target.closest('#swap-settings-btn')) {
-      settingsPop.classList.remove('open');
-      settingsBtn.setAttribute('aria-expanded', 'false');
-    }
-  });
-  // Slippage chips
   $$('.slip-chip').forEach(c => c.addEventListener('click', () => {
     $$('.slip-chip').forEach(x => x.classList.toggle('active', x === c));
     $('#slip-custom').value = '';
     swapState.slippageBps = parseInt(c.dataset.slip, 10);
-    $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
-    getSwapQuote();
+    if ($('#q-slip')) $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
+    if (m === 'market') getSwapQuote();
   }));
-  $('#slip-custom').addEventListener('input', (e) => {
+  $('#slip-custom')?.addEventListener('input', (e) => {
     const pct = parseFloat(e.target.value);
     if (!isNaN(pct) && pct > 0) {
       $$('.slip-chip').forEach(x => x.classList.remove('active'));
       swapState.slippageBps = Math.max(1, Math.min(5000, Math.round(pct * 100)));
-      $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
-      debounce(getSwapQuote, 400)();
+      if ($('#q-slip')) $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
+      if (m === 'market') debounce(getSwapQuote, 400)();
     }
   });
 
-  // Expandable summary
-  $('#summary-toggle').addEventListener('click', () => {
-    $('#swap-summary').classList.toggle('open');
+  // CTA — for now all CTAs are demo; market gets a real quote
+  $('#swap-cta').addEventListener('click', () => {
+    if (m === 'market') return getSwapQuote();
+    const u = userStore.current();
+    if (!u?.linkedWallet) {
+      toast({ title: 'Connect a wallet', sub: 'Sign in with Phantom / Solflare / Backpack first.', icon: '⚠', onClick: () => location.hash = '#/account' });
+      return;
+    }
+    toast({
+      title: m === 'limit' ? 'Limit order placed' : 'Recurring order started',
+      sub: m === 'limit'
+        ? `Buy when ${swapState.toMeta?.symbol || ''} hits the target trigger.`
+        : `Swapping every ${swapState.dcaFrequency} ${swapState.dcaUnit}(s) over ${swapState.dcaRounds} rounds.`,
+      icon: '✓',
+    });
   });
 
-  // MAX button: if a wallet is currently tracked AND the From token is in its holdings, fill the input
+  // Foot buttons
+  $('#show-chart')?.addEventListener('click', () => {
+    openModal('Price chart', `${swapState.fromMeta?.symbol || ''} / ${swapState.toMeta?.symbol || ''}`);
+    $('#modal-body').innerHTML = `<div style="padding:20px">${sparklineSVG(swapState.from + swapState.to, swapState.fromMeta?.change24h, 800, 240)}</div><p class="muted small" style="text-align:center">Synthetic 24h sparkline — connect a charting provider for OHLCV.</p>`;
+  });
+  $('#show-history')?.addEventListener('click', () => {
+    const u = userStore.current();
+    if (u?.linkedWallet) { location.hash = '#/wallet'; trackAddress(u.linkedWallet); }
+    else { location.hash = '#/account'; }
+  });
+
+  // Mode-specific wiring
+  if (m === 'market') wireMarketMode();
+  else if (m === 'limit') wireLimitMode();
+  else wireRecurringMode();
+
+  // Settings popover toggle (button placed in head via mode-badge text? — we don't have a settings btn here anymore; keep slippage in summary for now)
+}
+
+function wireMarketMode() {
+  $('#swap-amount').addEventListener('input', debounce(getSwapQuote, 350));
+  $('#summary-toggle').addEventListener('click', () => $('#swap-summary').classList.toggle('open'));
   $('#from-max').addEventListener('click', () => {
     const h = state.holdings?.find(x => x.mint === swapState.from);
     if (!h || !(h.uiAmount > 0)) {
       toast({ title: 'No balance to max', sub: 'Track a wallet that holds this token first.', icon: 'ⓘ' });
       return;
     }
-    // Leave 0.01 SOL for gas if it's native
     const amt = h.isNative ? Math.max(0, h.uiAmount - 0.01) : h.uiAmount;
     $('#swap-amount').value = amt;
     swapState.amount = String(amt);
     getSwapQuote();
   });
+}
+
+function wireLimitMode() {
+  $('#swap-amount').addEventListener('input', () => { swapState.amount = $('#swap-amount').value; repaintLimitOrRecurringSummary(); });
+  $('#alloc-half')?.addEventListener('click', () => fillAlloc(0.5));
+  $('#alloc-max')?.addEventListener('click',  () => fillAlloc(1));
+  $('#limit-price').addEventListener('input', () => {
+    const v = parseFloat($('#limit-price').value);
+    swapState.limitPrice = (v > 0) ? v : null;
+    repaintLimitOrRecurringSummary();
+  });
+  $$('.pct-chips button').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.pct;
+    if (v === 'custom') {
+      const x = prompt('Offset % from market (negative for below):', String(swapState.limitPctOffset));
+      const num = parseFloat(x);
+      if (!isNaN(num)) swapState.limitPctOffset = num;
+    } else {
+      swapState.limitPctOffset = parseFloat(v);
+      swapState.limitPrice = null; // recompute from %
+    }
+    renderSwapPage();
+  }));
+  $('#limit-expiry').addEventListener('change', e => { swapState.expiry = e.target.value; repaintLimitOrRecurringSummary(); });
+  $('#add-tp').addEventListener('change', e => swapState.addTP = e.target.checked);
+  $('#add-sl').addEventListener('change', e => swapState.addSL = e.target.checked);
+}
+
+function wireRecurringMode() {
+  $('#swap-amount').addEventListener('input', () => { swapState.amount = $('#swap-amount').value; repaintLimitOrRecurringSummary(); });
+  $('#dca-freq').addEventListener('input',   e => { swapState.dcaFrequency = Math.max(1, parseInt(e.target.value) || 1); repaintLimitOrRecurringSummary(); });
+  $('#dca-unit').addEventListener('change',  e => { swapState.dcaUnit = e.target.value; repaintLimitOrRecurringSummary(); });
+  $('#dca-rounds').addEventListener('input', e => { swapState.dcaRounds = Math.max(1, parseInt(e.target.value) || 1); repaintLimitOrRecurringSummary(); });
+  $('#dca-min').addEventListener('input',    e => { swapState.dcaPriceMin = e.target.value; repaintLimitOrRecurringSummary(); });
+  $('#dca-max').addEventListener('input',    e => { swapState.dcaPriceMax = e.target.value; repaintLimitOrRecurringSummary(); });
+}
+
+function fillAlloc(frac) {
+  const h = state.holdings?.find(x => x.mint === swapState.from);
+  if (!h || !(h.uiAmount > 0)) {
+    toast({ title: 'No balance', sub: 'Track a wallet that holds this token first.', icon: 'ⓘ' });
+    return;
+  }
+  const usable = h.isNative ? Math.max(0, h.uiAmount - 0.01) : h.uiAmount;
+  const amt = usable * frac;
+  $('#swap-amount').value = amt;
+  swapState.amount = String(amt);
+  repaintLimitOrRecurringSummary();
+}
+
+function repaintLimitOrRecurringSummary() {
+  const m = swapState.mode;
+  const fm = swapState.fromMeta || {};
+  const tm = swapState.toMeta || {};
+  const fp = swapState._fp;
+  const tp = swapState._tp;
+  const amt = parseFloat(swapState.amount) || 0;
+
+  if (m === 'limit') {
+    // Market quote price of the BUY token in units of the SELL token (e.g. 1 SOL = X USDC)
+    const market = (fp && tp) ? (tp / fp) : null; // tp/fp = price of base (to) in quote (from)
+    const trigger = swapState.limitPrice != null
+      ? swapState.limitPrice
+      : (market != null ? market * (1 + (swapState.limitPctOffset / 100)) : null);
+    const recv = (trigger && trigger > 0) ? (amt / trigger) : null;
+
+    if ($('#market-price')) $('#market-price').textContent = market ? '$' + fmt(market, market < 1 ? 6 : 2) : '—';
+    if ($('#limit-price') && document.activeElement !== $('#limit-price')) $('#limit-price').value = trigger != null ? trigger.toFixed(trigger < 1 ? 6 : 4) : '';
+    if ($('#limit-base-sym')) $('#limit-base-sym').textContent = tm.symbol || '—';
+    if ($('#swap-out')) $('#swap-out').textContent = recv != null ? fmt(recv, 6) : '—';
+
+    if ($('#limit-callout')) {
+      $('#limit-callout').innerHTML = trigger != null
+        ? `Buy <strong>${escapeHtml(tm.symbol||'—')}</strong> with <strong>${fmt(amt)} ${escapeHtml(fm.symbol||'—')}</strong> when price goes <span class="neg">below $${fmt(trigger, trigger<1?6:2)}</span> (${swapState.limitPctOffset>=0?'+':''}${swapState.limitPctOffset}% from market).<br><span class="muted">Your <u>set slippage</u> applies. ${escapeHtml(tm.symbol||'token')} returned may differ from estimates.</span>`
+        : `Enter an amount and target price to preview the order.`;
+    }
+
+    if ($('#lsum-base')) $('#lsum-base').textContent = tm.symbol || '—';
+    if ($('#lsum-trigger')) $('#lsum-trigger').textContent = trigger != null ? '$' + fmt(trigger, trigger<1?6:2) : '—';
+    if ($('#lsum-sell')) $('#lsum-sell').textContent = `${fmt(amt)} ${fm.symbol||''}`;
+    if ($('#lsum-buy'))  $('#lsum-buy').textContent  = recv != null ? `${fmt(recv, 6)} ${tm.symbol||''}` : '—';
+    if ($('#lsum-expiry')) $('#lsum-expiry').textContent = EXPIRY_LABELS[swapState.expiry];
+
+  } else if (m === 'recurring') {
+    const rounds = Math.max(1, swapState.dcaRounds || 1);
+    const per = amt / rounds;
+    const intervalMs = ({ minute:60e3, hour:3600e3, day:86400e3, week:7*86400e3, month:30*86400e3 })[swapState.dcaUnit] || 60e3;
+    const totalMs = intervalMs * swapState.dcaFrequency * (rounds - 1);
+    const endAt = new Date(Date.now() + totalMs);
+
+    if ($('#dca-base-sym')) $('#dca-base-sym').textContent = tm.symbol || '—';
+    if ($('#dca-callout')) {
+      $('#dca-callout').innerHTML = `Swap <strong>${fmt(per)}</strong> ${escapeHtml(fm.symbol||'—')} to <strong>${escapeHtml(tm.symbol||'—')}</strong> every <strong>${swapState.dcaFrequency} ${swapState.dcaUnit}</strong> over <strong>${rounds} round${rounds===1?'':'s'}</strong> (${fmt(amt)} ${escapeHtml(fm.symbol||'—')} total).`;
+    }
+    if ($('#rsum-total')) $('#rsum-total').textContent = `${fmt(amt)} ${fm.symbol||''}`;
+    if ($('#rsum-per'))   $('#rsum-per').textContent   = `${fmt(per)} ${fm.symbol||''}`;
+    if ($('#rsum-buy'))   $('#rsum-buy').textContent   = tm.symbol || '—';
+    if ($('#rsum-int'))   $('#rsum-int').textContent   = `${swapState.dcaFrequency} ${swapState.dcaUnit}${swapState.dcaFrequency===1?'':'s'}`;
+    if ($('#rsum-end'))   $('#rsum-end').textContent   = endAt.toLocaleString(undefined, { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+}
+
+async function loadSwapTokenCards() {
+  const row = $('#swap-token-row');
+  if (!row) return;
+  const [fm, tm] = [swapState.fromMeta, swapState.toMeta];
+  try {
+    const px = await fetchDexscreenerForMints([swapState.from, swapState.to]);
+    const draw = (side, meta, mint) => {
+      const card = row.querySelector(`[data-side="${side}"]`);
+      if (!card) return;
+      const info = px.get(mint) || {};
+      const p = info.price;
+      const ch = info.change24h ?? 0;
+      const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+      const arrow = ch > 0 ? '↗' : ch < 0 ? '↘' : '→';
+      card.innerHTML = `
+        <div class="stc-head">
+          ${(meta?.logoURI || info.logoURI) ? `<img class="stc-logo" src="${meta?.logoURI || info.logoURI}" onerror="this.remove()" alt="">` : `<span class="stc-logo fallback">${(meta?.symbol||'?').slice(0,2).toUpperCase()}</span>`}
+          <div class="stc-name">
+            <div class="stc-sym">${escapeHtml(meta?.symbol || info.symbol || '?')}</div>
+            <div class="stc-mint">${shorten(mint, 4, 4)}</div>
+          </div>
+          <div class="stc-px">
+            <div class="stc-price">${p ? fmtUSD(p, p < 1 ? 6 : 2) : '—'}</div>
+            <div class="stc-chg ${cls}">${arrow} ${fmtPct(ch)}</div>
+          </div>
+        </div>
+        <div class="stc-spark">${sparklineSVG(mint + (ch||0), ch, 280, 56)}</div>
+        <button class="stc-open" data-mint="${escapeHtml(mint)}">Open Page ↗</button>
+      `;
+      card.querySelector('.stc-open').addEventListener('click', () => openTokenDetail(mint));
+    };
+    draw('from', fm, swapState.from);
+    draw('to',   tm, swapState.to);
+  } catch (e) {
+    row.innerHTML = '<div class="modal-loading">Couldn\'t load token data.</div>';
+  }
 }
 
 /* Auto-refresh for the swap page */
@@ -4615,9 +5204,9 @@ function startSwapAutoRefresh() {
   stopSwapAutoRefresh();
   // Re-quote every 12s (markets move fast)
   swapTimers.quote = setInterval(() => {
-    if (location.hash === '#/swap' && $('#swap-cta')) silentRequote();
+    if (location.hash === '#/swap' && swapState.mode === 'market' && $('#swap-cta')) silentRequote();
   }, 12_000);
-  // Prices + USD-side labels every 20s
+  // Prices + USD-side labels every 20s; also refresh limit/dca summaries
   swapTimers.prices = setInterval(async () => {
     if (location.hash !== '#/swap' || !$('#from-price')) return;
     const px = await fetchDexscreenerForMints([swapState.from, swapState.to]).catch(() => new Map());
@@ -4626,12 +5215,13 @@ function startSwapAutoRefresh() {
     if (fp) { $('#from-price').textContent = fmtUSD(fp, fp < 1 ? 6 : 2); swapState._fp = fp; }
     if (tp) { $('#to-price').textContent   = fmtUSD(tp, tp < 1 ? 6 : 2); swapState._tp = tp; }
     const amt = parseFloat($('#swap-amount')?.value || '0');
-    if (fp && amt > 0) $('#from-usd').textContent = fmtUSD(amt * fp);
+    if (fp && amt > 0 && $('#from-usd')) $('#from-usd').textContent = fmtUSD(amt * fp);
+    if (swapState.mode !== 'market') repaintLimitOrRecurringSummary();
     pingSwapTick();
   }, 20_000);
-  // Top pairs every 45s
+  // Bottom token cards every 45s
   swapTimers.pairs = setInterval(() => {
-    if (location.hash === '#/swap' && $('#pairs-list')) loadTopPairs();
+    if (location.hash === '#/swap' && $('#swap-token-row')) loadSwapTokenCards();
   }, 45_000);
 }
 function stopSwapAutoRefresh() {
