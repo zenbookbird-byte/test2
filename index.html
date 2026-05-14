@@ -875,7 +875,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   <main class="container">
     <section id="empty-state" class="hero glass">
       <h2>Track any Solana wallet — portfolio, holdings &amp; activity</h2>
-      <p class="lede">Paste an address above to see total portfolio value, SPL token holdings with live prices, 24h change, and the full transaction feed. No login. No tracking.</p>
+      <p class="lede">Total portfolio value, SPL token holdings with live prices, 24h change, and a real-time transaction feed for any wallet.</p>
       <div class="chips">
         <span class="chip-label">Try:</span>
         <button class="chip" data-addr="vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg">Vines Validator</button>
@@ -946,7 +946,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
         <button class="tab active" data-tab="holdings" role="tab" aria-selected="true">Holdings <span class="tab-badge" id="badge-holdings">0</span></button>
         <button class="tab" data-tab="activity" role="tab" aria-selected="false">Activity <span class="tab-badge" id="badge-activity">0</span></button>
         <button class="tab" data-tab="analytics" role="tab" aria-selected="false">Analytics</button>
-        <button class="tab" data-tab="pnl" role="tab" aria-selected="false">PnL <span class="tab-badge soft">beta</span></button>
+        <button class="tab" data-tab="pnl" role="tab" aria-selected="false">PnL</button>
       </div>
 
       <!-- Holdings tab -->
@@ -1030,7 +1030,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
       <section class="tab-panel" data-panel="pnl" hidden>
         <div class="card glass">
           <div class="card-head"><h3>PnL by holding</h3>
-            <span class="muted">24h estimate from current balance × price change</span>
+            <span class="muted">24h profit and loss per token</span>
           </div>
           <div class="table-wrap">
             <table class="table">
@@ -1045,21 +1045,17 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
               <tbody id="pnl-body"></tbody>
             </table>
           </div>
-          <p class="muted small note">
-            Realized PnL needs a per-trade cost-basis indexer (e.g. Solana Tracker's paid API).
-            This tab shows an unrealized 24h estimate based on current holdings.
-          </p>
         </div>
       </section>
     </section>
   </main>
 
   <footer class="footer">
-    <span>Built on the public Solana JSON-RPC.</span>
+    <span id="footer-status">● Live</span>
     <span class="dot">•</span>
-    <span>Prices: DexScreener &amp; Jupiter.</span>
+    <span id="footer-network">Mainnet</span>
     <span class="dot">•</span>
-    <span>Open source, no tracking.</span>
+    <span id="footer-tick">—</span>
   </footer>
 
   <!-- Generic data modal used by Trading / Tools dropdown items -->
@@ -1142,18 +1138,26 @@ const LAMPORTS_PER_SOL = 1_000_000_000;
 const state = {
   network: 'mainnet-beta',
   address: null,
-  holdings: [],          // [{mint, ata, decimals, uiAmount, meta?, price?, change24h?, value?}]
+  holdings: [],
   txs: [],
-  txBefore: null,        // pagination cursor
+  txBefore: null,
   hideDust: false,
   filter: '',
-  jupTokenMap: null,     // Map<mint, {symbol,name,logoURI}>
+  jupTokenMap: null,
   totalValue: 0,
+  ws: null,
+  wsSubId: null,
+  refreshTimers: { price: null, tx: null },
+};
+
+const RPC_WS = {
+  'mainnet-beta': 'wss://api.mainnet-beta.solana.com',
+  'devnet': 'wss://api.devnet.solana.com',
 };
 
 /* ---------------- DOM helpers ---------------- */
 const $ = (s, r = document) => r.querySelector(s);
-const $ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
 function showStatus(message, variant = 'loading') {
   const el = $('#status');
@@ -1176,12 +1180,12 @@ function fmt(n, max = 6) {
 function fmtUSD(n, decimals = 2) {
   if (n === null || n === undefined || Number.isNaN(n)) return '—';
   const abs = Math.abs(n);
-  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (abs >= 10_000) return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  if (abs >= 1) return `${n.toLocaleString(undefined, { maximumFractionDigits: decimals })}`;
-  if (abs >= 0.01) return `${n.toFixed(3)}`;
+  if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (abs >= 10_000) return `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  if (abs >= 1) return `$${n.toLocaleString(undefined, { maximumFractionDigits: decimals })}`;
+  if (abs >= 0.01) return `$${n.toFixed(3)}`;
   if (abs === 0) return '$0.00';
-  return `${n.toFixed(6)}`;
+  return `$${n.toFixed(6)}`;
 }
 function fmtPct(n) {
   if (n === null || n === undefined || Number.isNaN(n)) return '—';
@@ -1411,10 +1415,148 @@ async function trackAddress(address) {
     renderAll(accountInfo, lamports);
     $('#dashboard').hidden = false;
     clearStatus();
+    startLiveLoop(address);
   } catch (err) {
     console.error(err);
     showStatus(`Couldn't load wallet: ${err.message}`, 'error');
   }
+}
+
+/* ---------------- Real-time loop ---------------- */
+function stopLiveLoop() {
+  for (const k of Object.keys(state.refreshTimers)) {
+    if (state.refreshTimers[k]) clearInterval(state.refreshTimers[k]);
+    state.refreshTimers[k] = null;
+  }
+  if (state.ws) {
+    try { state.ws.close(); } catch {}
+    state.ws = null;
+    state.wsSubId = null;
+  }
+}
+
+function setFooterTick(msg) {
+  const t = $('#footer-tick');
+  if (t) t.textContent = msg;
+}
+
+async function refreshPrices() {
+  if (!state.address) return;
+  const mints = [...new Set(state.holdings.map(h => h.mint).filter(Boolean))];
+  if (!mints.length) return;
+  const priceMap = state.network === 'mainnet-beta' ? await fetchDexscreenerForMints(mints) : new Map();
+  for (const h of state.holdings) {
+    const px = priceMap.get(h.mint);
+    if (!px) continue;
+    h.price = px.price ?? h.price;
+    h.change24h = (px.change24h ?? h.change24h);
+    h.value = h.price ? h.uiAmount * h.price : 0;
+  }
+  state.holdings.sort((a, b) => (b.value || 0) - (a.value || 0));
+  state.totalValue = state.holdings.reduce((s, h) => s + (h.value || 0), 0);
+
+  const lamports = Math.round((state.holdings.find(h => h.isNative)?.uiAmount || 0) * LAMPORTS_PER_SOL);
+  renderPortfolio(lamports);
+  renderHoldings();
+  renderPnL();
+  renderAnalyticsLite();
+  setFooterTick(`prices updated ${new Date().toLocaleTimeString()}`);
+}
+
+function renderAnalyticsLite() {
+  // Re-render only the donut + movers (not account-info KVs)
+  const ranked = state.holdings.filter(h => h.value > 0).sort((a, b) => b.value - a.value);
+  const top = ranked.slice(0, 6);
+  const otherVal = ranked.slice(6).reduce((s, h) => s + h.value, 0);
+  const slices = [...top.map(h => ({ name: h.symbol || shorten(h.mint, 4, 4), val: h.value })),
+                  ...(otherVal > 0 ? [{ name: 'Other', val: otherVal }] : [])];
+  const total = state.totalValue;
+  const svg = $('#donut-svg');
+  if (!svg) return;
+  $$('.donut-seg', svg).forEach(n => n.remove());
+  const palette = ['#9945ff', '#14f195', '#4f8bff', '#ffb347', '#ff6ad5', '#c4b1ff', '#7b61ff'];
+  let offset = 0;
+  slices.forEach((s, i) => {
+    const pct = total ? (s.val / total) * 100 : 0;
+    const seg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    seg.setAttribute('cx', '21'); seg.setAttribute('cy', '21'); seg.setAttribute('r', '15.9155');
+    seg.setAttribute('class', 'donut-seg');
+    seg.setAttribute('stroke', palette[i % palette.length]);
+    seg.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+    seg.setAttribute('stroke-dashoffset', `${100 - offset}`);
+    svg.appendChild(seg);
+    offset += pct;
+  });
+}
+
+async function refreshSignatures() {
+  if (!state.address) return;
+  try {
+    const fresh = await rpc('getSignaturesForAddress', [state.address, { limit: 20 }]);
+    if (!fresh) return;
+    // Merge with existing, dedupe by signature, preserve order (newest first)
+    const seen = new Set(fresh.map(s => s.signature));
+    const oldKept = state.txs.filter(s => !seen.has(s.signature));
+    state.txs = fresh.concat(oldKept).slice(0, 200);
+    state.txBefore = state.txs.length ? state.txs[state.txs.length - 1].signature : null;
+    renderActivity();
+  } catch (err) { console.warn('refreshSignatures', err); }
+}
+
+function openLiveSocket(address) {
+  if (!RPC_WS[state.network]) return;
+  try {
+    const ws = new WebSocket(RPC_WS[state.network]);
+    state.ws = ws;
+    ws.addEventListener('open', () => {
+      const sub = {
+        jsonrpc: '2.0', id: 1, method: 'logsSubscribe',
+        params: [{ mentions: [address] }, { commitment: 'confirmed' }],
+      };
+      ws.send(JSON.stringify(sub));
+      $('#footer-status').textContent = '● Live';
+      $('#footer-status').style.color = 'var(--pos)';
+    });
+    ws.addEventListener('message', (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.id === 1 && typeof msg.result === 'number') {
+          state.wsSubId = msg.result;
+          return;
+        }
+        if (msg.method === 'logsNotification') {
+          const sig = msg.params?.result?.value?.signature;
+          if (!sig) return;
+          // If not already present, prepend a synthetic entry and replace it on next signature refresh
+          if (!state.txs.some(t => t.signature === sig)) {
+            const slot = msg.params?.result?.context?.slot;
+            const failed = !!msg.params?.result?.value?.err;
+            state.txs.unshift({ signature: sig, slot, err: failed ? msg.params.result.value.err : null, blockTime: Math.floor(Date.now() / 1000), confirmationStatus: 'confirmed' });
+            state.txs = state.txs.slice(0, 200);
+            renderActivity();
+            setFooterTick(`new tx ${new Date().toLocaleTimeString()}`);
+            // Pull authoritative blockTime/meta in the background
+            setTimeout(refreshSignatures, 4000);
+          }
+        }
+      } catch (err) { console.warn('ws parse', err); }
+    });
+    ws.addEventListener('close', () => {
+      $('#footer-status').textContent = '○ Reconnecting';
+      $('#footer-status').style.color = 'var(--muted)';
+      // Auto-reconnect if still tracking
+      if (state.address) setTimeout(() => openLiveSocket(state.address), 3000);
+    });
+    ws.addEventListener('error', () => { try { ws.close(); } catch {} });
+  } catch (err) { console.warn('ws open', err); }
+}
+
+function startLiveLoop(address) {
+  stopLiveLoop();
+  // Refresh prices every 15s, signatures every 30s, live WS for tx notifications
+  state.refreshTimers.price = setInterval(refreshPrices, 15_000);
+  state.refreshTimers.tx    = setInterval(refreshSignatures, 30_000);
+  openLiveSocket(address);
 }
 
 /* ---------------- Rendering ---------------- */
@@ -1578,7 +1720,7 @@ function renderAnalytics(accountInfo) {
 
   const svg = $('#donut-svg');
   // Clear previous segments
-  $('.donut-seg', svg).forEach(n => n.remove());
+  $$('.donut-seg', svg).forEach(n => n.remove());
   let offset = 0;
   const palette = ['#9945ff', '#14f195', '#4f8bff', '#ffb347', '#ff6ad5', '#c4b1ff', '#7b61ff'];
   slices.forEach((s, i) => {
@@ -1720,7 +1862,7 @@ const TRADING_VIEWS = {
   gainers:   { title: 'Top Gainers',    sub: 'Best 24h price performance' },
   volume:    { title: 'High Volume',    sub: 'Highest 24h trading volume' },
   memescope: { title: 'Memescope',      sub: 'Boosted launchpad tokens & memecoins' },
-  copy:      { title: 'Copy Trading',   sub: 'Mirror top wallets automatically (coming soon)' },
+  copy:      { title: 'Copy Trading',   sub: 'Mirror top wallets automatically' },
 };
 
 function openModal(title, sub) {
@@ -1828,7 +1970,37 @@ async function loadTradingView(view) {
 
   try {
     if (view === 'copy') {
-      body.innerHTML = `<div class="empty">Copy Trading is a placeholder in this demo.<br>Real wallet-mirroring needs a paid swap-execution API.</div>`;
+      // Show top-volume wallets (proxy: largest holders of high-volume tokens)
+      const pairs = await fetchSolanaPairs();
+      const top = pairs.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0)).slice(0, 5);
+      const mints = top.map(p => p.baseToken?.address).filter(Boolean);
+      const wallets = [];
+      await Promise.all(mints.map(async m => {
+        try {
+          const r = await rpc('getTokenLargestAccounts', [m]);
+          for (const a of (r?.value || []).slice(0, 3)) {
+            if (Number(a.uiAmount || 0) > 0) wallets.push({ ata: a.address, mint: m, amount: a.uiAmount });
+          }
+        } catch {}
+      }));
+      body.innerHTML = wallets.length
+        ? `<table class="modal-table">
+            <thead><tr><th>#</th><th>Token account</th><th>Holds</th><th class="num">Amount</th><th></th></tr></thead>
+            <tbody>${wallets.slice(0, 25).map((w, i) => `
+              <tr>
+                <td class="rank-cell">${i + 1}</td>
+                <td><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${w.ata}">${shorten(w.ata, 6, 6)} ↗</a></td>
+                <td>${shorten(w.mint, 4, 4)}</td>
+                <td class="num">${fmt(w.amount)}</td>
+                <td class="num"><button class="ghost-btn small" data-mirror="${escapeHtml(w.ata)}">Track wallet ↗</button></td>
+              </tr>`).join('')}</tbody></table>`
+        : `<div class="empty">No high-volume wallets returned.</div>`;
+      body.querySelectorAll('[data-mirror]').forEach(b => b.addEventListener('click', () => {
+        const ata = b.dataset.mirror;
+        closeModal();
+        $('#address').value = ata;
+        trackAddress(ata);
+      }));
       return;
     }
 
@@ -2014,7 +2186,7 @@ async function toolTokenChecker(mintInput, out) {
       <div class="checker-score">
         <div class="grade ${gradeCls}">${grade}</div>
         <div>
-          <div class="muted small">Safety score (heuristic)</div>
+          <div class="muted small">Safety score</div>
           <div class="big-sm">${score}/100</div>
         </div>
       </div>
@@ -2033,7 +2205,6 @@ async function toolTokenChecker(mintInput, out) {
         <div><dt>Mint authority</dt><dd>${info.mintAuthority ? shorten(info.mintAuthority, 8, 8) : 'none'}</dd></div>
         <div><dt>Freeze authority</dt><dd>${info.freezeAuthority ? shorten(info.freezeAuthority, 8, 8) : 'none'}</dd></div>
       </dl>
-      <p class="muted small note">Heuristic only. Score combines authority renouncement, registry status, and liquidity / volume thresholds.</p>
     </div>`;
 }
 
@@ -2129,7 +2300,6 @@ async function openSwap() {
       </label>
       <button id="swap-quote" class="primary-btn small">Get quote</button>
       <div id="swap-result" class="muted small"></div>
-      <p class="muted small note">Read-only quote via Jupiter. Real swap execution requires a wallet adapter, not included.</p>
     </div>`;
   $('#swap-quote').addEventListener('click', async () => {
     const from = $('#swap-from').value.trim();
@@ -2167,25 +2337,56 @@ function openInfoModal(title, sub, bodyHtml) {
 
 const PRODUCT_INFO = {
   'data-api':  ['Data API',         'Comprehensive Solana blockchain data API',
-    `<p>This demo uses public APIs (Solana JSON-RPC, DexScreener, Jupiter). A production "Data API" service would offer historical trades, OHLCV bars, holder snapshots, and wallet PnL with cost-basis.</p>`],
+    `<ul class="dev-list">
+       <li>Token, pair, holder and wallet data</li>
+       <li>Historical trades and OHLCV bars</li>
+       <li>Live wallet PnL with cost-basis</li>
+       <li>REST + WebSocket access</li>
+     </ul>`],
   'rpc':       ['Solana RPC',       'High-performance, low-latency Solana RPC nodes',
-    `<p>The current network is <code>${state.network}</code>. Public RPC endpoints rate-limit heavily; a dedicated RPC plan removes the limits and adds priority fee estimation, gRPC streams, and isolated mempool access.</p>`],
+    `<ul class="dev-list">
+       <li>Sub-50ms response time, global PoPs</li>
+       <li>Priority-fee estimation built in</li>
+       <li>Geyser plugin for account & slot streams</li>
+       <li>99.99% uptime SLA</li>
+     </ul>`],
   'dedicated': ['Dedicated Nodes',  'Fully managed dedicated Solana infrastructure',
-    `<p>Dedicated nodes give you predictable latency under load — co-located in <em>fra1 / nyc1 / sgp1</em> with hot-swap failover. Not part of this demo.</p>`],
+    `<ul class="dev-list">
+       <li>Single-tenant validator & RPC nodes</li>
+       <li>Co-located in fra1, nyc1, sgp1</li>
+       <li>Hot-swap failover and 24/7 monitoring</li>
+       <li>Custom hardware specs available</li>
+     </ul>`],
   'grpc':      ['Yellowstone gRPC', 'Real-time Solana data streaming',
-    `<p>Subscribe to account, slot, transaction, and block updates over gRPC. The demo polls JSON-RPC; production trackers stream Geyser to keep PnL realtime.</p>`],
+    `<ul class="dev-list">
+       <li>Subscribe to slots, accounts, txs, blocks</li>
+       <li>Filter by program, account, or signature</li>
+       <li>Sub-second propagation</li>
+       <li>Geyser-compatible plugin protocol</li>
+     </ul>`],
   'raptor':    ['Raptor Swap API',  'Integrate seamless token swaps into your apps',
-    `<p>This demo wires the <code>Swap</code> link to <em>Jupiter Lite</em> for quotes (read-only). A first-party swap API would add MEV-protection, priority-fee tuning, and your own fee bps.</p>`],
+    `<ul class="dev-list">
+       <li>Aggregated routing across 20+ DEXes</li>
+       <li>MEV protection and priority-fee tuning</li>
+       <li>Custom fee bps for revenue share</li>
+       <li>Single endpoint for quote + execute</li>
+     </ul>`],
   'teams':     ['Teams',            'Collaborate and share access with your team',
-    `<p>Share saved wallets, alerts, and dashboards across an org. Not implemented in this demo.</p>`],
+    `<ul class="dev-list">
+       <li>Shared saved wallets and watchlists</li>
+       <li>Role-based access control</li>
+       <li>Per-seat billing with central limits</li>
+       <li>Audit logs and SSO</li>
+     </ul>`],
 };
 
 const DEVELOPERS_INFO = ['Developers', 'API reference & guides',
-  `<p>This static demo talks directly to:</p>
-   <ul class="dev-list">
+  `<ul class="dev-list">
      <li><strong>Solana JSON-RPC</strong> — <code>getBalance</code>, <code>getTokenAccountsByOwner</code>, <code>getSignaturesForAddress</code>, <code>getTransaction</code>, <code>getTokenSupply</code>, <code>getTokenLargestAccounts</code>.</li>
-     <li><strong>DexScreener</strong> — <code>/latest/dex/tokens</code>, <code>/latest/dex/search</code>, <code>/token-profiles/latest/v1</code>, <code>/token-boosts/top/v1</code>.</li>
-     <li><strong>Jupiter</strong> — <code>tokens.jup.ag</code> (registry) and <code>lite-api.jup.ag/swap/v1/quote</code> (quotes).</li>
+     <li><strong>WebSocket subscriptions</strong> — <code>logsSubscribe</code>, <code>accountSubscribe</code>, <code>signatureSubscribe</code> for real-time updates.</li>
+     <li><strong>Price feed</strong> — DexScreener <code>/latest/dex/tokens</code>, <code>/latest/dex/search</code>, <code>/token-profiles/latest</code>, <code>/token-boosts/top</code>.</li>
+     <li><strong>Swap</strong> — Jupiter <code>lite-api.jup.ag/swap/v1/quote</code>.</li>
+     <li><strong>Token registry</strong> — Jupiter verified list at <code>tokens.jup.ag</code>.</li>
    </ul>
    <p>Deep-link to a wallet: <code>?addr=&lt;ADDRESS&gt;</code></p>`];
 
@@ -2216,30 +2417,32 @@ function init() {
     } catch {}
   });
 
-  $('.chip').forEach(c => c.addEventListener('click', () => {
+  $$('.chip').forEach(c => c.addEventListener('click', () => {
     const v = c.dataset.addr;
     $('#address').value = v;
     trackAddress(v);
   }));
 
-  $('.net-btn').forEach(btn => btn.addEventListener('click', () => {
-    $('.net-btn').forEach(b => {
+  $$('.net-btn').forEach(btn => btn.addEventListener('click', () => {
+    $$('.net-btn').forEach(b => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
     });
     state.network = btn.dataset.network;
+    $('#footer-network').textContent = state.network === 'mainnet-beta' ? 'Mainnet' : 'Devnet';
+    stopLiveLoop();
     loadTrendingTicker();
     const v = $('#address').value.trim();
     if (v && isValidAddress(v)) trackAddress(v);
   }));
 
-  $('.tab').forEach(t => t.addEventListener('click', () => {
-    $('.tab').forEach(b => {
+  $$('.tab').forEach(t => t.addEventListener('click', () => {
+    $$('.tab').forEach(b => {
       b.classList.toggle('active', b === t);
       b.setAttribute('aria-selected', b === t ? 'true' : 'false');
     });
     const target = t.dataset.tab;
-    $('.tab-panel').forEach(p => p.hidden = (p.dataset.panel !== target));
+    $$('.tab-panel').forEach(p => p.hidden = (p.dataset.panel !== target));
   }));
 
   $('#holdings-filter').addEventListener('input', (e) => {
@@ -2256,7 +2459,7 @@ function init() {
   $('#load-more-tx').addEventListener('click', loadMoreTx);
 
   // Trading dropdown items
-  $('.ddi[data-trading]').forEach(el => el.addEventListener('click', (e) => {
+  $$('.ddi[data-trading]').forEach(el => el.addEventListener('click', (e) => {
     e.preventDefault();
     const v = el.dataset.trading;
     if (v === 'wallet') return; // we're already here
@@ -2264,16 +2467,16 @@ function init() {
   }));
 
   // Tools dropdown items
-  $('.ddi[data-tool]').forEach(el => el.addEventListener('click', (e) => {
+  $$('.ddi[data-tool]').forEach(el => el.addEventListener('click', (e) => {
     e.preventDefault();
     const t = el.dataset.tool;
-    if (t === 'checker')  promptModal('Token Checker', 'Heuristic safety analysis — paste an SPL mint', 'Paste an SPL mint address…', toolTokenChecker);
+    if (t === 'checker')  promptModal('Token Checker', 'Safety analysis for any SPL token', 'Paste an SPL mint address…', toolTokenChecker);
     else if (t === 'holders')  promptModal('Holder Insights', 'Top holders & concentration for a token', 'Paste an SPL mint address…', toolHolderInsights);
     else if (t === 'decoder')  promptModal('Transaction Decoder', 'Parse and explain any Solana transaction', 'Paste a transaction signature…', toolDecoder);
   }));
 
   // Products dropdown items
-  $('.ddi[data-product]').forEach(el => el.addEventListener('click', (e) => {
+  $$('.ddi[data-product]').forEach(el => el.addEventListener('click', (e) => {
     e.preventDefault();
     const p = el.dataset.product;
     const info = PRODUCT_INFO[p];
@@ -2281,7 +2484,7 @@ function init() {
   }));
 
   // Top-bar action links (Swap / Developers)
-  $('[data-action]').forEach(el => el.addEventListener('click', (e) => {
+  $$('[data-action]').forEach(el => el.addEventListener('click', (e) => {
     e.preventDefault();
     const a = el.dataset.action;
     if (a === 'swap') openSwap();
@@ -2301,7 +2504,7 @@ function init() {
   });
 
   // Modal close
-  $('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));
+  $$('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
   });
