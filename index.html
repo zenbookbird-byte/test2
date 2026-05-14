@@ -832,80 +832,228 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .nav-link.is-active { background: var(--surface); }
 
 /* Swap page */
+/* Swap page — Jupiter-style */
 .swap-page {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 480px) minmax(0, 360px);
+  gap: 18px; justify-content: center; align-items: flex-start;
 }
 @media (max-width: 900px) { .swap-page { grid-template-columns: 1fr; } }
+
 .swap-card {
-  padding: 22px;
-  display: grid; gap: 10px;
+  padding: 18px 18px 16px;
+  display: grid; gap: 4px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border: 1px solid var(--stroke);
+  border-radius: 22px;
+  box-shadow: 0 30px 80px -30px rgba(120, 60, 255, 0.45);
+  position: relative;
+  isolation: isolate;
+  z-index: 2;
 }
+.swap-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 6px 8px;
+}
+.swap-card-head h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.swap-card-head .right { display: flex; gap: 4px; align-items: center; }
+.swap-icon-btn {
+  appearance: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 10px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--muted); display: grid; place-items: center;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.swap-icon-btn:hover { background: var(--surface); border-color: var(--stroke); color: var(--text); }
+.swap-icon-btn[aria-expanded="true"] { background: var(--surface); border-color: var(--stroke-strong); color: var(--text); }
+.swap-icon-btn svg { width: 18px; height: 18px; }
+
 .swap-token {
-  padding: 14px 16px; border-radius: 14px;
-  background: var(--surface); border: 1px solid var(--stroke);
-  display: grid; gap: 8px;
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  display: grid; gap: 10px;
+  transition: border-color .15s;
 }
+.swap-token:focus-within { border-color: rgba(153, 69, 255, .45); }
 .swap-token-head {
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 11px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase;
+  font-size: 12px; color: var(--muted); font-weight: 500;
 }
+.swap-token-head .max-btn {
+  appearance: none; cursor: pointer;
+  background: rgba(153, 69, 255, .15); color: #d8c9ff;
+  border: 1px solid rgba(153, 69, 255, .3);
+  font: inherit; font-size: 10.5px; font-weight: 600;
+  padding: 3px 8px; border-radius: 999px; letter-spacing: .04em;
+}
+.swap-token-head .max-btn:hover { background: rgba(153, 69, 255, .25); }
 .swap-token-body {
   display: flex; align-items: center; gap: 12px;
 }
 .swap-pick {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-radius: 10px;
-  background: var(--surface-2); border: 1px solid var(--stroke);
-  cursor: pointer; min-width: 120px; font: inherit; color: var(--text);
+  padding: 8px 10px 8px 8px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke-strong);
+  cursor: pointer; font: inherit; color: var(--text);
+  min-width: 0; flex-shrink: 0;
+  transition: background .15s, border-color .15s;
 }
-.swap-pick:hover { background: var(--surface-3); }
-.swap-pick img { width: 22px; height: 22px; border-radius: 50%; }
-.swap-pick .swap-pick-sym { font-weight: 600; font-size: 13px; }
-.swap-pick .swap-pick-caret { margin-left: auto; opacity: .6; }
+.swap-pick:hover { background: var(--surface-3); border-color: rgba(153, 69, 255, .35); }
+.swap-pick img {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-3);
+}
+.swap-pick .swap-pick-sym {
+  font-weight: 700; font-size: 15px; letter-spacing: -.01em;
+}
+.swap-pick .swap-pick-caret { margin-left: 2px; opacity: .55; font-size: 11px; }
+
 .swap-amount {
   flex: 1; min-width: 0;
   appearance: none; border: 0; background: transparent;
-  color: var(--text); font: inherit; font-size: 22px; font-weight: 700;
+  color: var(--text); font: inherit; font-size: 30px; font-weight: 600;
   outline: none; font-variant-numeric: tabular-nums; text-align: right;
-  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -.02em;
+  font-family: 'Inter', sans-serif;
 }
-.swap-amount::placeholder { color: var(--muted-2); }
+.swap-amount::placeholder { color: var(--muted-2); font-weight: 500; }
+.swap-amount[readonly] { cursor: default; }
+.swap-amount.out { color: var(--text); }
+
 .swap-meta {
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 11px; color: var(--muted);
+  font-size: 11.5px; color: var(--muted);
+}
+.swap-meta .mono { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted-2); }
+.swap-meta .usd  { font-variant-numeric: tabular-nums; }
+
+/* Circular flip button between the two panels */
+.swap-flip-wrap {
+  position: relative; height: 0;
+  display: flex; justify-content: center; align-items: center;
+  margin: -10px 0;
 }
 .swap-flip {
-  width: 36px; height: 36px; margin: -4px auto;
-  border-radius: 50%; display: grid; place-items: center;
-  background: var(--surface-2); border: 1px solid var(--stroke-strong);
-  cursor: pointer; transition: transform .25s;
+  position: relative; z-index: 2;
+  width: 38px; height: 38px;
+  border-radius: 12px; cursor: pointer;
+  background: var(--bg-1);
+  border: 4px solid var(--bg-0);
+  outline: 1px solid var(--stroke-strong);
+  display: grid; place-items: center;
+  color: var(--muted);
+  transition: transform .25s ease, color .15s, outline-color .15s;
 }
-.swap-flip:hover { transform: rotate(180deg); }
-.swap-quote-info {
-  display: grid; gap: 8px; padding: 14px 16px;
-  background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px;
+.swap-flip:hover {
+  transform: rotate(180deg);
+  color: var(--text);
+  outline-color: rgba(153, 69, 255, .55);
+}
+.swap-flip svg { width: 18px; height: 18px; }
+
+/* Quote info block */
+.swap-summary {
+  margin-top: 6px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
   font-size: 12.5px;
+  display: grid; gap: 4px;
 }
-.swap-quote-info .row {
-  display: flex; justify-content: space-between; gap: 8px;
+.swap-summary .summary-top {
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer;
 }
-.swap-quote-info .label { color: var(--muted); }
-.swap-quote-info .value { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
-.swap-route { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.swap-summary .summary-rate { font-weight: 500; }
+.swap-summary .summary-rate .muted { color: var(--muted); margin-right: 6px; }
+.swap-summary .chev { color: var(--muted); transition: transform .15s; font-size: 11px; }
+.swap-summary.open .chev { transform: rotate(180deg); }
+.swap-summary .details {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--stroke);
+  display: none; gap: 6px; grid-template-columns: 1fr;
+}
+.swap-summary.open .details { display: grid; }
+.swap-summary .row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.swap-summary .label { color: var(--muted); }
+.swap-summary .value { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
+.swap-route { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: flex-end; }
 .swap-route .hop {
-  font-size: 11px; padding: 3px 8px; border-radius: 999px;
+  font-size: 10.5px; padding: 2px 7px; border-radius: 999px;
   background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--text);
 }
+.swap-route .arrow { color: var(--muted-2); font-size: 9px; }
+
+/* Settings popover */
+.swap-settings-pop {
+  position: absolute; top: 56px; right: 14px; z-index: 50;
+  width: 280px;
+  padding: 14px; border-radius: 14px;
+  background: rgba(13, 11, 29, .98);
+  border: 1px solid var(--stroke-strong);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .7);
+  display: none;
+}
+.swap-settings-pop.open { display: block; }
+.swap-settings-pop h5 {
+  margin: 0 0 8px; font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); font-weight: 600;
+}
+.slip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.slip-chip {
+  appearance: none; cursor: pointer;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--stroke);
+  padding: 7px 12px; border-radius: 10px;
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.slip-chip:hover { border-color: var(--stroke-strong); }
+.slip-chip.active {
+  background: rgba(153, 69, 255, .18); color: #d8c9ff;
+  border-color: rgba(153, 69, 255, .45);
+}
+.slip-custom {
+  width: 78px;
+  appearance: none; background: var(--surface); color: var(--text);
+  border: 1px solid var(--stroke); border-radius: 10px;
+  padding: 7px 10px; font: inherit; font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Primary CTA */
 .swap-cta {
-  padding: 14px; border-radius: 12px; font: inherit; font-weight: 700; font-size: 14px;
+  margin-top: 4px;
+  padding: 16px; border-radius: 14px;
+  font: inherit; font-weight: 700; font-size: 15px; letter-spacing: -.01em;
   background: linear-gradient(135deg, #c4b1ff 0%, #9be9c8 100%);
   color: #0a0820; border: 0; cursor: pointer;
-  margin-top: 4px;
   box-shadow: 0 14px 30px -14px rgba(153, 69, 255, .8);
+  transition: transform .15s, filter .15s;
 }
-.swap-cta:hover { transform: translateY(-1px); }
+.swap-cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.swap-cta:disabled { opacity: .65; cursor: wait; transform: none; }
+.swap-cta.muted-cta {
+  background: var(--surface-2); color: var(--text);
+  box-shadow: none; border: 1px solid var(--stroke-strong);
+}
+
+.swap-powered {
+  text-align: center; padding: 8px 0 0;
+  font-size: 10.5px; color: var(--muted-2); letter-spacing: .08em;
+}
+.swap-powered strong { color: var(--muted); }
+
 .swap-side .card-head { margin-bottom: 12px; }
-.swap-pair-list { display: grid; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.swap-pair-list { display: grid; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 4px; }
 
 /* Token picker modal list */
 .token-picker { max-height: 60vh; overflow: auto; display: grid; gap: 4px; }
@@ -4286,51 +4434,94 @@ async function renderSwapPage() {
   showPageView(`
     ${pageHeader({
       crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Swap</span>`,
-      title: 'Swap',
-      sub: 'Quote any token pair across Solana DEXes via Jupiter.',
+      title: '',
+      sub: '',
     })}
     <div class="swap-page">
-      <div class="card glass swap-card">
-        <div class="swap-token">
-          <div class="swap-token-head"><span>You pay</span><span class="muted" id="from-price">—</span></div>
-          <div class="swap-token-body">
-            <button class="swap-pick" id="from-pick"><span class="swap-pick-sym">SOL</span><span class="swap-pick-caret">▾</span></button>
-            <input class="swap-amount" id="swap-amount" type="number" min="0" step="any" value="${swapState.amount}" />
-          </div>
-          <div class="swap-meta">
-            <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)}</span>
-            <span id="from-usd">—</span>
-          </div>
-        </div>
-        <div class="swap-flip" id="swap-flip" title="Flip direction">↕</div>
-        <div class="swap-token">
-          <div class="swap-token-head"><span>You receive</span><span class="muted" id="to-price">—</span></div>
-          <div class="swap-token-body">
-            <button class="swap-pick" id="to-pick"><span class="swap-pick-sym">USDC</span><span class="swap-pick-caret">▾</span></button>
-            <div class="swap-amount" id="swap-out" style="opacity:.9">—</div>
-          </div>
-          <div class="swap-meta">
-            <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)}</span>
-            <span id="to-usd">—</span>
+      <div class="swap-card">
+        <div class="swap-card-head">
+          <h3>Swap</h3>
+          <div class="right">
+            <button class="swap-icon-btn" id="swap-refresh-btn" title="Refresh quote" aria-label="Refresh">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.74 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg>
+            </button>
+            <button class="swap-icon-btn" id="swap-settings-btn" title="Settings" aria-label="Settings" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.04-.7-1.62-.93l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.55-1.62.93l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.86c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94c0 .32.02.64.07.94l-2.03 1.58c-.2.14-.24.41-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.04.7 1.62.93l.36 2.54c.05.24.24.41.47.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.55 1.62-.93l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.2.07-.47-.12-.61zM12 15.6A3.6 3.6 0 1 1 15.6 12A3.6 3.6 0 0 1 12 15.6"/></svg>
+            </button>
           </div>
         </div>
 
-        <div class="swap-quote-info" id="quote-info">
-          <div class="row"><span class="label">Rate</span><span class="value" id="q-rate">—</span></div>
-          <div class="row"><span class="label">Price impact</span><span class="value" id="q-impact">—</span></div>
-          <div class="row"><span class="label">Slippage tolerance</span>
-            <span class="value">
-              <select id="slippage" class="filter-input" style="min-width:0;padding:4px 8px;font-size:11px">
-                <option value="10">0.1%</option>
-                <option value="50" selected>0.5%</option>
-                <option value="100">1.0%</option>
-                <option value="300">3.0%</option>
-              </select>
-            </span></div>
-          <div class="row"><span class="label">Min received</span><span class="value" id="q-min">—</span></div>
-          <div class="row"><span class="label">Route</span><span class="swap-route" id="q-route">—</span></div>
+        <div class="swap-settings-pop" id="swap-settings-pop" role="dialog" aria-label="Swap settings">
+          <h5>Slippage tolerance</h5>
+          <div class="slip-row">
+            <button class="slip-chip" data-slip="10">0.1%</button>
+            <button class="slip-chip active" data-slip="50">0.5%</button>
+            <button class="slip-chip" data-slip="100">1.0%</button>
+            <button class="slip-chip" data-slip="300">3.0%</button>
+            <input class="slip-custom" id="slip-custom" placeholder="Custom %" type="number" min="0" step="0.1" />
+          </div>
         </div>
+
+        <div class="swap-token">
+          <div class="swap-token-head">
+            <span>You're Selling</span>
+            <button class="max-btn" id="from-max" type="button">MAX</button>
+          </div>
+          <div class="swap-token-body">
+            <button class="swap-pick" id="from-pick">
+              <img alt="" aria-hidden="true">
+              <span class="swap-pick-sym">SOL</span>
+              <span class="swap-pick-caret">▾</span>
+            </button>
+            <input class="swap-amount" id="swap-amount" inputmode="decimal" type="number" min="0" step="any" value="${swapState.amount}" placeholder="0.00" />
+          </div>
+          <div class="swap-meta">
+            <span class="mono" id="from-mint">${shorten(swapState.from, 6, 6)} · <span id="from-price">—</span></span>
+            <span class="usd" id="from-usd">—</span>
+          </div>
+        </div>
+
+        <div class="swap-flip-wrap">
+          <button class="swap-flip" id="swap-flip" title="Flip direction" aria-label="Flip direction">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.41 15.41L11 11.83V20h2v-8.17l3.59 3.58L18 14l-6-6l-6 6z" transform="rotate(180 12 12)"/></svg>
+          </button>
+        </div>
+
+        <div class="swap-token">
+          <div class="swap-token-head">
+            <span>You're Buying</span>
+            <span class="muted" style="font-size:11px">Best route</span>
+          </div>
+          <div class="swap-token-body">
+            <button class="swap-pick" id="to-pick">
+              <img alt="" aria-hidden="true">
+              <span class="swap-pick-sym">USDC</span>
+              <span class="swap-pick-caret">▾</span>
+            </button>
+            <input class="swap-amount out" id="swap-out" readonly placeholder="0.00" />
+          </div>
+          <div class="swap-meta">
+            <span class="mono" id="to-mint">${shorten(swapState.to, 6, 6)} · <span id="to-price">—</span></span>
+            <span class="usd" id="to-usd">—</span>
+          </div>
+        </div>
+
+        <div class="swap-summary" id="swap-summary">
+          <div class="summary-top" id="summary-toggle">
+            <div class="summary-rate"><span class="muted">Rate</span><span id="q-rate">—</span></div>
+            <span class="chev">▾</span>
+          </div>
+          <div class="details">
+            <div class="row"><span class="label">Price impact</span><span class="value" id="q-impact">—</span></div>
+            <div class="row"><span class="label">Min received</span><span class="value" id="q-min">—</span></div>
+            <div class="row"><span class="label">Slippage</span><span class="value" id="q-slip">0.5%</span></div>
+            <div class="row"><span class="label">Route</span><span class="swap-route" id="q-route">—</span></div>
+          </div>
+        </div>
+
         <button class="swap-cta" id="swap-cta">Get quote</button>
+
+        <div class="swap-powered">Powered by <strong>Jupiter</strong> · routed across 20+ Solana DEXes</div>
       </div>
 
       <div class="card glass swap-side">
@@ -4346,14 +4537,67 @@ async function renderSwapPage() {
   startSwapAutoRefresh();
 
   $('#swap-amount').addEventListener('input', debounce(getSwapQuote, 350));
-  $('#slippage').addEventListener('change', getSwapQuote);
   $('#swap-cta').addEventListener('click', getSwapQuote);
+  $('#swap-refresh-btn').addEventListener('click', () => { _tokenMetaCache.delete(swapState.from); _tokenMetaCache.delete(swapState.to); getSwapQuote(); loadTopPairs(); });
   $('#swap-flip').addEventListener('click', () => {
     [swapState.from, swapState.to] = [swapState.to, swapState.from];
     renderSwapPage();
   });
   $('#from-pick').addEventListener('click', () => openTokenPicker((mint) => { swapState.from = mint; renderSwapPage(); }));
   $('#to-pick').addEventListener('click',   () => openTokenPicker((mint) => { swapState.to = mint;   renderSwapPage(); }));
+
+  // Settings popover
+  const settingsBtn = $('#swap-settings-btn');
+  const settingsPop = $('#swap-settings-pop');
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = settingsPop.classList.toggle('open');
+    settingsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if (settingsPop && settingsPop.classList.contains('open')
+        && !e.target.closest('#swap-settings-pop')
+        && !e.target.closest('#swap-settings-btn')) {
+      settingsPop.classList.remove('open');
+      settingsBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  // Slippage chips
+  $$('.slip-chip').forEach(c => c.addEventListener('click', () => {
+    $$('.slip-chip').forEach(x => x.classList.toggle('active', x === c));
+    $('#slip-custom').value = '';
+    swapState.slippageBps = parseInt(c.dataset.slip, 10);
+    $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
+    getSwapQuote();
+  }));
+  $('#slip-custom').addEventListener('input', (e) => {
+    const pct = parseFloat(e.target.value);
+    if (!isNaN(pct) && pct > 0) {
+      $$('.slip-chip').forEach(x => x.classList.remove('active'));
+      swapState.slippageBps = Math.max(1, Math.min(5000, Math.round(pct * 100)));
+      $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
+      debounce(getSwapQuote, 400)();
+    }
+  });
+
+  // Expandable summary
+  $('#summary-toggle').addEventListener('click', () => {
+    $('#swap-summary').classList.toggle('open');
+  });
+
+  // MAX button: if a wallet is currently tracked AND the From token is in its holdings, fill the input
+  $('#from-max').addEventListener('click', () => {
+    const h = state.holdings?.find(x => x.mint === swapState.from);
+    if (!h || !(h.uiAmount > 0)) {
+      toast({ title: 'No balance to max', sub: 'Track a wallet that holds this token first.', icon: 'ⓘ' });
+      return;
+    }
+    // Leave 0.01 SOL for gas if it's native
+    const amt = h.isNative ? Math.max(0, h.uiAmount - 0.01) : h.uiAmount;
+    $('#swap-amount').value = amt;
+    swapState.amount = String(amt);
+    getSwapQuote();
+  });
 }
 
 /* Auto-refresh for the swap page */
@@ -4406,12 +4650,25 @@ async function refreshSwapMeta() {
   swapState.fromMeta = fm; swapState.toMeta = tm;
   const setPick = (sel, mint, meta) => {
     const b = $(sel);
-    b.innerHTML = `${meta.logoURI ? `<img src="${meta.logoURI}" alt="" onerror="this.remove()">` : ''}<span class="swap-pick-sym">${escapeHtml(meta.symbol || shorten(mint, 4, 4))}</span><span class="swap-pick-caret">▾</span>`;
+    if (!b) return;
+    const sym = meta.symbol || shorten(mint, 4, 4);
+    const img = b.querySelector('img');
+    if (img) {
+      if (meta.logoURI) {
+        img.src = meta.logoURI;
+        img.onerror = () => { img.style.background = `linear-gradient(135deg,#9945ff,#14f195)`; img.removeAttribute('src'); };
+      } else {
+        img.removeAttribute('src');
+        img.style.background = `linear-gradient(135deg,#9945ff,#14f195)`;
+      }
+    }
+    const symEl = b.querySelector('.swap-pick-sym');
+    if (symEl) symEl.textContent = sym;
   };
   setPick('#from-pick', swapState.from, fm);
   setPick('#to-pick',   swapState.to,   tm);
-  $('#from-mint').textContent = shorten(swapState.from, 6, 6);
-  $('#to-mint').textContent   = shorten(swapState.to,   6, 6);
+  if ($('#from-mint')) $('#from-mint').firstChild && ($('#from-mint').firstChild.textContent = shorten(swapState.from, 6, 6) + ' · ');
+  if ($('#to-mint'))   $('#to-mint').firstChild   && ($('#to-mint').firstChild.textContent   = shorten(swapState.to,   6, 6) + ' · ');
   // Live prices
   const px = await fetchDexscreenerForMints([swapState.from, swapState.to]);
   const fp = px.get(swapState.from)?.price; const tp = px.get(swapState.to)?.price;
@@ -4432,8 +4689,7 @@ async function getSwapQuote() {
     if (!tm || tm.decimals == null) throw new Error(`Couldn't resolve decimals for ${shorten(swapState.to, 4, 4)}`);
     const amt = parseFloat($('#swap-amount').value);
     swapState.amount = String(amt);
-    swapState.slippageBps = parseInt($('#slippage').value, 10);
-    if (!(amt > 0)) { cta.textContent = 'Enter an amount'; cta.disabled = true; return; }
+    if (!(amt > 0)) { cta.textContent = 'Enter an amount'; cta.disabled = true; $('#swap-out').value = ''; return; }
     const lamports = BigInt(Math.round(amt * 10 ** fm.decimals)).toString();
     const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${swapState.from}&outputMint=${swapState.to}&amount=${lamports}&slippageBps=${swapState.slippageBps}&restrictIntermediateTokens=true`;
     const r = await fetch(url);
@@ -4442,12 +4698,14 @@ async function getSwapQuote() {
     swapState.quote = q;
     const outAmt = Number(q.outAmount) / 10 ** tm.decimals;
     const minAmt = Number(q.otherAmountThreshold) / 10 ** tm.decimals;
-    $('#swap-out').textContent = fmt(outAmt, 6);
+    $('#swap-out').value = fmt(outAmt, 6);
     const rate = outAmt / amt;
     $('#q-rate').textContent = `1 ${fm.symbol || ''} = ${fmt(rate, 6)} ${tm.symbol || ''}`;
     $('#q-impact').textContent = `${(Number(q.priceImpactPct || 0) * 100).toFixed(3)}%`;
     $('#q-min').textContent = `${fmt(minAmt, 6)} ${tm.symbol || ''}`;
-    $('#q-route').innerHTML = (q.routePlan || []).map(s => `<span class="hop">${escapeHtml(s.swapInfo?.label || 'DEX')}</span>`).join('<span class="muted small">→</span>') || '<span class="muted small">direct</span>';
+    if ($('#q-slip')) $('#q-slip').textContent = (swapState.slippageBps / 100).toFixed(2) + '%';
+    const hops = (q.routePlan || []).map(s => `<span class="hop">${escapeHtml(s.swapInfo?.label || 'DEX')}</span>`);
+    $('#q-route').innerHTML = hops.length ? hops.join('<span class="arrow">›</span>') : '<span class="hop">direct</span>';
     if (swapState._fp) $('#from-usd').textContent = fmtUSD(amt * swapState._fp);
     if (swapState._tp) $('#to-usd').textContent   = fmtUSD(outAmt * swapState._tp);
     cta.textContent = 'Quote ready ✓';
@@ -4455,7 +4713,8 @@ async function getSwapQuote() {
   } catch (err) {
     cta.textContent = 'Retry quote';
     cta.disabled = false;
-    $('#q-rate').textContent = `Error: ${err.message}`;
+    if ($('#q-rate')) $('#q-rate').textContent = `Error · ${err.message}`;
+    if ($('#swap-out')) $('#swap-out').value = '';
   }
 }
 
