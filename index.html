@@ -853,6 +853,90 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .wl-card .stats .v   { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .wl-card .acts { display: flex; gap: 6px; }
 
+/* Docs */
+.docs-layout {
+  display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px;
+}
+@media (max-width: 880px) { .docs-layout { grid-template-columns: 1fr; } }
+.docs-sidebar {
+  position: sticky; top: 130px;
+  align-self: start;
+  max-height: calc(100vh - 150px); overflow-y: auto;
+  padding: 14px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--stroke);
+}
+.docs-sidebar h5 {
+  margin: 14px 6px 6px;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted-2); font-weight: 600;
+}
+.docs-sidebar h5:first-child { margin-top: 4px; }
+.docs-sidebar a {
+  display: block; padding: 7px 10px; border-radius: 8px;
+  font-size: 13px; color: var(--muted); text-decoration: none;
+  transition: color .15s, background .15s;
+}
+.docs-sidebar a:hover { color: var(--text); background: var(--surface-2); }
+.docs-sidebar a.active {
+  color: var(--text);
+  background: rgba(153,69,255,.14);
+  box-shadow: inset 0 0 0 1px rgba(153,69,255,.3);
+}
+.docs-content { display: grid; gap: 18px; }
+.docs-content .card { padding: 28px; }
+.docs-content h2 { margin: 0; font-size: clamp(24px, 3vw, 30px); font-weight: 800; letter-spacing: -.02em; }
+.docs-content h3 { margin: 22px 0 6px; font-size: 17px; font-weight: 600; }
+.docs-content h4 { margin: 18px 0 4px; font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
+.docs-content p, .docs-content li { color: var(--muted); line-height: 1.65; }
+.docs-content p { max-width: 70ch; margin: 8px 0; font-size: 14px; }
+.docs-content ul, .docs-content ol { padding-left: 22px; max-width: 70ch; font-size: 14px; }
+.docs-content ul li, .docs-content ol li { margin: 4px 0; }
+.docs-content strong { color: var(--text); font-weight: 600; }
+.docs-content a:not(.docs-pill):not(.docs-nav-btn) {
+  color: #c8c1ff; text-decoration: none; border-bottom: 1px solid rgba(200,193,255,.3);
+}
+.docs-content a:not(.docs-pill):not(.docs-nav-btn):hover { color: #fff; border-color: currentColor; }
+.docs-content code:not(.code-block) {
+  background: var(--surface-2); padding: 1px 7px; border-radius: 5px;
+  font-size: 11.5px; border: 1px solid var(--stroke);
+  color: #c8c1ff; font-family: 'JetBrains Mono', monospace;
+}
+.docs-content table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+.docs-content table th, .docs-content table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--stroke); text-align: left;
+}
+.docs-content table th { color: var(--muted); font-weight: 500; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.docs-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(153, 69, 255, .15); color: #d8c9ff;
+  border: 1px solid rgba(153, 69, 255, .3);
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  font-weight: 600; text-decoration: none !important;
+}
+.docs-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;
+}
+@media (max-width: 600px) { .docs-nav { grid-template-columns: 1fr; } }
+.docs-nav-btn {
+  padding: 14px 16px; border-radius: 12px; border: 1px solid var(--stroke);
+  background: var(--surface); text-decoration: none !important; color: var(--text);
+  display: grid; gap: 4px;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.docs-nav-btn:hover { background: var(--surface-2); border-color: var(--stroke-strong); transform: translateY(-1px); }
+.docs-nav-btn .dir { font-size: 11px; color: var(--muted); }
+.docs-nav-btn .ttl { font-weight: 600; font-size: 14px; }
+.docs-nav-btn.next { text-align: right; }
+.docs-callout {
+  padding: 14px 16px; margin: 14px 0;
+  background: rgba(153, 69, 255, .08); border: 1px solid rgba(153, 69, 255, .25);
+  border-radius: 10px; font-size: 13px; color: var(--text);
+}
+.docs-callout.warn { background: rgba(255, 179, 71, .08); border-color: rgba(255, 179, 71, .3); }
+.docs-callout.success { background: rgba(20, 241, 149, .08); border-color: rgba(20, 241, 149, .3); }
+.docs-callout strong { display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
 /* Status page */
 .status-grid {
   display: grid; gap: 10px;
@@ -4174,6 +4258,486 @@ async function runStatusChecks() {
 /* ================================================================
  *  Route additions + init wiring
  * ================================================================ */
+/* ================================================================
+ *  Docs site (#/docs/...)
+ * ================================================================ */
+const DOCS_NAV = [
+  { group: 'Getting Started', items: [
+    { slug: 'introduction',    title: 'Introduction' },
+    { slug: 'quick-start',     title: 'Quick Start' },
+    { slug: 'navigation',      title: 'Navigation' },
+  ]},
+  { group: 'Products', items: [
+    { slug: 'wallet-tracker',  title: 'Wallet Tracker' },
+    { slug: 'swap',            title: 'Swap' },
+    { slug: 'trading',         title: 'Trading Pages' },
+    { slug: 'tools',           title: 'Tools' },
+    { slug: 'watchlist',       title: 'Watchlist' },
+    { slug: 'accounts',        title: 'Accounts' },
+  ]},
+  { group: 'Integrations', items: [
+    { slug: 'apis',            title: 'APIs Used' },
+    { slug: 'solana-rpc',      title: 'Solana RPC' },
+    { slug: 'websocket',       title: 'WebSocket Streams' },
+    { slug: 'dexscreener',     title: 'DexScreener' },
+    { slug: 'jupiter',         title: 'Jupiter Swap' },
+  ]},
+  { group: 'Reference', items: [
+    { slug: 'deep-linking',    title: 'Deep Linking' },
+    { slug: 'rpc-methods',     title: 'RPC Methods' },
+    { slug: 'token-list',      title: 'Built-in Tokens' },
+    { slug: 'changelog',       title: 'Changelog' },
+  ]},
+];
+
+const DOCS_PAGES = {
+  'introduction': { title: 'Introduction', body: `
+    <p><strong>Sol Scope</strong> is a static, single-file Solana wallet and market tracker. It reads on-chain state directly from the Solana JSON-RPC, prices from DexScreener, and swap routes from Jupiter — no backend, no auth required.</p>
+    <h3>What you can do</h3>
+    <ul>
+      <li>Track any Solana wallet's portfolio, holdings, activity, and 24h P&amp;L in real time.</li>
+      <li>Get live swap quotes across 20+ DEXes via Jupiter.</li>
+      <li>Browse trending, top gainers, high volume, latest, and boosted Solana tokens.</li>
+      <li>Run a heuristic safety check on any SPL token (mint &amp; freeze authority, liquidity, registry status).</li>
+      <li>See the top holders &amp; concentration for any mint.</li>
+      <li>Decode any Solana transaction signature into parsed instructions and balance deltas.</li>
+      <li>Save wallets to a per-user watchlist (stored locally) and monitor them.</li>
+    </ul>
+    <h3>How it works</h3>
+    <p>Everything runs in your browser. There is no server. State lives in <code>localStorage</code> under <code>solscope:*</code> keys.</p>
+    <div class="docs-callout success"><strong>Real-time</strong>The wallet page subscribes to <code>logsSubscribe</code> over WebSocket for instant transaction updates, and polls prices &amp; signatures on 15s / 30s intervals.</div>
+  `},
+
+  'quick-start': { title: 'Quick Start', body: `
+    <ol>
+      <li>Paste any Solana wallet address into the search bar in the top right, or click one of the sample chips on the home page.</li>
+      <li>Watch the dashboard fill in: total portfolio value, SOL balance, 24h P&amp;L, token count, wallet age.</li>
+      <li>Switch between the <strong>Holdings</strong>, <strong>Activity</strong>, <strong>Analytics</strong>, and <strong>PnL</strong> tabs.</li>
+      <li>Click <strong>Sign in</strong> in the top right to create a local user, then <strong>☆ Save to watchlist</strong> on any wallet you want to monitor.</li>
+    </ol>
+    <h3>Deep link to a wallet</h3>
+    <pre class="code-block">${location.origin}${location.pathname}?addr=&lt;WALLET_ADDRESS&gt;</pre>
+    <p>Opens the app pre-loaded with the given wallet.</p>
+  `},
+
+  'navigation': { title: 'Navigation', body: `
+    <p>The top nav has five entry points. Every item navigates to a real bookmarkable page using <code>#/</code>-prefixed hashes.</p>
+    <table>
+      <thead><tr><th>Item</th><th>Route</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>Swap</td><td><code>#/swap</code></td><td>Live Jupiter quote between any two tokens.</td></tr>
+        <tr><td>Products ▾</td><td><code>#/product/...</code></td><td>Landing pages for Data API, Solana RPC, Dedicated Nodes, Yellowstone gRPC, Raptor Swap API, Teams.</td></tr>
+        <tr><td>Trading ▾</td><td><code>#/trading/...</code></td><td>Latest, Trending, Top Gainers, High Volume, Memescope, Wallet Tracker, Watchlist, Copy Trading.</td></tr>
+        <tr><td>Tools ▾</td><td><code>#/tool/...</code></td><td>Token Checker, Holder Insights, Transaction Decoder, API Status.</td></tr>
+        <tr><td>Developers</td><td><code>#/docs/...</code></td><td>This documentation.</td></tr>
+      </tbody>
+    </table>
+    <p>The brand logo always returns to <code>#/wallet</code>.</p>
+  `},
+
+  'wallet-tracker': { title: 'Wallet Tracker', body: `
+    <p>Route: <code>#/wallet</code>. The home page of the app. Paste any base-58 Solana address and the dashboard loads.</p>
+
+    <h3>What loads in parallel</h3>
+    <ul>
+      <li><code>getAccountInfo</code> — owner program, executable flag, rent epoch.</li>
+      <li><code>getBalance</code> — lamports (SOL).</li>
+      <li><code>getTokenAccountsByOwner</code> for both <em>Token</em> and <em>Token-2022</em> programs.</li>
+      <li><code>getSignaturesForAddress</code> with limit 20 — the activity feed.</li>
+      <li>DexScreener prices for every distinct mint.</li>
+    </ul>
+    <p>All five calls run in parallel through a 5-endpoint RPC fallback chain. If any one provider fails, you'll see <em>"Loaded with N provider errors. Try Refresh"</em>.</p>
+
+    <h3>Tabs</h3>
+    <table><thead><tr><th>Tab</th><th>Contents</th></tr></thead><tbody>
+      <tr><td><strong>Holdings</strong></td><td>Asset · Token Account · Balance · Price · 24h · Value · Allocation · Solscan link. Filter by symbol/mint, hide dust under $1.</td></tr>
+      <tr><td><strong>Activity</strong></td><td>Last 20 signatures with confirm status, slot, time-ago. <em>Load more</em> paginates with the <code>before</code> cursor.</td></tr>
+      <tr><td><strong>Analytics</strong></td><td>Portfolio donut (top 6 + Other), 24h top movers by impact, account info (owner program, rent epoch, account size, first/last activity).</td></tr>
+      <tr><td><strong>PnL</strong></td><td>24h P&amp;L per holding: <em>price change × current balance</em>.</td></tr>
+    </tbody></table>
+
+    <h3>Real-time updates</h3>
+    <ul>
+      <li><strong>Every 15s:</strong> re-fetch prices, recompute portfolio total + 24h delta in place.</li>
+      <li><strong>Every 30s:</strong> re-fetch signature list.</li>
+      <li><strong>WebSocket <code>logsSubscribe</code>:</strong> instant notification of new transactions that mention the wallet. The activity feed prepends a synthetic entry, then refreshes it with full metadata ~4 seconds later.</li>
+    </ul>
+    <div class="docs-callout">The footer shows live status: <code>● Live · Mainnet · &lt;tick&gt;</code>. When the WebSocket disconnects, it reads <code>○ Reconnecting</code> and a new socket is opened automatically.</div>
+  `},
+
+  'swap': { title: 'Swap', body: `
+    <p>Route: <code>#/swap</code>. Get a live best-route quote between any two Solana tokens via Jupiter.</p>
+
+    <h3>UI</h3>
+    <ul>
+      <li><strong>You Pay</strong> selector — backed by the Jupiter verified token list (4,000+ tokens) with search across symbol, name, and mint.</li>
+      <li><strong>You Receive</strong> selector.</li>
+      <li>Flip arrow to reverse direction.</li>
+      <li>Slippage tolerance: 0.1% / 0.5% / 1.0% / 3.0%.</li>
+      <li><strong>Rate</strong> — implied exchange rate.</li>
+      <li><strong>Price impact</strong> — percent slippage from the marginal price.</li>
+      <li><strong>Min received</strong> — derived from <code>otherAmountThreshold</code>.</li>
+      <li><strong>Route</strong> — multi-hop chain of DEX labels.</li>
+    </ul>
+
+    <h3>Endpoint</h3>
+    <pre class="code-block">GET https://lite-api.jup.ag/swap/v1/quote
+  ?inputMint=&lt;MINT_A&gt;
+  &outputMint=&lt;MINT_B&gt;
+  &amount=&lt;lamports&gt;
+  &slippageBps=50
+  &restrictIntermediateTokens=true</pre>
+
+    <h3>Live refresh</h3>
+    <ul>
+      <li>Quote re-runs <strong>every 12s</strong>.</li>
+      <li>Token prices refresh <strong>every 20s</strong>.</li>
+      <li>Top Pairs panel refreshes <strong>every 45s</strong>.</li>
+    </ul>
+    <div class="docs-callout warn">The Swap UI is <em>read-only</em>: it returns quotes but doesn't sign or send transactions. Plug in a wallet adapter (Phantom, Solflare, Backpack) to enable execution.</div>
+  `},
+
+  'trading': { title: 'Trading Pages', body: `
+    <p>Six routes under <code>#/trading/...</code> each render a different slice of Solana market data.</p>
+    <table>
+      <thead><tr><th>Route</th><th>Source</th><th>Sort</th></tr></thead>
+      <tbody>
+        <tr><td><code>/trading/latest</code></td><td>DexScreener <em>token-profiles/latest</em></td><td>Listing time</td></tr>
+        <tr><td><code>/trading/trending</code></td><td>DexScreener <em>search</em> (Solana pairs)</td><td>24h volume</td></tr>
+        <tr><td><code>/trading/gainers</code></td><td>Solana pairs</td><td>Price change (selectable: 5m / 1h / 6h / 24h)</td></tr>
+        <tr><td><code>/trading/volume</code></td><td>Solana pairs</td><td>Volume (5m / 1h / 6h / 24h)</td></tr>
+        <tr><td><code>/trading/memescope</code></td><td>DexScreener <em>token-boosts/top</em></td><td>Boost rank</td></tr>
+        <tr><td><code>/trading/copy</code></td><td>Top holders of high-volume tokens</td><td>Estimated holding USD</td></tr>
+      </tbody>
+    </table>
+    <p>Every table row is clickable and opens the <strong>Token Detail</strong> modal: price, 24h change, DexScreener / Birdeye / Solscan links, and the top 8 pairs by volume.</p>
+    <p>The <strong>Copy Trading</strong> page lets you one-click <em>Track wallet</em> on any returned candidate, which routes you to <code>#/wallet</code> with that address pre-loaded.</p>
+  `},
+
+  'tools': { title: 'Tools', body: `
+    <p>Four utilities under <code>#/tool/...</code>.</p>
+
+    <h3>Token Checker — <code>#/tool/checker</code></h3>
+    <p>Paste an SPL mint. Returns a 0–100 safety score with letter grade (A/B/C/D) based on:</p>
+    <ul>
+      <li>Mint authority renounced? (+10)</li>
+      <li>Freeze authority renounced? (+10)</li>
+      <li>Listed on Jupiter verified registry? (+25)</li>
+      <li>Liquidity &gt; $50K (+10), &gt; $500K (+5)</li>
+      <li>24h volume &gt; $50K (+5)</li>
+      <li>≥ 3 active pairs (+5)</li>
+    </ul>
+
+    <h3>Holder Insights — <code>#/tool/holders</code></h3>
+    <p>Returns the top 20 holders (via <code>getTokenLargestAccounts</code>) plus the top-10 concentration percentage. Each row links to the token account on Solscan.</p>
+
+    <h3>Transaction Decoder — <code>#/tool/decoder</code></h3>
+    <p>Paste any signature. Calls <code>getTransaction</code> with <code>jsonParsed</code> encoding and renders:</p>
+    <ul>
+      <li>Status (success/failed), slot, block time, fee.</li>
+      <li>Top-level + inner instruction list with parsed types.</li>
+      <li>Per-account SOL balance deltas.</li>
+      <li>First 60 program log lines.</li>
+    </ul>
+
+    <h3>API Status — <code>#/status</code></h3>
+    <p>Runs live health checks against every external endpoint with response detail and round-trip latency:</p>
+    <ul>
+      <li>Solana RPC (Mainnet + Devnet) — <code>getHealth</code></li>
+      <li>DexScreener: tokens, search, boosts, latest profiles</li>
+      <li>Jupiter: verified token list, swap quote</li>
+      <li>CoinGecko: SOL price</li>
+    </ul>
+  `},
+
+  'watchlist': { title: 'Watchlist', body: `
+    <p>Route: <code>#/watchlist</code>. Per-user list of saved Solana wallets.</p>
+
+    <h3>Adding</h3>
+    <p>On any tracked wallet, click <strong>☆ Save to watchlist</strong> next to Copy / Explorer / Solscan. You'll be prompted for a label. If you aren't signed in, the button routes you to <code>#/account</code> instead.</p>
+
+    <h3>Watchlist page</h3>
+    <p>Each card shows the label, shortened address, SOL balance, non-zero token count, and "saved N ago". Three buttons:</p>
+    <ul>
+      <li><strong>Open ↗</strong> — load the wallet in the tracker.</li>
+      <li><strong>Rename</strong> — change the label.</li>
+      <li><strong>Remove</strong> — delete the entry.</li>
+    </ul>
+
+    <h3>Auto-refresh</h3>
+    <p>While the page is open, each card re-fetches its balance and token count every 30 seconds. Updated values briefly pulse green so changes are visible.</p>
+
+    <h3>Storage</h3>
+    <p>Saved entries live inside the current user's <code>watchlist</code> array in <code>localStorage</code> under <code>solscope:users</code>. Cleared if you delete the user.</p>
+  `},
+
+  'accounts': { title: 'Accounts', body: `
+    <p>Route: <code>#/account</code>. Sol Scope supports unlimited local users on the same browser. There is no server-side authentication.</p>
+
+    <h3>Creating a user</h3>
+    <p>Visit <code>#/account</code> or click the <strong>Sign in</strong> chip in the top right. Enter:</p>
+    <ul>
+      <li><strong>Name</strong> (required, unique within this browser)</li>
+      <li><strong>Email</strong> (optional, stored only on this device)</li>
+    </ul>
+    <p>A random gradient avatar is generated from your name's first two characters and a random hue.</p>
+
+    <h3>Switching users</h3>
+    <p>The account page lists every existing local user. Click <strong>Switch</strong> on any row to become that user. Your watchlist follows.</p>
+
+    <h3>Signing out / deleting</h3>
+    <ul>
+      <li><strong>Sign out</strong> — clears the current user but keeps the profile and watchlist on disk for next sign-in.</li>
+      <li><strong>Delete</strong> — permanently removes the user and their watchlist.</li>
+    </ul>
+
+    <h3>Storage shape</h3>
+    <pre class="code-block">// localStorage["solscope:users"]
+[
+  {
+    "id": "u_xxxxxxxx",
+    "name": "Alice",
+    "email": "alice@example.com" | null,
+    "createdAt": 1715600000000,
+    "avatarHue": 142,
+    "watchlist": [
+      { "address": "9WzD...AWWM", "label": "Treasury", "addedAt": 171... }
+    ]
+  }
+]
+
+// localStorage["solscope:currentUser"]
+"u_xxxxxxxx"</pre>
+  `},
+
+  'apis': { title: 'APIs Used', body: `
+    <p>Sol Scope talks to five external services directly from the browser. Everything is CORS-friendly and requires no API key.</p>
+    <table>
+      <thead><tr><th>Provider</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td>Solana JSON-RPC</td><td>Balances, token accounts, signatures, account info, transaction decode, token supply, largest accounts.</td></tr>
+        <tr><td>Solana WebSocket RPC</td><td><code>logsSubscribe</code> with <code>mentions: [wallet]</code> for instant tx notifications.</td></tr>
+        <tr><td>DexScreener</td><td>Token prices, 24h change, liquidity, latest profiles, boosted tokens, search.</td></tr>
+        <tr><td>Jupiter</td><td>Verified token registry, best-route swap quoting.</td></tr>
+        <tr><td>CoinGecko</td><td>SOL/USD spot price.</td></tr>
+      </tbody>
+    </table>
+    <p>Health of every endpoint is monitored live on <a href="#/status">/status</a>.</p>
+  `},
+
+  'solana-rpc': { title: 'Solana RPC', body: `
+    <p>Sol Scope sends every RPC call through a fallback chain. The first endpoint to respond non-erroneously wins; failing endpoints are remembered and demoted on the next call.</p>
+
+    <h3>Mainnet endpoints</h3>
+    <pre class="code-block">https://api.mainnet-beta.solana.com
+https://solana-rpc.publicnode.com
+https://rpc.ankr.com/solana
+https://endpoints.omniatech.io/v1/sol/mainnet/public
+https://api.metaplex.solana.com</pre>
+
+    <h3>Devnet endpoints</h3>
+    <pre class="code-block">https://api.devnet.solana.com
+https://solana-devnet-rpc.publicnode.com
+https://rpc.ankr.com/solana_devnet</pre>
+
+    <h3>Calling the chain</h3>
+    <pre class="code-block">curl -X POST https://api.mainnet-beta.solana.com \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"getBalance","params":["&lt;ADDRESS&gt;"]}'</pre>
+
+    <p>Each request has an 8-second timeout via <code>AbortController</code>. Method-level errors propagate immediately (cycling endpoints can't fix bad parameters).</p>
+  `},
+
+  'websocket': { title: 'WebSocket Streams', body: `
+    <p>The wallet tracker subscribes to <code>logsSubscribe</code> for instant transaction notifications.</p>
+    <pre class="code-block">// Open
+wss://api.mainnet-beta.solana.com
+
+// Subscribe
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "logsSubscribe",
+  "params": [
+    { "mentions": ["&lt;ADDRESS&gt;"] },
+    { "commitment": "confirmed" }
+  ]
+}
+
+// Notification (per matching log)
+{
+  "method": "logsNotification",
+  "params": {
+    "result": {
+      "context": { "slot": 419742316 },
+      "value": {
+        "signature": "397D6fdGxx...",
+        "err": null,
+        "logs": [ "Program ... invoke [1]", ... ]
+      }
+    }
+  }
+}</pre>
+    <p>When a notification arrives, Sol Scope prepends a synthetic entry to the activity feed (with a transient block-time of "now"), then re-fetches the canonical signature list 4 seconds later to fill in real metadata.</p>
+    <div class="docs-callout">The socket auto-reconnects on close with a 3-second delay. The footer indicator switches to <code>○ Reconnecting</code> during the gap.</div>
+  `},
+
+  'dexscreener': { title: 'DexScreener', body: `
+    <p>All price, liquidity, and DEX-pair data comes from the public DexScreener API. No auth.</p>
+    <h3>Token data (up to 30 mints per call)</h3>
+    <pre class="code-block">GET https://api.dexscreener.com/latest/dex/tokens/&lt;MINT1&gt;,&lt;MINT2&gt;,...</pre>
+    <h3>Search</h3>
+    <pre class="code-block">GET https://api.dexscreener.com/latest/dex/search?q=SOL</pre>
+    <h3>Latest token profiles (used by Trading → Latest Tokens)</h3>
+    <pre class="code-block">GET https://api.dexscreener.com/token-profiles/latest/v1</pre>
+    <h3>Boosted tokens (used by Memescope)</h3>
+    <pre class="code-block">GET https://api.dexscreener.com/token-boosts/top/v1</pre>
+    <p>Sol Scope picks the pair with the highest 24h volume for each mint when multiple pairs exist.</p>
+  `},
+
+  'jupiter': { title: 'Jupiter Swap', body: `
+    <p>Token registry and swap quoting come from Jupiter.</p>
+    <h3>Verified token list</h3>
+    <pre class="code-block">GET https://tokens.jup.ag/tokens?tags=verified</pre>
+    <p>Returns ~4,000 tokens with symbol, name, decimals, and logoURI.</p>
+    <h3>Swap quote</h3>
+    <pre class="code-block">GET https://lite-api.jup.ag/swap/v1/quote
+  ?inputMint=&lt;A&gt;
+  &outputMint=&lt;B&gt;
+  &amount=&lt;lamports_of_A&gt;
+  &slippageBps=50
+  &restrictIntermediateTokens=true</pre>
+    <h3>Response (abridged)</h3>
+    <pre class="code-block">{
+  "inputMint": "...",
+  "outputMint": "...",
+  "inAmount":  "1000000000",
+  "outAmount": "93312345",
+  "otherAmountThreshold": "92845783",
+  "priceImpactPct": "0.0021",
+  "routePlan": [
+    { "swapInfo": { "label": "Orca", "inputMint": "...", "outputMint": "..." } },
+    { "swapInfo": { "label": "Meteora", "inputMint": "...", "outputMint": "..." } }
+  ]
+}</pre>
+  `},
+
+  'deep-linking': { title: 'Deep Linking', body: `
+    <p>Every route is bookmarkable. Two URL parameters are recognised:</p>
+    <h3>Open with a wallet</h3>
+    <pre class="code-block">${location.origin}${location.pathname}?addr=9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM</pre>
+    <h3>Open a specific page</h3>
+    <pre class="code-block">${location.origin}${location.pathname}#/swap
+${location.origin}${location.pathname}#/trading/trending
+${location.origin}${location.pathname}#/tool/checker
+${location.origin}${location.pathname}#/docs/introduction</pre>
+    <p>Both can be combined: <code>?addr=...#/wallet</code> pre-loads a wallet and starts on the wallet view.</p>
+  `},
+
+  'rpc-methods': { title: 'RPC Methods Used', body: `
+    <table>
+      <thead><tr><th>Method</th><th>Where</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>getHealth</code></td><td>API Status</td><td>Endpoint liveness check.</td></tr>
+        <tr><td><code>getBalance</code></td><td>Wallet, Watchlist</td><td>Lamports for the wallet.</td></tr>
+        <tr><td><code>getAccountInfo</code></td><td>Wallet</td><td>Owner program, executable, rent epoch.</td></tr>
+        <tr><td><code>getTokenAccountsByOwner</code></td><td>Wallet, Watchlist</td><td>SPL and Token-2022 holdings.</td></tr>
+        <tr><td><code>getSignaturesForAddress</code></td><td>Wallet, Activity</td><td>Recent transaction signatures.</td></tr>
+        <tr><td><code>getTransaction</code></td><td>Tx Decoder</td><td>Full parsed transaction.</td></tr>
+        <tr><td><code>getTokenSupply</code></td><td>Token Checker, Swap</td><td>Total supply and decimals.</td></tr>
+        <tr><td><code>getTokenLargestAccounts</code></td><td>Holder Insights, Copy Trading</td><td>Top 20 holders.</td></tr>
+        <tr><td><code>logsSubscribe</code></td><td>Wallet (WS)</td><td>Real-time mention notifications.</td></tr>
+      </tbody>
+    </table>
+  `},
+
+  'token-list': { title: 'Built-in Tokens', body: `
+    <p>Sol Scope ships with a hardcoded fallback for the most common Solana tokens so the Swap page works even if the Jupiter verified list is rate-limited.</p>
+    <table>
+      <thead><tr><th>Symbol</th><th>Decimals</th><th>Mint</th></tr></thead>
+      <tbody>
+        ${KNOWN_TOKENS.map(t => `<tr><td><strong>${escapeHtml(t.sym)}</strong></td><td>${t.dec}</td><td><code>${shorten(t.addr, 6, 6)}</code></td></tr>`).join('')}
+      </tbody>
+    </table>
+    <p>Any other token's decimals are resolved at runtime via <code>getTokenSupply</code>.</p>
+  `},
+
+  'changelog': { title: 'Changelog', body: `
+    <h4>v0.7 — Docs &amp; routing</h4>
+    <ul><li>Full docs site at <code>#/docs/...</code> with sidebar.</li></ul>
+    <h4>v0.6 — Solscan-style Holdings</h4>
+    <ul><li>Asset / Token Account / Balance / Price / 24h / Value / Allocation / Solscan link.</li></ul>
+    <h4>v0.5 — Real-time Swap</h4>
+    <ul><li>Hardcoded fallback token list (21 popular mints) to fix "Token metadata unavailable".</li><li>Quote re-runs every 12s, prices every 20s, pairs every 45s.</li></ul>
+    <h4>v0.4 — Multi-RPC fallback chain + partial-load surfacing</h4>
+    <ul><li>5-endpoint mainnet chain, 3-endpoint devnet chain.</li><li>Partial-load banner when any provider fails.</li><li>Smarter "No activity" pill.</li></ul>
+    <h4>v0.3 — User accounts &amp; watchlist</h4>
+    <ul><li>localStorage-backed multi-user with avatar dropdown.</li><li>Per-user watchlist with auto-refresh.</li><li>API status page.</li></ul>
+    <h4>v0.2 — Routed pages</h4>
+    <ul><li>Every nav item becomes a bookmarkable page (Swap, Trading, Tools, Products, Developers).</li></ul>
+    <h4>v0.1 — Portfolio dashboard</h4>
+    <ul><li>Wallet header, Holdings, Activity, Analytics, PnL tabs.</li><li>Trending ticker. Token-detail modal.</li></ul>
+  `},
+};
+
+function flatDocs() {
+  const list = [];
+  for (const g of DOCS_NAV) for (const i of g.items) list.push(i);
+  return list;
+}
+function renderDocsPage(slug) {
+  const page = DOCS_PAGES[slug];
+  if (!page) { location.hash = '#/docs/introduction'; return; }
+  const flat = flatDocs();
+  const idx = flat.findIndex(i => i.slug === slug);
+  const prev = idx > 0 ? flat[idx - 1] : null;
+  const next = idx >= 0 && idx < flat.length - 1 ? flat[idx + 1] : null;
+
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><a href="#/docs/introduction">Docs</a><span class="sep">/</span><span>${escapeHtml(page.title)}</span>`,
+      title: page.title,
+      sub: '',
+    })}
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        ${DOCS_NAV.map(g => `
+          <h5>${escapeHtml(g.group)}</h5>
+          ${g.items.map(i => `<a href="#/docs/${i.slug}" class="${i.slug === slug ? 'active' : ''}">${escapeHtml(i.title)}</a>`).join('')}
+        `).join('')}
+      </aside>
+      <div class="docs-content">
+        <div class="card glass">
+          ${page.body}
+          <div class="docs-nav" style="margin-top:24px">
+            ${prev
+              ? `<a class="docs-nav-btn" href="#/docs/${prev.slug}"><span class="dir">← Previous</span><span class="ttl">${escapeHtml(prev.title)}</span></a>`
+              : '<span></span>'}
+            ${next
+              ? `<a class="docs-nav-btn next" href="#/docs/${next.slug}"><span class="dir">Next →</span><span class="ttl">${escapeHtml(next.title)}</span></a>`
+              : '<span></span>'}
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+// Register all docs routes
+for (const g of DOCS_NAV) for (const i of g.items) {
+  ROUTES[`/docs/${i.slug}`] = ((slug) => () => renderDocsPage(slug))(i.slug);
+}
+ROUTES['/docs'] = () => { location.hash = '#/docs/introduction'; };
+
+// Update Developers link to go to docs
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-route="developers"]');
+  if (a) {
+    e.preventDefault();
+    location.hash = '#/docs/introduction';
+  }
+});
+
 ROUTES['/watchlist'] = () => renderWatchlistPage();
 ROUTES['/account']   = () => renderAccountPage();
 ROUTES['/status']    = () => renderStatusPage();
