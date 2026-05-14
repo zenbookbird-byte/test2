@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sol Scope — Solana Wallet Tracker</title>
+  <title>Helix — Solana Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -74,7 +74,16 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   text-decoration: none; color: inherit; flex-shrink: 0;
 }
 .logo-mark svg { width: 32px; height: 32px; border-radius: 9px; box-shadow: var(--shadow); }
-.brand h1 { margin: 0; font-size: 15px; letter-spacing: .2px; font-weight: 700; }
+.brand h1 {
+  margin: 0; font-size: 16px; letter-spacing: -.01em; font-weight: 700;
+  background: linear-gradient(180deg, #ffffff, #c8c1ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  line-height: 1;
+}
+.brand-sub {
+  margin: 2px 0 0; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted-2); font-weight: 600;
+}
 .brand-text { display: none; }
 @media (min-width: 720px) { .brand-text { display: block; } }
 
@@ -93,6 +102,12 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   transition: color .2s, background .2s;
 }
 .nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-link-pro {
+  background: linear-gradient(135deg, rgba(153,69,255,.18), rgba(20,241,149,.10));
+  border: 1px solid rgba(153,69,255,.32);
+  color: #d8c9ff;
+}
+.nav-link-pro:hover { background: linear-gradient(135deg, rgba(153,69,255,.28), rgba(20,241,149,.16)); color: #fff; }
 .nav-ico { width: 16px; height: 16px; color: currentColor; opacity: .7; }
 .caret { font-size: 10px; opacity: .7; transition: transform .2s; }
 .nav-item:hover .caret,
@@ -1461,17 +1476,27 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           <svg viewBox="0 0 32 32" aria-hidden="true">
             <defs>
               <linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0" stop-color="#9945FF"/>
-                <stop offset="0.5" stop-color="#7B61FF"/>
-                <stop offset="1" stop-color="#14F195"/>
+                <stop offset="0%" stop-color="#9945FF"/>
+                <stop offset="55%" stop-color="#7B61FF"/>
+                <stop offset="100%" stop-color="#14F195"/>
+              </linearGradient>
+              <linearGradient id="lg2" x1="1" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#14F195"/>
+                <stop offset="100%" stop-color="#9945FF"/>
               </linearGradient>
             </defs>
-            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#lg)"/>
-            <path d="M9 11 h12 l-2 2 H7z M9 16 h12 l-2 2 H7z M9 21 h12 l-2 2 H7z" fill="#0b0a14" opacity=".9"/>
+            <rect x="1" y="1" width="30" height="30" rx="9" fill="#0d0b1d" stroke="url(#lg)" stroke-width="1.2"/>
+            <path d="M8.5 8 C 14 8, 14 16, 19.5 16 S 25 24, 25 24"
+                  stroke="url(#lg)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <path d="M8.5 24 C 14 24, 14 16, 19.5 16 S 25 8, 25 8"
+                  stroke="url(#lg2)" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".75"/>
+            <circle cx="8.5" cy="8" r="1.6" fill="#9945FF"/>
+            <circle cx="25" cy="24" r="1.6" fill="#14F195"/>
           </svg>
         </span>
         <div class="brand-text">
-          <h1>Sol Scope</h1>
+          <h1>Helix</h1>
+          <p class="brand-sub">Solana intelligence</p>
         </div>
       </a>
 
@@ -1587,7 +1612,50 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           </div>
         </div>
 
-        <a class="nav-link" href="#/developers" data-route="developers"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2"/></svg>Developers</a>
+        <div class="nav-item">
+          <button class="nav-link nav-link-pro" aria-haspopup="true" aria-expanded="false">
+            <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11zm14 3c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-1h14z"/></svg>
+            Pro <span class="caret">▾</span>
+          </button>
+          <div class="dropdown wide">
+            <div class="dropdown-section">
+              <h4>Plans</h4>
+              <a class="ddi" href="#/pricing" data-route="pricing">
+                <span class="ddi-ico">○</span>
+                <div><div class="ddi-title">Free</div><div class="ddi-sub">$0 — Explore Solana with the public data stack.</div></div>
+              </a>
+              <a class="ddi" href="#/pricing" data-route="pricing">
+                <span class="ddi-ico" style="background:linear-gradient(135deg,rgba(153,69,255,.4),rgba(20,241,149,.25));border-color:rgba(153,69,255,.55);color:#fff">★</span>
+                <div><div class="ddi-title">Pro <span class="here-pill" style="background:rgba(20,241,149,.18);color:#88f3c3;border-color:rgba(20,241,149,.35)">Most popular</span></div><div class="ddi-sub">$79 / mo — Real-time data, alerts, Pump.fun &amp; Bags.</div></div>
+              </a>
+              <a class="ddi" href="#/pricing" data-route="pricing">
+                <span class="ddi-ico">◆</span>
+                <div><div class="ddi-title">Premium</div><div class="ddi-sub">$299 / mo — Sub-second refresh, 1M API requests, gRPC.</div></div>
+              </a>
+              <a class="ddi" href="#/pricing" data-route="pricing">
+                <span class="ddi-ico">◇</span>
+                <div><div class="ddi-title">Business</div><div class="ddi-sub">$799 / mo — Dedicated RPC, 10M API, 10 seats, white-label.</div></div>
+              </a>
+              <a class="ddi" href="#/pricing" data-route="pricing">
+                <span class="ddi-ico">⌘</span>
+                <div><div class="ddi-title">Enterprise</div><div class="ddi-sub">Custom — SSO, on-prem, 99.99% SLA.</div></div>
+              </a>
+            </div>
+            <div class="dropdown-section">
+              <h4>Get started</h4>
+              <a class="ddi" href="#/account">
+                <span class="ddi-ico">🎁</span>
+                <div><div class="ddi-title">Start free 24h Pro trial</div><div class="ddi-sub">Every new account gets Pro for 24 hours, no card.</div></div>
+              </a>
+              <a class="ddi" href="#/pricing">
+                <span class="ddi-ico">≡</span>
+                <div><div class="ddi-title">Compare plans</div><div class="ddi-sub">Full feature breakdown across every tier.</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <a class="nav-link" href="#/developers" data-route="developers"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2"/></svg>Docs</a>
       </nav>
 
       <div class="topbar-right">
@@ -1901,7 +1969,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   </template>
 
   <script>
-/* Sol Scope — Solana Wallet Portfolio Tracker
+/* Helix — Solana Intelligence Platform
  * Static, no-build. Talks directly to:
  *   - Solana JSON-RPC (mainnet/devnet)
  *   - DexScreener (price + 24h change, CORS-friendly)
@@ -3533,7 +3601,7 @@ async function renderTradingPage(view) {
 
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>${meta.crumb}</span><span class="sep">/</span><span>${escapeHtml(meta.title)}</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>${meta.crumb}</span><span class="sep">/</span><span>${escapeHtml(meta.title)}</span>`,
       title: meta.title,
       sub: meta.sub,
       actions: `
@@ -3705,7 +3773,7 @@ function paintTradingRows() {
 async function renderCopyTradingPage() {
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Copy Trading</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Copy Trading</span>`,
       title: 'Copy Trading',
       sub: 'Top holders of the most-traded Solana tokens. Click any wallet to track it.',
       actions: `<button class="ghost-btn small" id="refresh-page">Refresh</button>`,
@@ -3776,7 +3844,7 @@ function renderToolPage(tool) {
   const meta = TOOL_META[tool];
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Tools</span><span class="sep">/</span><span>${escapeHtml(meta.title)}</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Tools</span><span class="sep">/</span><span>${escapeHtml(meta.title)}</span>`,
       title: meta.title,
       sub: meta.sub,
     })}
@@ -3830,7 +3898,7 @@ async function tokenMeta(mint) {
 async function renderSwapPage() {
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Swap</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Swap</span>`,
       title: 'Swap',
       sub: 'Quote any token pair across Solana DEXes via Jupiter.',
     })}
@@ -4166,7 +4234,7 @@ function renderProductPage(key) {
   if (!p) return showWalletView();
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Products</span><span class="sep">/</span><span>${escapeHtml(p.title)}</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Products</span><span class="sep">/</span><span>${escapeHtml(p.title)}</span>`,
       title: p.title,
       sub: p.sub,
     })}
@@ -4192,7 +4260,7 @@ function renderProductPage(key) {
 function renderDevelopersPage() {
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Developers</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Developers</span>`,
       title: 'Developers',
       sub: 'Every API this product uses, with copy-paste examples.',
     })}
@@ -4349,7 +4417,7 @@ function renderAccountPage() {
   const users = userStore.list();
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Account</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Account</span>`,
       title: u ? 'Account settings' : 'Sign in or create user',
       sub: u ? `Signed in as ${escapeHtml(u.name)}.` : 'Pick an existing local user or create a new one. Everything is stored on this device.',
     })}
@@ -4418,7 +4486,7 @@ async function renderWatchlistPage() {
   if (!u) {
     showPageView(`
       ${pageHeader({
-        crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Watchlist</span>`,
+        crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Watchlist</span>`,
         title: 'My Watchlist',
         sub: 'Sign in to save wallets and track them in one place.',
       })}
@@ -4432,7 +4500,7 @@ async function renderWatchlistPage() {
   if (!u.watchlist.length) {
     showPageView(`
       ${pageHeader({
-        crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Watchlist</span>`,
+        crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Watchlist</span>`,
         title: 'My Watchlist',
         sub: `Saved wallets for ${escapeHtml(u.name)}.`,
       })}
@@ -4445,7 +4513,7 @@ async function renderWatchlistPage() {
   }
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Watchlist</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Watchlist</span>`,
       title: 'My Watchlist',
       sub: `${u.watchlist.length} saved wallet${u.watchlist.length === 1 ? '' : 's'} for ${escapeHtml(u.name)}.`,
       actions: `<button class="ghost-btn small" id="refresh-page">Refresh values</button>`,
@@ -4626,7 +4694,7 @@ const STATUS_ENDPOINTS = [
 function renderStatusPage() {
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Tools</span><span class="sep">/</span><span>API Status</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Tools</span><span class="sep">/</span><span>API Status</span>`,
       title: 'API Status',
       sub: 'Live health check of every external API this product depends on.',
       actions: `<button class="ghost-btn small" id="refresh-page">Run checks</button>`,
@@ -4713,7 +4781,7 @@ const DOCS_NAV = [
 
 const DOCS_PAGES = {
   'introduction': { title: 'Introduction', body: `
-    <p><strong>Sol Scope</strong> is a static, single-file Solana wallet and market tracker. It reads on-chain state directly from the Solana JSON-RPC, prices from DexScreener, and swap routes from Jupiter — no backend, no auth required.</p>
+    <p><strong>Helix</strong> is a static, single-file Solana wallet and market tracker. It reads on-chain state directly from the Solana JSON-RPC, prices from DexScreener, and swap routes from Jupiter — no backend, no auth required.</p>
     <h3>What you can do</h3>
     <ul>
       <li>Track any Solana wallet's portfolio, holdings, activity, and 24h P&amp;L in real time.</li>
@@ -4893,7 +4961,7 @@ const DOCS_PAGES = {
   `},
 
   'accounts': { title: 'Accounts', body: `
-    <p>Route: <code>#/account</code>. Sol Scope supports unlimited local users on the same browser. There is no server-side authentication.</p>
+    <p>Route: <code>#/account</code>. Helix supports unlimited local users on the same browser. There is no server-side authentication.</p>
 
     <h3>Creating a user</h3>
     <p>Visit <code>#/account</code> or click the <strong>Sign in</strong> chip in the top right. Enter:</p>
@@ -4938,7 +5006,7 @@ const DOCS_PAGES = {
   `},
 
   'apis': { title: 'APIs Used', body: `
-    <p>Sol Scope talks to five external services directly from the browser. Everything is CORS-friendly and requires no API key.</p>
+    <p>Helix talks to five external services directly from the browser. Everything is CORS-friendly and requires no API key.</p>
     <table>
       <thead><tr><th>Provider</th><th>Used for</th></tr></thead>
       <tbody>
@@ -4953,7 +5021,7 @@ const DOCS_PAGES = {
   `},
 
   'solana-rpc': { title: 'Solana RPC', body: `
-    <p>Sol Scope sends every RPC call through a fallback chain. The first endpoint to respond non-erroneously wins; failing endpoints are remembered and demoted on the next call.</p>
+    <p>Helix sends every RPC call through a fallback chain. The first endpoint to respond non-erroneously wins; failing endpoints are remembered and demoted on the next call.</p>
 
     <h3>Mainnet endpoints</h3>
     <pre class="code-block">https://api.mainnet-beta.solana.com
@@ -5005,7 +5073,7 @@ wss://api.mainnet-beta.solana.com
     }
   }
 }</pre>
-    <p>When a notification arrives, Sol Scope prepends a synthetic entry to the activity feed (with a transient block-time of "now"), then re-fetches the canonical signature list 4 seconds later to fill in real metadata.</p>
+    <p>When a notification arrives, Helix prepends a synthetic entry to the activity feed (with a transient block-time of "now"), then re-fetches the canonical signature list 4 seconds later to fill in real metadata.</p>
     <div class="docs-callout">The socket auto-reconnects on close with a 3-second delay. The footer indicator switches to <code>○ Reconnecting</code> during the gap.</div>
   `},
 
@@ -5019,7 +5087,7 @@ wss://api.mainnet-beta.solana.com
     <pre class="code-block">GET https://api.dexscreener.com/token-profiles/latest/v1</pre>
     <h3>Boosted tokens (used by Memescope)</h3>
     <pre class="code-block">GET https://api.dexscreener.com/token-boosts/top/v1</pre>
-    <p>Sol Scope picks the pair with the highest 24h volume for each mint when multiple pairs exist.</p>
+    <p>Helix picks the pair with the highest 24h volume for each mint when multiple pairs exist.</p>
   `},
 
   'jupiter': { title: 'Jupiter Swap', body: `
@@ -5079,7 +5147,7 @@ ${location.origin}${location.pathname}#/docs/introduction</pre>
   `},
 
   'token-list': { title: 'Built-in Tokens', body: `
-    <p>Sol Scope ships with a hardcoded fallback for the most common Solana tokens so the Swap page works even if the Jupiter verified list is rate-limited.</p>
+    <p>Helix ships with a hardcoded fallback for the most common Solana tokens so the Swap page works even if the Jupiter verified list is rate-limited.</p>
     <table>
       <thead><tr><th>Symbol</th><th>Decimals</th><th>Mint</th></tr></thead>
       <tbody>
@@ -5122,7 +5190,7 @@ function renderDocsPage(slug) {
 
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><a href="#/docs/introduction">Docs</a><span class="sep">/</span><span>${escapeHtml(page.title)}</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><a href="#/docs/introduction">Docs</a><span class="sep">/</span><span>${escapeHtml(page.title)}</span>`,
       title: page.title,
       sub: '',
     })}
@@ -5488,7 +5556,7 @@ const TIERS = [
       'Everything in Pro, plus:',
       'Unlimited saved wallets',
       'Sub-second portfolio refresh',
-      'Sol Scope Data API (1M requests / month)',
+      'Helix Data API (1M requests / month)',
       'Custom webhooks &amp; Slack alerts',
       'Yellowstone gRPC stream access',
       '50 Copy-Trade slots',
@@ -5636,7 +5704,7 @@ function renderPricingPage() {
 
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Sol Scope</a><span class="sep">/</span><span>Products</span><span class="sep">/</span><span>Pricing</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Products</span><span class="sep">/</span><span>Pricing</span>`,
       title: '',
       sub: '',
     })}
