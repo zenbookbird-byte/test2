@@ -4419,7 +4419,11 @@ function router() {
   // Stop page-specific timers when leaving
   if (hash !== '/watchlist' && typeof stopWatchlistAutoRefresh === 'function') stopWatchlistAutoRefresh();
   if (hash !== '/swap'      && typeof stopSwapAutoRefresh      === 'function') stopSwapAutoRefresh();
-  if (hash !== '/trenches'  && typeof stopTrenchesLoop         === 'function') { stopTrenchesLoop(); if (typeof closeTrenchesWS === 'function') closeTrenchesWS(); }
+  if (hash !== '/trenches'  && typeof stopTrenchesLoop         === 'function') {
+    stopTrenchesLoop();
+    if (typeof closeTrenchesWS === 'function') closeTrenchesWS();
+    if (typeof stopEnrichmentLoop === 'function') stopEnrichmentLoop();
+  }
   if (fn) fn();
   else showWalletView();
 }
@@ -4897,6 +4901,11 @@ function handlePumpPortalEvent(msg) {
   }
   // Cap rows to avoid runaway memory
   if (trenchesState.rows.length > 200) trenchesState.rows.length = 200;
+  // Queue this mint for DexScreener enrichment so the card fills in
+  // with real price / MC / liquidity / 24h volume + change.
+  enrichQueueMint(msg.mint);
+  // Drain immediately so a fresh-launched token isn't stuck on '—' for 4 s
+  processEnrichmentQueue();
   paintTrenches();
 }
 
@@ -4913,11 +4922,117 @@ function setTrenchesLiveMode(on) {
   paintTrenchLiveStatus();
 }
 
+/* ---- Continuous DexScreener enrichment for every Trenches row ----
+ * Every mint that appears in trenchesState.rows — whether it came from
+ * the WebSocket stream or the initial REST fetch — is pushed into an
+ * enrichment queue. A background loop drains the queue in batches of
+ * up to 30 mints per DexScreener call and merges the result back into
+ * the row, then repaints. We also re-queue every existing mint every
+ * 25 s so prices, MC, liq, vol and 24h change stay live.
+ */
+const trenchEnrich = {
+  queue: new Set(),
+  failures: new Map(),
+  timer: null,
+  refreshTimer: null,
+};
+
+function enrichQueueMint(mint) {
+  if (!mint) return;
+  trenchEnrich.queue.add(mint);
+}
+
+async function processEnrichmentQueue() {
+  if (!trenchEnrich.queue.size) return;
+  // Take up to 30 — DexScreener's batch limit on /latest/dex/tokens
+  const batch = [];
+  for (const mint of trenchEnrich.queue) {
+    batch.push(mint);
+    trenchEnrich.queue.delete(mint);
+    if (batch.length >= 30) break;
+  }
+  if (!batch.length) return;
+  let pairsByMint;
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${batch.join(',')}`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const json = await r.json();
+    pairsByMint = new Map();
+    for (const p of json?.pairs || []) {
+      if (p.chainId !== 'solana') continue;
+      const base = p.baseToken?.address;
+      if (!base) continue;
+      const prev = pairsByMint.get(base);
+      const vol = Number(p.volume?.h24 || 0);
+      if (!prev || vol > Number(prev.volume?.h24 || 0)) pairsByMint.set(base, p);
+    }
+  } catch (err) {
+    // Re-queue with a backoff (up to 3 retries per mint)
+    for (const m of batch) {
+      const n = (trenchEnrich.failures.get(m) || 0) + 1;
+      trenchEnrich.failures.set(m, n);
+      if (n < 3) trenchEnrich.queue.add(m);
+    }
+    return;
+  }
+  let changed = false;
+  for (const mint of batch) {
+    const p = pairsByMint.get(mint);
+    if (!p) continue;
+    const idx = trenchesState.rows.findIndex(r => r.mint === mint);
+    if (idx < 0) continue;
+    const row = trenchesState.rows[idx];
+    const price = Number(p.priceUsd) || row.price || 0;
+    const mc    = Number(p.marketCap || p.fdv || 0) || row.mc || 0;
+    const vol24 = Number(p.volume?.h24 || 0);
+    const ch24  = Number(p.priceChange?.h24 ?? 0);
+    const ch1   = Number(p.priceChange?.h1 ?? 0);
+    const liq   = Number(p.liquidity?.usd || 0);
+    const createdAt = p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : row.createdAt;
+    const ageMin = createdAt ? Math.max(0, (Date.now() / 1000 - createdAt) / 60) : row.ageMin;
+    trenchesState.rows[idx] = {
+      ...row,
+      symbol: row.symbol && row.symbol !== '?' ? row.symbol : (p.baseToken?.symbol || row.symbol),
+      name:   row.name   || p.baseToken?.name || '',
+      logo:   row.logo   || p.info?.imageUrl || null,
+      dexId:  (p.dexId || row.dexId || '').toLowerCase(),
+      url:    p.url || row.url,
+      price, mc, vol24, ch24, ch1, liq, createdAt, ageMin,
+    };
+    trenchEnrich.failures.delete(mint);
+    changed = true;
+  }
+  if (changed && location.hash === '#/trenches') paintTrenches();
+}
+
+function startEnrichmentLoop() {
+  stopEnrichmentLoop();
+  // Drain the queue every 4 s
+  trenchEnrich.timer = setInterval(processEnrichmentQueue, 4000);
+  // Re-queue every existing mint every 25 s so prices stay current
+  trenchEnrich.refreshTimer = setInterval(() => {
+    if (location.hash !== '#/trenches') return;
+    for (const r of trenchesState.rows) enrichQueueMint(r.mint);
+  }, 25_000);
+}
+function stopEnrichmentLoop() {
+  if (trenchEnrich.timer) { clearInterval(trenchEnrich.timer); trenchEnrich.timer = null; }
+  if (trenchEnrich.refreshTimer) { clearInterval(trenchEnrich.refreshTimer); trenchEnrich.refreshTimer = null; }
+}
+
 async function loadTrenches() {
   const target = $('#tr-new'); if (!target) return;
   try {
     const rows = await fetchTrenchesData();
-    if (rows.length) trenchesState.rows = rows;
+    if (rows.length) {
+      // Merge with any rows already in state from the WebSocket so we
+      // don't wipe live streams when the periodic poll comes back.
+      const existing = new Map(trenchesState.rows.map(r => [r.mint, r]));
+      for (const r of rows) existing.set(r.mint, { ...(existing.get(r.mint) || {}), ...r });
+      trenchesState.rows = Array.from(existing.values());
+    }
+    // Queue everything (new + already-existing) for periodic price refresh
+    for (const r of trenchesState.rows) enrichQueueMint(r.mint);
     paintTrenches();
   } catch (err) {
     console.warn('Trenches fetch failed', err);
@@ -5004,6 +5119,7 @@ async function renderTrenchesPage() {
   });
 
   await loadTrenches();
+  startEnrichmentLoop();
   if (trenchesState.liveMode) openTrenchesWS();
   else startTrenchesLoop();
 }
