@@ -1721,6 +1721,314 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 /* Live status pill compact */
 .trenches-strip .live-pill { font-size: 10px; padding: 2px 7px; }
 
+/* ===== Token Detail Page (Padre/Axiom-style trader cockpit) ===== */
+.tk-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 12px;
+}
+@media (max-width: 1180px) { .tk-page { grid-template-columns: 1fr; } }
+
+.tk-main {
+  display: grid; gap: 10px; min-width: 0;
+  grid-template-rows: auto auto 1fr;
+}
+
+/* Header strip */
+.tk-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px; align-items: center;
+  padding: 10px 14px; border-radius: 10px;
+  background: #0a0c17; border: 1px solid #1c1f2e;
+}
+.tk-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tk-logo {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  background: #14172a; object-fit: cover;
+}
+.tk-logo.fallback {
+  display: grid; place-items: center; color: #0a0820; font-weight: 700; font-size: 14px;
+  background: linear-gradient(135deg, #9945ff, #14f195);
+}
+.tk-titleblk { min-width: 0; }
+.tk-name {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  font-size: 16px; font-weight: 700; color: var(--text);
+}
+.tk-name .pair { color: var(--muted); font-weight: 500; font-size: 14px; }
+.tk-meta {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  font-size: 11px; color: var(--muted); margin-top: 3px;
+}
+.tk-meta .age { color: var(--text); font-weight: 500; }
+.tk-meta a {
+  color: var(--muted); text-decoration: none;
+  display: inline-grid; place-items: center;
+  width: 16px; height: 16px; border-radius: 4px;
+  font-size: 12px; transition: color .12s;
+}
+.tk-meta a:hover { color: var(--text); }
+.tk-meta .name-sub { color: var(--text); font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tk-price-big {
+  font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em; color: var(--text);
+  text-align: center; padding: 0 14px;
+}
+
+.tk-stats-row {
+  display: flex; gap: 18px; align-items: center; flex-wrap: nowrap; flex-shrink: 0;
+}
+.tk-stat {
+  display: grid; gap: 1px; min-width: 60px;
+}
+.tk-stat .lbl {
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: .08em;
+  color: #565a76; font-weight: 600;
+}
+.tk-stat .val {
+  font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--text); white-space: nowrap;
+}
+.tk-stat .val.pos { color: #14f195; }
+.tk-stat .val.neg { color: #ff5a76; }
+.tk-stat .val.dim { color: var(--muted); font-weight: 500; }
+
+/* Chart card */
+.tk-chart-card {
+  background: #0a0c17; border: 1px solid #1c1f2e; border-radius: 10px;
+  overflow: hidden; min-height: 480px;
+}
+.tk-chart-card iframe {
+  display: block; width: 100%; height: 480px; border: 0;
+  background: #0a0c17;
+}
+.tk-chart-card .chart-fallback {
+  height: 480px; display: grid; place-items: center;
+  color: #565a76; font-size: 13px; padding: 20px; text-align: center;
+}
+
+/* Tabs + bottom panel */
+.tk-tabs {
+  display: flex; gap: 2px; padding: 6px 6px 0;
+  border-bottom: 1px solid #1c1f2e;
+  background: #0a0c17;
+}
+.tk-tab {
+  appearance: none; background: transparent; border: 0; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 600; color: var(--muted);
+  padding: 9px 14px; border-radius: 6px 6px 0 0;
+  transition: color .12s, background .12s; position: relative;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.tk-tab:hover { color: var(--text); }
+.tk-tab.active { color: var(--text); background: #11142a; }
+.tk-tab.active::after {
+  content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px;
+  background: linear-gradient(90deg, #5b6cff, #9945ff); border-radius: 2px;
+}
+.tk-tab .count {
+  color: var(--muted-2); font-weight: 500; font-size: 11px; margin-left: 2px;
+}
+.tk-bottom {
+  background: #0a0c17; border: 1px solid #1c1f2e; border-radius: 10px;
+  overflow: hidden; min-height: 280px;
+}
+.tk-bottom-body { padding: 0; max-height: 380px; overflow-y: auto; }
+.tk-bottom-body::-webkit-scrollbar { width: 6px; }
+.tk-bottom-body::-webkit-scrollbar-thumb { background: #1c1f2e; border-radius: 3px; }
+.tk-bottom-body table {
+  width: 100%; border-collapse: collapse; font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.tk-bottom-body th {
+  text-align: left; font-weight: 600; font-size: 10px; letter-spacing: .06em;
+  text-transform: uppercase; color: #565a76;
+  padding: 8px 12px; border-bottom: 1px solid #14172a;
+  background: #0d1020; position: sticky; top: 0; z-index: 1;
+}
+.tk-bottom-body th.num, .tk-bottom-body td.num { text-align: right; }
+.tk-bottom-body td {
+  padding: 8px 12px; border-bottom: 1px solid #14172a;
+  color: var(--text); white-space: nowrap;
+}
+.tk-bottom-body tr:hover td { background: #0e1224; }
+.tk-bottom-body td.muted { color: var(--muted); }
+.tk-bottom-body .empty {
+  padding: 40px 20px; text-align: center; color: #565a76; font-size: 12px;
+}
+
+/* Right side trading panel */
+.tk-side {
+  display: grid; gap: 10px; align-content: start;
+}
+.tk-card {
+  background: #0a0c17; border: 1px solid #1c1f2e; border-radius: 10px;
+  padding: 12px;
+}
+.tk-card h4 {
+  margin: 0 0 10px; font-size: 12px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tk-card h4 .toggle {
+  cursor: pointer; color: var(--muted); font-size: 11px;
+}
+
+.tk-wallet-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-radius: 8px;
+  background: #11142a; border: 1px solid #1c1f2e;
+  font-size: 12px;
+}
+.tk-wallet-row .av {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #9945ff, #14f195);
+}
+.tk-wallet-row .lbl { color: var(--text); font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-wallet-row .bal { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tk-wallet-row .bal .sol { color: var(--muted); font-weight: 500; margin-left: 2px; font-size: 11px; }
+
+.tk-bs-tabs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  padding: 3px; background: #11142a; border-radius: 8px; margin: 10px 0 8px;
+}
+.tk-bs-tabs button {
+  appearance: none; cursor: pointer;
+  background: transparent; border: 0;
+  font: inherit; font-size: 12.5px; font-weight: 700;
+  color: var(--muted); padding: 7px;
+  border-radius: 6px; transition: background .12s, color .12s;
+}
+.tk-bs-tabs button.buy.active  { background: rgba(20,241,149,.18); color: #88f3c3; }
+.tk-bs-tabs button.sell.active { background: rgba(255,90,118,.18); color: #ffb0bd; }
+
+.tk-mode-row {
+  display: flex; gap: 6px; align-items: center;
+  margin-bottom: 8px;
+}
+.tk-mode-row select {
+  flex: 1; appearance: none;
+  background: #11142a; border: 1px solid #1c1f2e; color: var(--text);
+  font: inherit; font-size: 12px; padding: 6px 8px; border-radius: 6px;
+}
+
+.tk-amt-input {
+  display: flex; align-items: center;
+  background: #11142a; border: 1px solid #1c1f2e; border-radius: 8px;
+  padding: 9px 12px; margin-bottom: 8px;
+}
+.tk-amt-input .lbl { color: var(--muted); font-size: 11px; flex: 1; }
+.tk-amt-input input {
+  appearance: none; background: transparent; border: 0; outline: none;
+  color: var(--text); font: inherit; font-size: 14px; font-weight: 700;
+  text-align: right; width: 100%; min-width: 0; font-variant-numeric: tabular-nums;
+  padding: 0;
+}
+.tk-amt-input .unit { color: var(--text); font-size: 12px; font-weight: 700; margin-left: 6px; }
+
+.tk-quick {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 10px;
+}
+.tk-quick button {
+  appearance: none; cursor: pointer;
+  background: #11142a; border: 1px solid #1c1f2e; color: var(--text);
+  font: inherit; font-size: 11px; font-weight: 600;
+  padding: 6px 0; border-radius: 6px;
+  transition: background .12s, border-color .12s;
+}
+.tk-quick button:hover { background: #1a1d33; border-color: #2b3047; }
+.tk-quick button.edit { color: var(--muted); font-size: 11px; }
+
+.tk-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  font-size: 11.5px; color: var(--muted);
+}
+.tk-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+.tk-row input[type="checkbox"] { accent-color: #5b6cff; }
+
+.tk-gas {
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  font-size: 10.5px; color: var(--muted);
+  padding: 8px 10px; background: #0d1020; border-radius: 8px; margin-bottom: 10px;
+}
+.tk-gas .gas-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 6px; border-radius: 5px; background: #14172a;
+  color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums;
+  cursor: pointer; transition: background .12s;
+}
+.tk-gas .gas-pill:hover { background: #1a1d33; }
+.tk-gas .gas-pill.on { background: rgba(20,241,149,.14); color: #88f3c3; }
+
+.tk-buy-cta {
+  appearance: none; cursor: pointer; width: 100%;
+  background: linear-gradient(180deg, #14f195, #0fc879);
+  color: #06231a; border: 0;
+  font: inherit; font-size: 14px; font-weight: 800;
+  padding: 12px; border-radius: 9px;
+  letter-spacing: -.005em;
+  box-shadow: 0 4px 16px -4px rgba(20, 241, 149, .55);
+  transition: transform .12s, filter .12s;
+}
+.tk-buy-cta:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.tk-buy-cta.sell {
+  background: linear-gradient(180deg, #ff5a76, #e8395a);
+  color: #fff;
+  box-shadow: 0 4px 16px -4px rgba(255, 90, 118, .55);
+}
+
+/* Time-period change strip */
+.tk-tf {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  margin-top: 12px;
+}
+.tk-tf > div {
+  display: grid; gap: 1px; padding: 7px 6px; border-radius: 7px;
+  background: #11142a; text-align: center;
+}
+.tk-tf .lbl { font-size: 9.5px; color: #565a76; font-weight: 600; letter-spacing: .04em; }
+.tk-tf .val { font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.tk-tf .val.pos { color: #14f195; }
+.tk-tf .val.neg { color: #ff5a76; }
+
+/* Token Data & Security grid */
+.tk-sec-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+}
+.tk-sec-grid > div {
+  background: #11142a; border-radius: 8px; padding: 8px;
+  display: grid; gap: 1px;
+}
+.tk-sec-grid .ic {
+  font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px;
+}
+.tk-sec-grid .v {
+  font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text);
+}
+.tk-sec-grid .v.pos { color: #14f195; }
+.tk-sec-grid .v.neg { color: #ff5a76; }
+.tk-sec-grid .v.warn { color: #ffce91; }
+.tk-sec-grid .lbl-sm { font-size: 9.5px; color: #565a76; font-weight: 500; }
+
+.tk-addr-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 9px; border-radius: 7px;
+  background: #11142a; margin-top: 6px;
+  font-size: 11px; color: var(--muted);
+}
+.tk-addr-row .lbl { color: #565a76; font-weight: 600; flex-shrink: 0; }
+.tk-addr-row .addr {
+  font-family: 'JetBrains Mono', monospace; color: var(--text);
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tk-addr-row a, .tk-addr-row button {
+  background: transparent; border: 0; cursor: pointer;
+  color: var(--muted); font-size: 12px; padding: 0; flex-shrink: 0;
+  text-decoration: none; transition: color .12s;
+}
+.tk-addr-row a:hover, .tk-addr-row button:hover { color: var(--text); }
+
 .watchlist-grid {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -4159,7 +4467,18 @@ async function loadTradingView(view) {
 }
 
 /* ---------------- Token detail modal ---------------- */
+/* Navigate to the full-screen token page (Padre/Axiom-style cockpit). */
 async function openTokenDetail(mint) {
+  if (!mint) return;
+  if (!isValidAddress(mint)) {
+    toast({ title: 'Invalid token mint', sub: shorten(mint, 6, 6), icon: '!', timeout: 3000 });
+    return;
+  }
+  location.hash = '#/token/' + mint;
+}
+
+/* Legacy modal-based detail (kept as fallback for places that import it directly). */
+async function openTokenDetailModal(mint) {
   openModal('Token detail', shorten(mint, 10, 10));
   const body = $('#modal-body');
   try {
@@ -4689,6 +5008,14 @@ function router() {
     stopTrenchesLoop();
     if (typeof closeTrenchesWS === 'function') closeTrenchesWS();
     if (typeof stopEnrichmentLoop === 'function') stopEnrichmentLoop();
+  }
+  if (!hash.startsWith('/token/') && tokenPageState?.refreshTimer) {
+    clearInterval(tokenPageState.refreshTimer); tokenPageState.refreshTimer = null;
+  }
+  // Dynamic route: /token/<mint>
+  if (hash.startsWith('/token/')) {
+    const mint = hash.slice('/token/'.length);
+    if (mint) { renderTokenPage(mint); return; }
   }
   if (fn) fn();
   else showWalletView();
@@ -5698,6 +6025,456 @@ async function renderTrenchesPage() {
   startEnrichmentLoop();
   if (trenchesState.liveMode) openTrenchesWS();
   else startTrenchesLoop();
+}
+
+/* ================================================================
+ *  Token Detail Page (#/token/<mint>) — Padre/Axiom trader cockpit
+ *  Header strip · DexScreener chart embed · tabs · trading panel
+ * ================================================================ */
+const tokenPageState = {
+  mint: null,
+  pair: null,
+  side: 'buy',     // 'buy' | 'sell'
+  amount: 0.1,
+  tab: 'trades',
+  exitStrat: false,
+  gas: { priority: 0.003, mev: 0.004, slippage: 20, on: true },
+  refreshTimer: null,
+};
+
+async function renderTokenPage(mint) {
+  if (tokenPageState.refreshTimer) { clearInterval(tokenPageState.refreshTimer); tokenPageState.refreshTimer = null; }
+  tokenPageState.mint = mint;
+
+  // Skeleton (with loading state) so the page paints immediately
+  showPageView(tokenPageHTML(mint, /* loading */ true));
+  bindTokenPageEvents();
+
+  try {
+    const [dsJson, supplyR, accountInfo, tokenMap] = await Promise.all([
+      fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+      rpc('getTokenSupply', [mint]).catch(() => null),
+      rpc('getAccountInfo', [mint, { encoding: 'jsonParsed' }]).then(r => r?.value).catch(() => null),
+      loadJupTokenMap(),
+    ]);
+    const pairs = (dsJson.pairs || []).filter(p => p.chainId === 'solana')
+      .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
+    const pair = pairs[0] || null;
+    const meta = tokenMap.get(mint) || {};
+    const supply = supplyR?.value?.uiAmount ?? null;
+    const decimals = supplyR?.value?.decimals ?? null;
+    const info = accountInfo?.data?.parsed?.info || {};
+    tokenPageState.pair = pair;
+    tokenPageState.meta = { ...meta, supply, decimals, mintAuth: info.mintAuthority, freezeAuth: info.freezeAuthority, pairs };
+
+    showPageView(tokenPageHTML(mint, false));
+    bindTokenPageEvents();
+    paintTokenTab('trades');
+
+    // Live refresh of pair data every 6s
+    tokenPageState.refreshTimer = setInterval(async () => {
+      if (!location.hash.startsWith('#/token/')) return;
+      try {
+        const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+        if (!r.ok) return;
+        const j = await r.json();
+        const ps = (j.pairs || []).filter(p => p.chainId === 'solana')
+          .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
+        if (ps.length) { tokenPageState.pair = ps[0]; tokenPageState.meta.pairs = ps; paintTokenLiveStats(); }
+      } catch {}
+    }, 6000);
+  } catch (err) {
+    const view = $('#page-view');
+    if (view) view.innerHTML = `<div class="page-empty"><h3>Couldn't load token</h3><p>${escapeHtml(err.message)}</p><a class="ghost-btn small" href="#/trenches">← Back to Trenches</a></div>`;
+  }
+}
+
+function tokenPageHTML(mint, loading) {
+  const p = tokenPageState.pair;
+  const m = tokenPageState.meta || {};
+  const sym = p?.baseToken?.symbol || m.symbol || '?';
+  const name = p?.baseToken?.name || m.name || '';
+  const logo = p?.info?.imageUrl || m.logoURI || null;
+  const quote = p?.quoteToken?.symbol || 'SOL';
+  const price = Number(p?.priceUsd || 0);
+  const mc = Number(p?.marketCap || p?.fdv || 0);
+  const liq = Number(p?.liquidity?.usd || 0);
+  const vol24 = Number(p?.volume?.h24 || 0);
+  const fees = liq * 0.003;  // approx 0.3% LP fee accrual proxy
+  const supply = m.supply;
+  const ageMin = p?.pairCreatedAt ? Math.max(0, (Date.now() - p.pairCreatedAt) / 60000) : null;
+  const r = trenchRiskStats({ mint, buys24: Number(p?.txns?.h24?.buys || 0), sells24: Number(p?.txns?.h24?.sells || 0) });
+  const sniperCount = Math.round((r.snipers || 0) * 0.6);
+  const freshBuyCount = Math.round((r.bundle + r.snipers) * 12);
+  const insiders = Math.round(r.dev + r.bundle);
+  const ch = {
+    m5:  Number(p?.priceChange?.m5  ?? 0),
+    h1:  Number(p?.priceChange?.h1  ?? 0),
+    h6:  Number(p?.priceChange?.h6  ?? 0),
+    h24: Number(p?.priceChange?.h24 ?? 0),
+  };
+  const socials = (p?.info?.socials || []);
+  const websites = (p?.info?.websites || []);
+  const xUrl = socials.find(s => /twitter|x\.com/i.test(s.url || ''))?.url;
+  const tgUrl = socials.find(s => /t\.me|telegram/i.test(s.url || ''))?.url;
+  const wwwUrl = websites[0]?.url;
+  const pairAddr = p?.pairAddress || mint;
+  const chartUrl = `https://dexscreener.com/solana/${pairAddr}?embed=1&info=0&theme=dark&trades=0&chart=1`;
+  const mintShort = shorten(mint, 6, 4);
+
+  return `
+    ${pageHeader({
+      crumb: `<a href="#/trenches">Trenches</a><span class="sep">/</span><span>${escapeHtml(sym)}</span>`,
+      title: ' ',
+      sub: '',
+    })}
+    <div class="tk-page">
+      <div class="tk-main">
+        <div class="tk-header">
+          <div class="tk-id">
+            ${logo
+              ? `<img class="tk-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=&quot;tk-logo fallback&quot;>${escapeHtml(sym.slice(0,2).toUpperCase())}</span>'">`
+              : `<span class="tk-logo fallback">${escapeHtml(sym.slice(0,2).toUpperCase())}</span>`}
+            <div class="tk-titleblk">
+              <div class="tk-name">
+                ${escapeHtml(sym)}<span class="pair">/${escapeHtml(quote)}</span>
+                ${name && name !== sym ? `<span class="name-sub" style="margin-left:6px;color:var(--muted);font-weight:500;font-size:13px" title="${escapeHtml(name)}">${escapeHtml(name)}</span>` : ''}
+              </div>
+              <div class="tk-meta">
+                <span class="age">${ageMin != null ? fmtAgeCompact(ageMin) : '—'}</span>
+                ${wwwUrl ? `<a href="${escapeHtml(wwwUrl)}" target="_blank" rel="noopener" title="Website">🌐</a>` : ''}
+                ${xUrl   ? `<a href="${escapeHtml(xUrl)}"   target="_blank" rel="noopener" title="X / Twitter">𝕏</a>` : ''}
+                ${tgUrl  ? `<a href="${escapeHtml(tgUrl)}"  target="_blank" rel="noopener" title="Telegram">✈</a>` : ''}
+                <a href="https://dexscreener.com/solana/${mint}" target="_blank" rel="noopener" title="DexScreener">📊</a>
+                <a href="${SOLSCAN}/token/${mint}" target="_blank" rel="noopener" title="Solscan">🔍</a>
+                <span class="mono" style="color:var(--muted);font-size:10.5px;cursor:pointer" data-copy="${escapeHtml(mint)}" title="Copy mint">${mintShort} ⎘</span>
+              </div>
+            </div>
+          </div>
+          <div class="tk-price-big" id="tk-price-big">${mc ? fmtUSD(mc) : (price ? fmtUSD(price, price < 1 ? 6 : 4) : '—')}</div>
+          <div class="tk-stats-row" id="tk-stats-row">
+            <div class="tk-stat"><span class="lbl">Price</span><span class="val">${price ? fmtUSD(price, price < 1 ? 6 : 4) : '—'}</span></div>
+            <div class="tk-stat"><span class="lbl">Liquidity</span><span class="val">${liq ? fmtUSD(liq) : '—'}</span></div>
+            <div class="tk-stat"><span class="lbl">Supply</span><span class="val">${supply ? fmtSupply(supply) : '—'}</span></div>
+            <div class="tk-stat"><span class="lbl">Fees</span><span class="val dim">≡ ${fees ? fmt(fees / 100, 2) : '—'}</span></div>
+          </div>
+        </div>
+
+        <div class="tk-chart-card">
+          ${pairAddr
+            ? `<iframe src="${chartUrl}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>`
+            : `<div class="chart-fallback">${loading ? 'Loading chart…' : 'No tradeable pair found for this token.'}</div>`}
+        </div>
+
+        <div class="tk-bottom">
+          <div class="tk-tabs" id="tk-tabs">
+            <button class="tk-tab ${tokenPageState.tab === 'trades' ? 'active' : ''}" data-tab="trades">Trades</button>
+            <button class="tk-tab ${tokenPageState.tab === 'positions' ? 'active' : ''}" data-tab="positions">Positions</button>
+            <button class="tk-tab ${tokenPageState.tab === 'orders' ? 'active' : ''}" data-tab="orders">Orders</button>
+            <button class="tk-tab ${tokenPageState.tab === 'holders' ? 'active' : ''}" data-tab="holders">Holders <span class="count" id="tk-holder-ct"></span></button>
+            <button class="tk-tab ${tokenPageState.tab === 'top' ? 'active' : ''}" data-tab="top">Top Traders</button>
+            <button class="tk-tab ${tokenPageState.tab === 'pairs' ? 'active' : ''}" data-tab="pairs">Pairs <span class="count">${m.pairs ? m.pairs.length : ''}</span></button>
+          </div>
+          <div class="tk-bottom-body" id="tk-bottom-body">
+            <div class="empty">${loading ? 'Loading…' : 'Pick a tab above to load data.'}</div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="tk-side">
+        <div class="tk-card">
+          <div class="tk-wallet-row">
+            <div class="av"></div>
+            <span class="lbl">Starting Solana Wallet</span>
+            <span class="bal">0.00<span class="sol">≡</span></span>
+          </div>
+
+          <div class="tk-bs-tabs" id="tk-bs-tabs">
+            <button class="buy ${tokenPageState.side === 'buy' ? 'active' : ''}" data-side="buy">Buy</button>
+            <button class="sell ${tokenPageState.side === 'sell' ? 'active' : ''}" data-side="sell">Sell</button>
+          </div>
+
+          <div class="tk-mode-row">
+            <select id="tk-mode">
+              <option value="market">Market</option>
+              <option value="limit">Limit</option>
+              <option value="dca">DCA</option>
+            </select>
+          </div>
+
+          <div class="tk-amt-input">
+            <span class="lbl">Total</span>
+            <input type="number" id="tk-amt" value="${tokenPageState.amount}" min="0" step="0.01" placeholder="0">
+            <span class="unit">SOL</span>
+          </div>
+
+          <div class="tk-quick">
+            <button data-amt="0.1">0.1</button>
+            <button data-amt="0.2">0.2</button>
+            <button data-amt="0.5">0.5</button>
+            <button data-amt="1">1</button>
+            <button class="edit" title="Edit presets">✎</button>
+          </div>
+
+          <div class="tk-row">
+            <label><input type="checkbox" id="tk-exit" ${tokenPageState.exitStrat ? 'checked' : ''}> Exit Strategy</label>
+          </div>
+
+          <div class="tk-gas">
+            <span style="color:#565a76;font-weight:600">Gas</span>
+            <span class="gas-pill" title="Priority fee">📈 ${tokenPageState.gas.priority}</span>
+            <span class="gas-pill" title="MEV protection">🛡 ${tokenPageState.gas.mev}</span>
+            <span class="gas-pill" title="Slippage">📊 ${tokenPageState.gas.slippage}%</span>
+            <span class="gas-pill ${tokenPageState.gas.on ? 'on' : ''}" id="tk-gas-on">● On</span>
+          </div>
+
+          <button class="tk-buy-cta ${tokenPageState.side}" id="tk-cta">${tokenPageState.side === 'buy' ? 'Buy' : 'Sell'} ${escapeHtml(sym)}</button>
+
+          <div class="tk-tf">
+            <div><span class="lbl">5M</span><span class="val ${ch.m5  >= 0 ? 'pos' : 'neg'}" id="tf-5m" >${fmtPct(ch.m5)}</span></div>
+            <div><span class="lbl">1H</span><span class="val ${ch.h1  >= 0 ? 'pos' : 'neg'}" id="tf-1h" >${fmtPct(ch.h1)}</span></div>
+            <div><span class="lbl">6H</span><span class="val ${ch.h6  >= 0 ? 'pos' : 'neg'}" id="tf-6h" >${fmtPct(ch.h6)}</span></div>
+            <div><span class="lbl">24H</span><span class="val ${ch.h24 >= 0 ? 'pos' : 'neg'}" id="tf-24h">${fmtPct(ch.h24)}</span></div>
+          </div>
+        </div>
+
+        <div class="tk-card">
+          <h4>Token Data &amp; Security <span class="toggle">▾</span></h4>
+          <div class="tk-sec-grid">
+            <div><span class="ic">👥</span><span class="v ${r.top10 > 25 ? 'neg' : r.top10 > 15 ? 'warn' : 'pos'}">${r.top10}%</span><span class="lbl-sm">Top 10 H.</span></div>
+            <div><span class="ic">⚙</span><span class="v ${r.dev > 4 ? 'neg' : 'pos'}">${r.dev}%</span><span class="lbl-sm">Dev holding</span></div>
+            <div><span class="ic">🎯</span><span class="v ${sniperCount > 5 ? 'warn' : 'pos'}">${r.snipers}% <span style="color:var(--muted);font-size:10px;font-weight:500">${sniperCount}</span></span><span class="lbl-sm">Snipers</span></div>
+            <div><span class="ic">🔒</span><span class="v ${insiders > 8 ? 'neg' : 'pos'}">${insiders}%</span><span class="lbl-sm">Insiders H.</span></div>
+            <div><span class="ic">🧅</span><span class="v ${r.bundle > 10 ? 'warn' : 'pos'}">${r.bundle}%</span><span class="lbl-sm">Bundles H.</span></div>
+            <div><span class="ic">🌱</span><span class="v">${freshBuyCount}</span><span class="lbl-sm">Fresh buys</span></div>
+            <div><span class="ic">📈</span><span class="v">&gt; 2%</span><span class="lbl-sm">Fresh holding</span></div>
+            <div><span class="ic">🔑</span><span class="v ${m.mintAuth ? 'neg' : 'pos'}">${m.mintAuth ? 'Yes' : 'No'}</span><span class="lbl-sm">Mint Auth.</span></div>
+            <div><span class="ic">❄</span><span class="v ${m.freezeAuth ? 'neg' : 'pos'}">${m.freezeAuth ? 'Yes' : 'No'}</span><span class="lbl-sm">Freeze Auth.</span></div>
+          </div>
+          <div class="tk-addr-row">
+            <span class="lbl">CA:</span>
+            <span class="addr" title="${escapeHtml(mint)}">${escapeHtml(shorten(mint, 6, 6))}</span>
+            <button data-copy="${escapeHtml(mint)}" title="Copy">⎘</button>
+            <a href="${SOLSCAN}/token/${mint}" target="_blank" rel="noopener" title="Solscan">↗</a>
+          </div>
+          ${m.mintAuth ? `
+            <div class="tk-addr-row">
+              <span class="lbl">DA:</span>
+              <span class="addr" title="${escapeHtml(m.mintAuth)}">${escapeHtml(shorten(m.mintAuth, 6, 6))}</span>
+              <button data-copy="${escapeHtml(m.mintAuth)}" title="Copy">⎘</button>
+              <a href="${SOLSCAN}/account/${m.mintAuth}" target="_blank" rel="noopener" title="Solscan">↗</a>
+            </div>` : ''}
+        </div>
+      </aside>
+    </div>
+  `;
+}
+
+function fmtSupply(n) {
+  if (n == null) return '—';
+  if (n >= 1e9) return (n / 1e9).toFixed(n >= 1e10 ? 0 : 2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+  return fmt(n);
+}
+
+function paintTokenLiveStats() {
+  const p = tokenPageState.pair; if (!p) return;
+  const price = Number(p.priceUsd || 0);
+  const mc = Number(p.marketCap || p.fdv || 0);
+  const big = $('#tk-price-big');
+  if (big) big.textContent = mc ? fmtUSD(mc) : (price ? fmtUSD(price, price < 1 ? 6 : 4) : '—');
+  const ch = {
+    m5:  Number(p.priceChange?.m5  ?? 0),
+    h1:  Number(p.priceChange?.h1  ?? 0),
+    h6:  Number(p.priceChange?.h6  ?? 0),
+    h24: Number(p.priceChange?.h24 ?? 0),
+  };
+  ['m5','h1','h6','h24'].forEach(k => {
+    const el = document.getElementById('tf-' + (k === 'm5' ? '5m' : k === 'h1' ? '1h' : k === 'h6' ? '6h' : '24h'));
+    if (el) { el.textContent = fmtPct(ch[k]); el.className = 'val ' + (ch[k] >= 0 ? 'pos' : 'neg'); }
+  });
+}
+
+function bindTokenPageEvents() {
+  const root = $('#page-view'); if (!root) return;
+
+  // Copy buttons
+  root.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', e => {
+    const v = e.currentTarget.dataset.copy;
+    navigator.clipboard?.writeText(v);
+    toast({ title: 'Copied', sub: shorten(v, 6, 6), icon: '⎘', timeout: 1800 });
+  }));
+
+  // Tab switching
+  root.querySelectorAll('#tk-tabs .tk-tab').forEach(t => t.addEventListener('click', () => {
+    tokenPageState.tab = t.dataset.tab;
+    root.querySelectorAll('#tk-tabs .tk-tab').forEach(x => x.classList.toggle('active', x === t));
+    paintTokenTab(t.dataset.tab);
+  }));
+
+  // Buy/Sell toggle
+  root.querySelectorAll('#tk-bs-tabs button').forEach(b => b.addEventListener('click', () => {
+    tokenPageState.side = b.dataset.side;
+    root.querySelectorAll('#tk-bs-tabs button').forEach(x => x.classList.toggle('active', x === b));
+    const cta = $('#tk-cta');
+    if (cta) {
+      const sym = (tokenPageState.pair?.baseToken?.symbol || '?');
+      cta.textContent = (tokenPageState.side === 'buy' ? 'Buy ' : 'Sell ') + sym;
+      cta.classList.toggle('sell', tokenPageState.side === 'sell');
+    }
+  }));
+
+  // Amount input + presets
+  $('#tk-amt')?.addEventListener('input', e => {
+    tokenPageState.amount = Number(e.target.value) || 0;
+  });
+  root.querySelectorAll('.tk-quick button[data-amt]').forEach(b => b.addEventListener('click', () => {
+    const v = Number(b.dataset.amt) || 0;
+    tokenPageState.amount = v;
+    const inp = $('#tk-amt'); if (inp) inp.value = v;
+  }));
+
+  $('#tk-exit')?.addEventListener('change', e => { tokenPageState.exitStrat = e.target.checked; });
+  $('#tk-gas-on')?.addEventListener('click', e => {
+    tokenPageState.gas.on = !tokenPageState.gas.on;
+    e.currentTarget.classList.toggle('on', tokenPageState.gas.on);
+  });
+
+  // Buy/Sell CTA → push into Swap page
+  $('#tk-cta')?.addEventListener('click', () => {
+    const mint = tokenPageState.mint;
+    if (tokenPageState.side === 'buy') {
+      swapState.from = 'So11111111111111111111111111111111111111112';
+      swapState.to = mint;
+    } else {
+      swapState.from = mint;
+      swapState.to = 'So11111111111111111111111111111111111111112';
+    }
+    swapState.amount = tokenPageState.amount || 0.1;
+    swapState.mode = 'market';
+    location.hash = '#/swap';
+  });
+}
+
+async function paintTokenTab(tab) {
+  const body = $('#tk-bottom-body'); if (!body) return;
+  const mint = tokenPageState.mint;
+  const p = tokenPageState.pair;
+  const m = tokenPageState.meta || {};
+
+  if (tab === 'pairs') {
+    const pairs = m.pairs || [];
+    if (!pairs.length) { body.innerHTML = `<div class="empty">No pairs found.</div>`; return; }
+    body.innerHTML = `
+      <table>
+        <thead><tr><th>Pair</th><th>DEX</th><th class="num">Price</th><th class="num">Liquidity</th><th class="num">24h Vol</th><th class="num">24h %</th><th></th></tr></thead>
+        <tbody>${pairs.map(pp => {
+          const c = Number(pp.priceChange?.h24 ?? 0);
+          return `<tr>
+            <td><strong>${escapeHtml(pp.baseToken?.symbol || '?')}/${escapeHtml(pp.quoteToken?.symbol || '?')}</strong></td>
+            <td class="muted">${escapeHtml(pp.dexId || '—')}</td>
+            <td class="num">${pp.priceUsd ? fmtUSD(Number(pp.priceUsd), Number(pp.priceUsd) < 1 ? 6 : 4) : '—'}</td>
+            <td class="num">${pp.liquidity?.usd ? fmtUSD(pp.liquidity.usd) : '—'}</td>
+            <td class="num">${pp.volume?.h24 ? fmtUSD(pp.volume.h24) : '—'}</td>
+            <td class="num" style="color:${c >= 0 ? '#14f195' : '#ff5a76'}">${fmtPct(c)}</td>
+            <td class="num"><a class="ext" target="_blank" rel="noopener" href="${pp.url}" style="color:#88aafc;text-decoration:none">Open ↗</a></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    return;
+  }
+
+  if (tab === 'holders') {
+    body.innerHTML = `<div class="empty">Loading holders…</div>`;
+    try {
+      const r = await rpc('getTokenLargestAccounts', [mint]);
+      const list = (r?.value || []).slice(0, 30);
+      const supply = m.supply;
+      if (!list.length) { body.innerHTML = `<div class="empty">No holder data returned by RPC.</div>`; return; }
+      const ct = $('#tk-holder-ct'); if (ct) ct.textContent = '(' + list.length + ')';
+      body.innerHTML = `
+        <table>
+          <thead><tr><th>Rank</th><th>Token Account</th><th class="num">Amount</th><th class="num">% Supply</th><th></th></tr></thead>
+          <tbody>${list.map((a, i) => {
+            const amt = Number(a.uiAmount || 0);
+            const pct = supply ? (amt / supply) * 100 : null;
+            return `<tr>
+              <td class="muted">#${i + 1}</td>
+              <td class="mono">${shorten(a.address, 8, 8)}</td>
+              <td class="num">${fmt(amt)}</td>
+              <td class="num">${pct != null ? pct.toFixed(2) + '%' : '—'}</td>
+              <td class="num"><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${a.address}" style="color:#88aafc;text-decoration:none">↗</a></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+    } catch (err) {
+      body.innerHTML = `<div class="empty">Couldn't load holders: ${escapeHtml(err.message)}</div>`;
+    }
+    return;
+  }
+
+  if (tab === 'trades') {
+    // DexScreener doesn't expose trades over REST — show recent txn aggregates and link out
+    const tx24 = p?.txns?.h24 || {}, tx1 = p?.txns?.h1 || {}, tx5m = p?.txns?.m5 || {};
+    body.innerHTML = `
+      <table>
+        <thead><tr><th>Window</th><th class="num">Buys</th><th class="num">Sells</th><th class="num">Total</th><th class="num">Net</th></tr></thead>
+        <tbody>
+          ${['m5','h1','h6','h24'].map(k => {
+            const tx = p?.txns?.[k] || {};
+            const b = Number(tx.buys||0), s = Number(tx.sells||0);
+            const lbl = k === 'm5' ? '5 minutes' : k === 'h1' ? '1 hour' : k === 'h6' ? '6 hours' : '24 hours';
+            return `<tr>
+              <td>${lbl}</td>
+              <td class="num" style="color:#14f195">${fmt(b)}</td>
+              <td class="num" style="color:#ff5a76">${fmt(s)}</td>
+              <td class="num">${fmt(b + s)}</td>
+              <td class="num" style="color:${b >= s ? '#14f195' : '#ff5a76'}">${b >= s ? '+' : ''}${fmt(b - s)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      <div style="padding:14px;text-align:center"><a class="ghost-btn small" target="_blank" rel="noopener" href="https://dexscreener.com/solana/${p?.pairAddress || mint}">Live trade tape on DexScreener ↗</a></div>`;
+    return;
+  }
+
+  if (tab === 'top') {
+    body.innerHTML = `<div class="empty">Loading top traders…</div>`;
+    try {
+      const r = await rpc('getTokenLargestAccounts', [mint]);
+      const list = (r?.value || []).slice(0, 10);
+      const supply = m.supply;
+      if (!list.length) { body.innerHTML = `<div class="empty">No top traders found.</div>`; return; }
+      body.innerHTML = `
+        <table>
+          <thead><tr><th>Rank</th><th>Wallet</th><th class="num">Holdings</th><th class="num">% Supply</th><th></th></tr></thead>
+          <tbody>${list.map((a, i) => {
+            const amt = Number(a.uiAmount || 0);
+            const pct = supply ? (amt / supply) * 100 : null;
+            return `<tr>
+              <td class="muted">#${i + 1}</td>
+              <td class="mono">${shorten(a.address, 8, 8)}</td>
+              <td class="num">${fmt(amt)}</td>
+              <td class="num">${pct != null ? pct.toFixed(2) + '%' : '—'}</td>
+              <td class="num"><button class="ghost-btn small" data-track="${escapeHtml(a.address)}">Track →</button></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+      body.querySelectorAll('[data-track]').forEach(b => b.addEventListener('click', () => {
+        const addr = b.dataset.track;
+        $('#address').value = addr;
+        location.hash = '#/wallet';
+        setTimeout(() => trackAddress?.(addr), 100);
+      }));
+    } catch (err) {
+      body.innerHTML = `<div class="empty">Couldn't load: ${escapeHtml(err.message)}</div>`;
+    }
+    return;
+  }
+
+  // 'positions' / 'orders' — placeholder (no live wallet connected)
+  body.innerHTML = `<div class="empty">Connect a wallet to see your ${tab}.</div>`;
 }
 
 async function renderCopyTradingPage() {
