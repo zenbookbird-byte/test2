@@ -1571,6 +1571,138 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   padding: 4px 8px; border-radius: 6px;
 }
 .tr-buy:hover { background: rgba(20, 241, 149, .22); color: #b9f7d8; }
+.tr-snipe {
+  appearance: none; cursor: pointer;
+  background: rgba(255, 90, 118, .14); color: #ffb0bd;
+  border: 1px solid rgba(255, 90, 118, .35);
+  font: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+  padding: 4px 8px; border-radius: 6px; margin-left: 4px;
+}
+.tr-snipe:hover { background: rgba(255, 90, 118, .22); color: #ffd0d8; }
+
+/* Multi-timeframe momentum chips */
+.tr-momentum {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px;
+  padding: 2px 0;
+}
+.tr-mom {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3px 2px; border-radius: 5px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  font-variant-numeric: tabular-nums;
+}
+.tr-mom .lbl { font-size: 8.5px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .04em; }
+.tr-mom .val { font-size: 10.5px; font-weight: 700; line-height: 1.1; margin-top: 1px; }
+.tr-mom.pos { border-color: rgba(20,241,149,.35); background: rgba(20,241,149,.06); }
+.tr-mom.pos .val { color: var(--pos); }
+.tr-mom.neg { border-color: rgba(255,90,118,.35); background: rgba(255,90,118,.06); }
+.tr-mom.neg .val { color: var(--neg); }
+
+/* Buys vs sells bar */
+.tr-bs {
+  display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center;
+  padding: 4px 0;
+}
+.tr-bs-bar {
+  position: relative; height: 6px; border-radius: 999px; overflow: hidden;
+  background: rgba(255,90,118,.18);
+}
+.tr-bs-bar > i {
+  display: block; height: 100%; background: linear-gradient(90deg, #14f195, #6ce5b8);
+  border-radius: 999px; transition: width .3s;
+}
+.tr-bs-counts {
+  font-size: 9.5px; font-variant-numeric: tabular-nums; color: var(--muted);
+  white-space: nowrap;
+}
+.tr-bs-counts .b { color: #88f3c3; font-weight: 700; }
+.tr-bs-counts .s { color: #ffb0bd; font-weight: 700; }
+
+/* Bonding-curve progress bar (for ALMOST column) */
+.tr-bond {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center;
+  padding: 3px 0; font-size: 10px;
+}
+.tr-bond .lbl { color: var(--muted-2); text-transform: uppercase; letter-spacing: .06em; font-size: 9px; }
+.tr-bond .val { font-variant-numeric: tabular-nums; font-weight: 700; color: #ffce91; }
+.tr-bond-bar {
+  height: 5px; border-radius: 999px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--stroke);
+}
+.tr-bond-bar > i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, #ffd166, #ff9559);
+  transition: width .4s;
+}
+
+/* Social/info icons row */
+.tr-socials {
+  display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
+}
+.tr-socials a, .tr-socials span {
+  width: 18px; height: 18px; display: inline-grid; place-items: center;
+  border-radius: 5px; background: var(--surface); border: 1px solid var(--stroke);
+  color: var(--muted); text-decoration: none; font-size: 10px;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.tr-socials a:hover { color: var(--text); border-color: var(--stroke-strong); background: var(--surface-2); }
+.tr-socials .risk-ok { background: rgba(20,241,149,.12); color: #88f3c3; border-color: rgba(20,241,149,.3); }
+.tr-socials .risk-warn { background: rgba(255,179,71,.12); color: #ffce91; border-color: rgba(255,179,71,.35); }
+
+/* Card freshness highlight (for newly-streamed tokens) */
+@keyframes tr-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(20,241,149,.6), 0 0 18px 4px rgba(20,241,149,.35); border-color: rgba(20,241,149,.7); }
+  100% { box-shadow: 0 0 0 0 rgba(20,241,149,0),  0 0 0 0 rgba(20,241,149,0);     border-color: var(--stroke); }
+}
+.tr-card.fresh { animation: tr-flash 3.5s ease-out 1; }
+
+/* Trenches stats summary bar */
+.trenches-summary {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 6px 0 14px;
+}
+.trenches-summary .ts-card {
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  display: grid; gap: 2px;
+}
+.trenches-summary .ts-lbl {
+  font-size: 9.5px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .08em; font-weight: 600;
+}
+.trenches-summary .ts-val {
+  font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.trenches-summary .ts-sub { font-size: 10.5px; color: var(--muted); font-weight: 500; }
+
+/* Trenches advanced filter bar */
+.trenches-filters {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  margin-bottom: 12px;
+}
+.trenches-filters .tf-grp {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--muted);
+}
+.trenches-filters .tf-grp label { letter-spacing: .04em; text-transform: uppercase; font-size: 9.5px; font-weight: 600; color: var(--muted-2); }
+.trenches-filters input[type="text"],
+.trenches-filters input[type="number"],
+.trenches-filters select {
+  appearance: none; background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--text); font: inherit; font-size: 11.5px;
+  padding: 5px 8px; border-radius: 6px; min-width: 0;
+}
+.trenches-filters input[type="number"] { width: 78px; font-variant-numeric: tabular-nums; }
+.trenches-filters input[type="text"]   { width: 160px; }
+.trenches-filters input:focus, .trenches-filters select:focus { outline: none; border-color: var(--accent); }
+.trenches-filters .tf-clear {
+  appearance: none; background: transparent; border: 1px solid var(--stroke);
+  color: var(--muted); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;
+}
+.trenches-filters .tf-clear:hover { color: var(--text); border-color: var(--stroke-strong); }
 
 .watchlist-grid {
   display: grid; gap: 12px;
@@ -4755,6 +4887,16 @@ const trenchesState = {
   liveMode: false,   // false = poll DexScreener; true = WebSocket to PumpPortal
   ws: null,
   wsStatus: 'idle',  // 'idle' | 'connecting' | 'live' | 'error'
+  filters: {
+    minMc: 0, maxMc: 0,        // 0 = no limit
+    minLiq: 0, minVol24: 0,
+    maxAgeMin: 0,              // 0 = no limit
+    search: '',
+    sortNew:    'age',         // 'age' | 'mc' | 'vol24' | 'liq' | 'h24'
+    sortAlmost: 'mc',
+    sortBonded: 'vol24',
+  },
+  stats: { total: 0, fresh5m: 0, topMover: null, topVol: null },
 };
 const PUMPPORTAL_KEY = 'solscope:pumpportalKey';
 const TRENCHES_SOURCES = [
@@ -4793,24 +4935,48 @@ async function fetchTrenchesData() {
     } catch { return null; }
   }));
 
-  return detailed.filter(Boolean).map(({ mint, pair: p }) => {
-    const price = Number(p.priceUsd) || 0;
-    const mc = Number(p.marketCap || p.fdv || 0);
-    const vol24 = Number(p.volume?.h24 || 0);
-    const ch24 = Number(p.priceChange?.h24 ?? 0);
-    const ch1 = Number(p.priceChange?.h1 ?? 0);
-    const liq = Number(p.liquidity?.usd || 0);
-    const createdAt = p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : null;
-    const ageMin = createdAt ? Math.max(0, (Date.now() / 1000 - createdAt) / 60) : null;
-    return {
-      mint, symbol: p.baseToken?.symbol || '?', name: p.baseToken?.name || '',
-      logo: p.info?.imageUrl || null,
-      dexId: (p.dexId || '').toLowerCase(),
-      url: p.url,
-      price, mc, vol24, ch24, ch1, liq,
-      createdAt, ageMin,
-    };
-  });
+  return detailed.filter(Boolean).map(({ mint, pair: p }) => extractTrenchRow(mint, p));
+}
+
+/* Convert a DexScreener pair object into the rich row used by Trenches */
+function extractTrenchRow(mint, p, prev = {}) {
+  const price = Number(p.priceUsd) || prev.price || 0;
+  const mc    = Number(p.marketCap || p.fdv || 0) || prev.mc || 0;
+  const vol24 = Number(p.volume?.h24 || 0);
+  const vol1  = Number(p.volume?.h1  || 0);
+  const vol5m = Number(p.volume?.m5  || 0);
+  const ch5m  = Number(p.priceChange?.m5  ?? 0);
+  const ch1   = Number(p.priceChange?.h1  ?? 0);
+  const ch6   = Number(p.priceChange?.h6  ?? 0);
+  const ch24  = Number(p.priceChange?.h24 ?? 0);
+  const liq   = Number(p.liquidity?.usd || 0);
+  const tx24  = p.txns?.h24 || {};
+  const tx1   = p.txns?.h1  || {};
+  const tx5m  = p.txns?.m5  || {};
+  const buys24  = Number(tx24.buys  || 0);
+  const sells24 = Number(tx24.sells || 0);
+  const buys1   = Number(tx1.buys   || 0);
+  const sells1  = Number(tx1.sells  || 0);
+  const buys5m  = Number(tx5m.buys  || 0);
+  const sells5m = Number(tx5m.sells || 0);
+  const createdAt = p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : prev.createdAt || null;
+  const ageMin = createdAt ? Math.max(0, (Date.now() / 1000 - createdAt) / 60) : prev.ageMin || null;
+  const socials = Array.isArray(p.info?.socials) ? p.info.socials : [];
+  const websites = Array.isArray(p.info?.websites) ? p.info.websites : [];
+  return {
+    mint,
+    symbol: p.baseToken?.symbol || prev.symbol || '?',
+    name:   p.baseToken?.name   || prev.name   || '',
+    logo:   p.info?.imageUrl    || prev.logo   || null,
+    dexId:  (p.dexId || prev.dexId || '').toLowerCase(),
+    url:    p.url || prev.url,
+    price, mc, vol24, vol1, vol5m,
+    ch24, ch1, ch6, ch5m,
+    liq,
+    buys24, sells24, buys1, sells1, buys5m, sells5m,
+    createdAt, ageMin,
+    socials, websites,
+  };
 }
 
 function classifyTrench(t) {
@@ -4834,13 +5000,47 @@ function fmtAge(min) {
   return `${Math.floor(min / 1440)}d`;
 }
 
-function trenchCardHTML(t) {
+/* Bonding-curve graduate threshold for ALMOST column progress bar */
+const BOND_TARGET_MC = TRENCH_THRESH.almostMax;
+
+function momentumChip(label, val) {
+  const v = Number(val);
+  if (!Number.isFinite(v) || v === 0) {
+    return `<div class="tr-mom"><span class="lbl">${label}</span><span class="val muted">—</span></div>`;
+  }
+  const cls = v > 0 ? 'pos' : 'neg';
+  return `<div class="tr-mom ${cls}"><span class="lbl">${label}</span><span class="val">${fmtPct(v)}</span></div>`;
+}
+
+function socialIconHTML(s) {
+  // s = { type: 'twitter'|'telegram'|'discord'|..., url } or website { label, url }
+  const url = s.url; if (!url) return '';
+  const t = (s.type || s.platform || '').toLowerCase();
+  let g = '🌐';
+  if (t.includes('twitter') || t.includes('x.com') || /twitter|x\.com/i.test(url)) g = '𝕏';
+  else if (t.includes('telegram') || /t\.me/i.test(url)) g = '✈';
+  else if (t.includes('discord')) g = '💬';
+  else if (t.includes('youtube')) g = '▶';
+  else if (t.includes('tiktok')) g = '♪';
+  else if (t.includes('reddit')) g = 'ⓡ';
+  return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(t || 'website')}" onclick="event.stopPropagation()">${g}</a>`;
+}
+
+function trenchCardHTML(t, opts = {}) {
   const ch = Number(t.ch24 || 0);
-  const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
   const srcLabel = SOURCE_LABEL[t.dexId] || (t.dexId || '—');
   const srcHue = SOURCE_HUE[t.dexId] ?? 260;
+  const buys = Number(t.buys24 || 0), sells = Number(t.sells24 || 0);
+  const totalTx = buys + sells;
+  const buyPct = totalTx ? Math.round((buys / totalTx) * 100) : 50;
+  const showBond = opts.col === 'almost' && t.mc > 0;
+  const bondPct = showBond ? Math.min(100, Math.round((t.mc / BOND_TARGET_MC) * 100)) : 0;
+
+  const socials = (t.socials || []).slice(0, 4).map(socialIconHTML).join('');
+  const sites = (t.websites || []).slice(0, 1).map(w => socialIconHTML({ type: 'website', url: w.url })).join('');
+
   return `
-    <article class="tr-card" data-mint="${escapeHtml(t.mint)}">
+    <article class="tr-card${t.fresh ? ' fresh' : ''}" data-mint="${escapeHtml(t.mint)}">
       <div class="tr-card-head">
         ${t.logo ? `<img class="tr-logo" src="${t.logo}" alt="" onerror="this.outerHTML='<span class=&quot;tr-logo fallback&quot;>${escapeHtml((t.symbol||'?').slice(0,2).toUpperCase())}</span>'">` : `<span class="tr-logo fallback">${escapeHtml((t.symbol||'?').slice(0,2).toUpperCase())}</span>`}
         <div class="tr-name">
@@ -4849,44 +5049,112 @@ function trenchCardHTML(t) {
             <span class="mono">${shorten(t.mint, 4, 4)}</span>
             <span>·</span>
             <span>${fmtAge(t.ageMin)}</span>
+            ${t.name ? `<span>·</span><span class="ellipsis" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</span>` : ''}
           </div>
         </div>
+        <div class="tr-socials">${sites}${socials}</div>
         <a class="tr-ext" href="${t.url || '#'}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>
       </div>
       <div class="tr-stats">
         <div><span class="lbl">MC</span><span class="val">${t.mc ? fmtUSD(t.mc) : '—'}</span></div>
         <div><span class="lbl">Liq</span><span class="val">${t.liq ? fmtUSD(t.liq) : '—'}</span></div>
         <div><span class="lbl">Vol 24h</span><span class="val">${t.vol24 ? fmtUSD(t.vol24) : '—'}</span></div>
-        <div><span class="lbl">24h</span><span class="val delta ${cls}">${fmtPct(ch)}</span></div>
+        <div><span class="lbl">Vol 1h</span><span class="val">${t.vol1 ? fmtUSD(t.vol1) : '—'}</span></div>
       </div>
+      <div class="tr-momentum">
+        ${momentumChip('5m',  t.ch5m)}
+        ${momentumChip('1h',  t.ch1)}
+        ${momentumChip('6h',  t.ch6)}
+        ${momentumChip('24h', t.ch24)}
+      </div>
+      <div class="tr-bs" title="Buys vs sells (24h)">
+        <div class="tr-bs-bar"><i style="width:${buyPct}%"></i></div>
+        <div class="tr-bs-counts"><span class="b">${fmt(buys)}B</span> · <span class="s">${fmt(sells)}S</span></div>
+      </div>
+      ${showBond ? `
+        <div class="tr-bond" title="Progress toward ~$${(BOND_TARGET_MC/1000)|0}k bonding-curve graduation">
+          <span class="lbl">Bond</span>
+          <div class="tr-bond-bar"><i style="width:${bondPct}%"></i></div>
+          <span class="val">${bondPct}%</span>
+        </div>` : ''}
       <div class="tr-foot">
         <span class="tr-price">${t.price ? fmtUSD(t.price, t.price < 1 ? 6 : 4) : '—'}</span>
-        <button class="tr-buy" data-mint="${escapeHtml(t.mint)}">Quick swap →</button>
+        <div>
+          <button class="tr-buy" data-mint="${escapeHtml(t.mint)}">Buy →</button>
+          <button class="tr-snipe" data-snipe="${escapeHtml(t.mint)}" title="Snipe with preset amount">⚡</button>
+        </div>
       </div>
     </article>`;
+}
+
+/* Apply filters to the row list */
+function applyTrenchFilters(rows) {
+  const f = trenchesState.filters;
+  const q = (f.search || '').trim().toLowerCase();
+  return rows.filter(r => {
+    if (f.minMc    && (r.mc    || 0) < f.minMc) return false;
+    if (f.maxMc    && (r.mc    || 0) > f.maxMc) return false;
+    if (f.minLiq   && (r.liq   || 0) < f.minLiq) return false;
+    if (f.minVol24 && (r.vol24 || 0) < f.minVol24) return false;
+    if (f.maxAgeMin && r.ageMin != null && r.ageMin > f.maxAgeMin) return false;
+    if (q) {
+      const hay = `${r.symbol || ''} ${r.name || ''} ${r.mint || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function sortRows(list, key) {
+  const k = key || 'vol24';
+  if (k === 'age')   return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (k === 'mc')    return list.sort((a, b) => (b.mc    || 0) - (a.mc    || 0));
+  if (k === 'liq')   return list.sort((a, b) => (b.liq   || 0) - (a.liq   || 0));
+  if (k === 'h24')   return list.sort((a, b) => (b.ch24  || 0) - (a.ch24  || 0));
+  return list.sort((a, b) => (b.vol24 || 0) - (a.vol24 || 0));
+}
+
+function paintTrenchSummary() {
+  const rows = trenchesState.rows;
+  const now = Date.now() / 1000;
+  let fresh5m = 0, topMover = null, topVol = null, totalVol = 0, totalLiq = 0;
+  for (const r of rows) {
+    if (r.createdAt && now - r.createdAt < 300) fresh5m++;
+    if (!topMover  || Math.abs(r.ch24 || 0) > Math.abs(topMover.ch24 || 0)) topMover = r;
+    if (!topVol    || (r.vol24 || 0) > (topVol.vol24 || 0))                topVol   = r;
+    totalVol += Number(r.vol24 || 0);
+    totalLiq += Number(r.liq   || 0);
+  }
+  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  set('ts-total',    `<span class="ts-val">${fmt(rows.length)}</span><span class="ts-sub">tracked</span>`);
+  set('ts-fresh',    `<span class="ts-val">${fmt(fresh5m)}</span><span class="ts-sub">last 5m</span>`);
+  set('ts-vol',      `<span class="ts-val">${fmtUSD(totalVol)}</span><span class="ts-sub">24h aggregate</span>`);
+  set('ts-liq',      `<span class="ts-val">${fmtUSD(totalLiq)}</span><span class="ts-sub">pooled</span>`);
+  set('ts-mover',    topMover ? `<span class="ts-val">${escapeHtml(topMover.symbol || '?')}</span><span class="ts-sub delta ${(topMover.ch24||0) >= 0 ? 'pos' : 'neg'}">${fmtPct(topMover.ch24 || 0)} 24h</span>` : '<span class="ts-val muted">—</span>');
+  set('ts-topvol',   topVol   ? `<span class="ts-val">${escapeHtml(topVol.symbol   || '?')}</span><span class="ts-sub">${fmtUSD(topVol.vol24 || 0)}</span>` : '<span class="ts-val muted">—</span>');
 }
 
 function paintTrenches() {
   let rows = trenchesState.rows.slice();
   if (trenchesState.source) rows = rows.filter(r => r.dexId === trenchesState.source);
+  rows = applyTrenchFilters(rows);
 
   const newRows    = rows.filter(r => classifyTrench(r) === 'new');
   const almostRows = rows.filter(r => classifyTrench(r) === 'almost');
   const bondedRows = rows.filter(r => classifyTrench(r) === 'bonded');
 
-  // Sort: NEW = newest first, ALMOST = closest-to-graduate by MC, BONDED = highest volume
-  newRows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  almostRows.sort((a, b) => (b.mc || 0) - (a.mc || 0));
-  bondedRows.sort((a, b) => (b.vol24 || 0) - (a.vol24 || 0));
+  sortRows(newRows,    trenchesState.filters.sortNew);
+  sortRows(almostRows, trenchesState.filters.sortAlmost);
+  sortRows(bondedRows, trenchesState.filters.sortBonded);
 
   const fill = (id, list, emptyMsg) => {
     const el = $(`#tr-${id}`);
     if (!el) return;
     el.innerHTML = list.length
-      ? list.map(trenchCardHTML).join('')
+      ? list.map(t => trenchCardHTML(t, { col: id })).join('')
       : `<div class="tr-empty">${emptyMsg}</div>`;
     el.querySelectorAll('.tr-card').forEach(c => c.addEventListener('click', e => {
-      if (e.target.closest('.tr-buy') || e.target.closest('.tr-ext')) return;
+      if (e.target.closest('.tr-buy') || e.target.closest('.tr-snipe') || e.target.closest('.tr-ext') || e.target.closest('.tr-socials a')) return;
       openTokenDetail(c.dataset.mint);
     }));
     el.querySelectorAll('.tr-buy').forEach(b => b.addEventListener('click', e => {
@@ -4896,6 +5164,21 @@ function paintTrenches() {
       swapState.mode = 'market';
       location.hash = '#/swap';
     }));
+    el.querySelectorAll('.tr-snipe').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      swapState.to = b.dataset.snipe;
+      swapState.from = 'So11111111111111111111111111111111111111112'; // SOL
+      swapState.amount = 0.1;
+      swapState.mode = 'market';
+      location.hash = '#/swap';
+      toast({ title: 'Snipe loaded', sub: '0.1 SOL → ' + b.dataset.snipe.slice(0,4) + '… Review on Swap.', icon: '⚡', timeout: 3500 });
+    }));
+    // Drop the "fresh" flag after first paint so the animation only plays once
+    el.querySelectorAll('.tr-card.fresh').forEach(c => {
+      const mint = c.dataset.mint;
+      const idx = trenchesState.rows.findIndex(r => r.mint === mint);
+      if (idx >= 0) trenchesState.rows[idx].fresh = false;
+    });
     // Update count badge
     const badge = document.querySelector(`[data-col-badge="${id}"]`);
     if (badge) badge.textContent = list.length;
@@ -4904,6 +5187,8 @@ function paintTrenches() {
   fill('new',    newRows,    'Waiting for fresh launches…');
   fill('almost', almostRows, 'Waiting for near-bonded tokens…');
   fill('bonded', bondedRows, 'Waiting for graduates…');
+
+  paintTrenchSummary();
 
   // Update source counts
   const counts = {};
@@ -4996,7 +5281,9 @@ function handlePumpPortalEvent(msg) {
       ch24: 0, ch1: 0, liq: Number(msg.liquidity || 0),
       createdAt: Math.floor(Date.now() / 1000),
       ageMin: 0,
-      _flash: true,
+      buys24: 0, sells24: 0, buys1: 0, sells1: 0, buys5m: 0, sells5m: 0,
+      socials: [], websites: [],
+      fresh: true, firstSeen: Date.now(),
     };
     if (existingIdx >= 0) trenchesState.rows[existingIdx] = { ...trenchesState.rows[existingIdx], ...row };
     else trenchesState.rows.unshift(row);
@@ -5099,23 +5386,15 @@ async function processEnrichmentQueue() {
     const idx = trenchesState.rows.findIndex(r => r.mint === mint);
     if (idx < 0) continue;
     const row = trenchesState.rows[idx];
-    const price = Number(p.priceUsd) || row.price || 0;
-    const mc    = Number(p.marketCap || p.fdv || 0) || row.mc || 0;
-    const vol24 = Number(p.volume?.h24 || 0);
-    const ch24  = Number(p.priceChange?.h24 ?? 0);
-    const ch1   = Number(p.priceChange?.h1 ?? 0);
-    const liq   = Number(p.liquidity?.usd || 0);
-    const createdAt = p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : row.createdAt;
-    const ageMin = createdAt ? Math.max(0, (Date.now() / 1000 - createdAt) / 60) : row.ageMin;
-    trenchesState.rows[idx] = {
-      ...row,
-      symbol: row.symbol && row.symbol !== '?' ? row.symbol : (p.baseToken?.symbol || row.symbol),
-      name:   row.name   || p.baseToken?.name || '',
-      logo:   row.logo   || p.info?.imageUrl || null,
-      dexId:  (p.dexId || row.dexId || '').toLowerCase(),
-      url:    p.url || row.url,
-      price, mc, vol24, ch24, ch1, liq, createdAt, ageMin,
-    };
+    const next = extractTrenchRow(mint, p, row);
+    // Preserve symbol/name/logo if better than what arrived
+    if (row.symbol && row.symbol !== '?' && (!next.symbol || next.symbol === '?')) next.symbol = row.symbol;
+    if (row.name && !next.name) next.name = row.name;
+    if (row.logo && !next.logo) next.logo = row.logo;
+    // Preserve flags from the WS stream
+    next.fresh = row.fresh;
+    next.firstSeen = row.firstSeen || Date.now();
+    trenchesState.rows[idx] = next;
     trenchEnrich.failures.delete(mint);
     changed = true;
   }
@@ -5169,11 +5448,29 @@ function stopTrenchesLoop() {
 async function renderTrenchesPage() {
   const live = trenchesState.liveMode;
   const hasKey = !!localStorage.getItem(PUMPPORTAL_KEY);
+  const f = trenchesState.filters;
+  const sortOpts = `
+    <option value="vol24">Vol 24h</option>
+    <option value="mc">Market cap</option>
+    <option value="liq">Liquidity</option>
+    <option value="age">Newest</option>
+    <option value="h24">24h %</option>`;
+  const colHead = (col, dot, title, sub, sortVal) => `
+    <header class="trench-col-head">
+      <span class="trench-col-dot pulse" style="background:${dot};box-shadow:0 0 10px ${dot}"></span>
+      <h3>${title}</h3>
+      <span class="trench-col-badge" data-col-badge="${col}">—</span>
+      <select data-trench-sort="${col}" class="ghost-btn small" style="margin-left:auto;font-size:10.5px;padding:3px 6px">
+        ${sortOpts.replace(`value="${sortVal}"`, `value="${sortVal}" selected`)}
+      </select>
+      <span class="muted small" style="margin-left:6px">${sub}</span>
+    </header>`;
+
   showPageView(`
     ${pageHeader({
       crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Trenches</span>`,
       title: 'Trenches',
-      sub: 'Real-time stream of newly-launched, almost-bonded, and graduated Solana launchpad tokens. Toggle Live to stream events over WebSocket.',
+      sub: 'Real-time stream of Solana launchpad activity — newly-launched, almost-bonded, and graduated tokens with live txn flow, multi-timeframe momentum, and bonding-curve progress.',
       actions: `
         <span class="live-pill" id="tr-live-status" data-status="${live ? 'connecting' : 'idle'}">${live ? '◌ Connecting…' : '○ Polling'}</span>
         <label class="live-toggle"><input type="checkbox" id="tr-live-toggle" ${live ? 'checked' : ''}><span>Live</span></label>
@@ -5181,35 +5478,50 @@ async function renderTrenchesPage() {
         <span class="muted small" id="tr-last">—</span>
         <button class="ghost-btn small" id="tr-refresh">Refresh</button>`,
     })}
+
+    <div class="trenches-summary">
+      <div class="ts-card"><span class="ts-lbl">Tokens in feed</span><div id="ts-total"><span class="ts-val muted">—</span></div></div>
+      <div class="ts-card"><span class="ts-lbl">Fresh launches</span><div id="ts-fresh"><span class="ts-val muted">—</span></div></div>
+      <div class="ts-card"><span class="ts-lbl">Total volume 24h</span><div id="ts-vol"><span class="ts-val muted">—</span></div></div>
+      <div class="ts-card"><span class="ts-lbl">Pooled liquidity</span><div id="ts-liq"><span class="ts-val muted">—</span></div></div>
+      <div class="ts-card"><span class="ts-lbl">Top mover 24h</span><div id="ts-mover"><span class="ts-val muted">—</span></div></div>
+      <div class="ts-card"><span class="ts-lbl">Top by volume</span><div id="ts-topvol"><span class="ts-val muted">—</span></div></div>
+    </div>
+
     <div class="source-chips" id="trench-src-chips">
       ${TRENCHES_SOURCES.map(s => `<button data-trench-src="${s.id}" class="source-chip${s.id === trenchesState.source ? ' active' : ''}" style="--src-hue:${s.hue}">${escapeHtml(s.label)}<span class="src-count" data-trench-src-count="${s.id}">—</span></button>`).join('')}
     </div>
+
+    <div class="trenches-filters">
+      <div class="tf-grp"><label>Search</label><input type="text" id="tf-search" placeholder="symbol, name, or mint" value="${escapeHtml(f.search || '')}"></div>
+      <div class="tf-grp"><label>Min MC</label><input type="number" id="tf-min-mc" placeholder="0" value="${f.minMc || ''}" min="0" step="1000"></div>
+      <div class="tf-grp"><label>Max MC</label><input type="number" id="tf-max-mc" placeholder="∞" value="${f.maxMc || ''}" min="0" step="1000"></div>
+      <div class="tf-grp"><label>Min Liq</label><input type="number" id="tf-min-liq" placeholder="0" value="${f.minLiq || ''}" min="0" step="1000"></div>
+      <div class="tf-grp"><label>Min Vol 24h</label><input type="number" id="tf-min-vol" placeholder="0" value="${f.minVol24 || ''}" min="0" step="1000"></div>
+      <div class="tf-grp"><label>Max age</label>
+        <select id="tf-max-age">
+          <option value="0">Any</option>
+          <option value="5"${f.maxAgeMin === 5 ? ' selected' : ''}>5m</option>
+          <option value="15"${f.maxAgeMin === 15 ? ' selected' : ''}>15m</option>
+          <option value="60"${f.maxAgeMin === 60 ? ' selected' : ''}>1h</option>
+          <option value="360"${f.maxAgeMin === 360 ? ' selected' : ''}>6h</option>
+          <option value="1440"${f.maxAgeMin === 1440 ? ' selected' : ''}>24h</option>
+        </select>
+      </div>
+      <button class="tf-clear" id="tf-clear">Clear</button>
+    </div>
+
     <div class="trenches-cols">
       <section class="trench-col">
-        <header class="trench-col-head">
-          <span class="trench-col-dot pulse" style="background:#ffd166;box-shadow:0 0 10px #ffd166"></span>
-          <h3>New</h3>
-          <span class="trench-col-badge" data-col-badge="new">—</span>
-          <span class="muted small" style="margin-left:auto">Bonding · MC &lt; $25k</span>
-        </header>
+        ${colHead('new',    '#ffd166', 'New',           'MC &lt; $25k',     f.sortNew)}
         <div class="trench-col-body" id="tr-new"><div class="modal-loading">Loading…</div></div>
       </section>
       <section class="trench-col">
-        <header class="trench-col-head">
-          <span class="trench-col-dot pulse" style="background:#ff9559;box-shadow:0 0 10px #ff9559"></span>
-          <h3>Almost Bonded</h3>
-          <span class="trench-col-badge" data-col-badge="almost">—</span>
-          <span class="muted small" style="margin-left:auto">$25k – $90k MC</span>
-        </header>
+        ${colHead('almost', '#ff9559', 'Almost Bonded', '$25k – $90k MC', f.sortAlmost)}
         <div class="trench-col-body" id="tr-almost"><div class="modal-loading">Loading…</div></div>
       </section>
       <section class="trench-col">
-        <header class="trench-col-head">
-          <span class="trench-col-dot pulse" style="background:#14f195;box-shadow:0 0 10px #14f195"></span>
-          <h3>Bonded</h3>
-          <span class="trench-col-badge" data-col-badge="bonded">—</span>
-          <span class="muted small" style="margin-left:auto">Graduated · MC &gt; $90k</span>
-        </header>
+        ${colHead('bonded', '#14f195', 'Bonded',        'MC &gt; $90k',    f.sortBonded)}
         <div class="trench-col-body" id="tr-bonded"><div class="modal-loading">Loading…</div></div>
       </section>
     </div>
@@ -5221,6 +5533,30 @@ async function renderTrenchesPage() {
     $$('#trench-src-chips .source-chip').forEach(x => x.classList.toggle('active', x === b));
     paintTrenches();
   }));
+
+  // Filter handlers (debounced repaint on every input)
+  const debouncedPaint = (() => {
+    let t = null;
+    return () => { clearTimeout(t); t = setTimeout(paintTrenches, 120); };
+  })();
+  const numVal = (id) => { const v = Number($(`#${id}`).value); return Number.isFinite(v) && v > 0 ? v : 0; };
+  $('#tf-search').addEventListener('input', e => { trenchesState.filters.search = e.target.value; debouncedPaint(); });
+  $('#tf-min-mc').addEventListener('input',  () => { trenchesState.filters.minMc    = numVal('tf-min-mc');  debouncedPaint(); });
+  $('#tf-max-mc').addEventListener('input',  () => { trenchesState.filters.maxMc    = numVal('tf-max-mc');  debouncedPaint(); });
+  $('#tf-min-liq').addEventListener('input', () => { trenchesState.filters.minLiq   = numVal('tf-min-liq'); debouncedPaint(); });
+  $('#tf-min-vol').addEventListener('input', () => { trenchesState.filters.minVol24 = numVal('tf-min-vol'); debouncedPaint(); });
+  $('#tf-max-age').addEventListener('change', e => { trenchesState.filters.maxAgeMin = Number(e.target.value) || 0; paintTrenches(); });
+  $('#tf-clear').addEventListener('click', () => {
+    trenchesState.filters = { ...trenchesState.filters, minMc: 0, maxMc: 0, minLiq: 0, minVol24: 0, maxAgeMin: 0, search: '' };
+    renderTrenchesPage();
+  });
+  $$('select[data-trench-sort]').forEach(sel => sel.addEventListener('change', e => {
+    const col = e.target.dataset.trenchSort;
+    const key = col === 'new' ? 'sortNew' : col === 'almost' ? 'sortAlmost' : 'sortBonded';
+    trenchesState.filters[key] = e.target.value;
+    paintTrenches();
+  }));
+
   $('#tr-live-toggle').addEventListener('change', e => setTrenchesLiveMode(e.target.checked));
   $('#tr-key-btn').addEventListener('click', () => {
     const cur = localStorage.getItem(PUMPPORTAL_KEY) || '';
