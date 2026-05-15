@@ -1446,6 +1446,28 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .auth-legal a { color: var(--muted); }
 
 /* Watchlist */
+/* Trenches live controls */
+.live-pill {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+  background: var(--surface); border: 1px solid var(--stroke); color: var(--muted);
+}
+.live-pill[data-status="live"]       { background: rgba(20,241,149,.14); color: #88f3c3; border-color: rgba(20,241,149,.45); animation: pulse-dot 2s ease-in-out infinite; }
+.live-pill[data-status="connecting"] { background: rgba(255,179,71,.14); color: #ffce91; border-color: rgba(255,179,71,.4); }
+.live-pill[data-status="error"]      { background: rgba(255,90,118,.12); color: #ffb0bd; border-color: rgba(255,90,118,.4); }
+.live-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 10px 4px 6px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--stroke);
+  font-size: 12px; cursor: pointer; user-select: none;
+}
+.live-toggle:hover { border-color: var(--stroke-strong); }
+.live-toggle input { appearance: none; width: 26px; height: 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--stroke-strong); position: relative; cursor: pointer; transition: background .15s; }
+.live-toggle input::after { content: ''; position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); transition: left .15s, background .15s; }
+.live-toggle input:checked { background: rgba(20,241,149,.3); border-color: rgba(20,241,149,.5); }
+.live-toggle input:checked::after { left: 13px; background: var(--pos); }
+
 /* Trenches page (3-column real-time launchpad feed) */
 .trenches-cols {
   display: grid; gap: 14px;
@@ -4397,7 +4419,7 @@ function router() {
   // Stop page-specific timers when leaving
   if (hash !== '/watchlist' && typeof stopWatchlistAutoRefresh === 'function') stopWatchlistAutoRefresh();
   if (hash !== '/swap'      && typeof stopSwapAutoRefresh      === 'function') stopSwapAutoRefresh();
-  if (hash !== '/trenches'  && typeof stopTrenchesLoop         === 'function') stopTrenchesLoop();
+  if (hash !== '/trenches'  && typeof stopTrenchesLoop         === 'function') { stopTrenchesLoop(); if (typeof closeTrenchesWS === 'function') closeTrenchesWS(); }
   if (fn) fn();
   else showWalletView();
 }
@@ -4609,7 +4631,11 @@ const trenchesState = {
   source: '',        // '' = all, 'pumpfun', 'pumpswap', 'bags', ...
   timer: null,
   lastTick: 0,
+  liveMode: false,   // false = poll DexScreener; true = WebSocket to PumpPortal
+  ws: null,
+  wsStatus: 'idle',  // 'idle' | 'connecting' | 'live' | 'error'
 };
+const PUMPPORTAL_KEY = 'solscope:pumpportalKey';
 const TRENCHES_SOURCES = [
   { id: '',         label: 'All',       hue: 260 },
   { id: 'pumpfun',  label: 'Pump.fun',  hue:  18 },
@@ -4769,6 +4795,124 @@ function paintTrenches() {
   if (tick) tick.textContent = `updated ${new Date().toLocaleTimeString()}`;
 }
 
+/* ---- PumpPortal WebSocket integration (real-time Pump.fun feed) ---- */
+function paintTrenchLiveStatus() {
+  const el = $('#tr-live-status'); if (!el) return;
+  const s = trenchesState.wsStatus;
+  el.dataset.status = s;
+  el.textContent =
+    s === 'live'       ? '● Live'        :
+    s === 'connecting' ? '◌ Connecting…' :
+    s === 'error'      ? '✕ Disconnected' : '○ Polling';
+}
+
+function openTrenchesWS() {
+  closeTrenchesWS();
+  const key = localStorage.getItem(PUMPPORTAL_KEY) || '';
+  const url = key
+    ? `wss://pumpportal.fun/api/data?api-key=${encodeURIComponent(key)}`
+    : `wss://pumpportal.fun/api/data`;
+  trenchesState.wsStatus = 'connecting';
+  paintTrenchLiveStatus();
+  let ws;
+  try { ws = new WebSocket(url); }
+  catch (e) {
+    trenchesState.wsStatus = 'error';
+    paintTrenchLiveStatus();
+    toast({ title: 'WebSocket blocked', sub: e.message, icon: '⚠' });
+    return;
+  }
+  trenchesState.ws = ws;
+  ws.addEventListener('open', () => {
+    trenchesState.wsStatus = 'live';
+    paintTrenchLiveStatus();
+    // Subscribe to the free streams
+    ws.send(JSON.stringify({ method: 'subscribeNewToken' }));
+    ws.send(JSON.stringify({ method: 'subscribeMigration' }));
+    toast({ title: 'Live stream connected', sub: 'PumpPortal · newToken + migration events.', icon: '◉', timeout: 4000 });
+  });
+  ws.addEventListener('message', (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      handlePumpPortalEvent(msg);
+    } catch (err) { /* ignore malformed */ }
+  });
+  ws.addEventListener('close', () => {
+    trenchesState.wsStatus = 'error';
+    paintTrenchLiveStatus();
+    // Auto-reconnect if user is still on the page and still wants live
+    if (trenchesState.liveMode && location.hash === '#/trenches') {
+      setTimeout(openTrenchesWS, 3000);
+    }
+  });
+  ws.addEventListener('error', () => {
+    trenchesState.wsStatus = 'error';
+    paintTrenchLiveStatus();
+  });
+}
+function closeTrenchesWS() {
+  if (trenchesState.ws) { try { trenchesState.ws.close(); } catch {} trenchesState.ws = null; }
+  trenchesState.wsStatus = 'idle';
+}
+
+function handlePumpPortalEvent(msg) {
+  // PumpPortal payload shapes (subset we use):
+  //   create event:   { txType:'create', mint, name, symbol, uri?, marketCapSol?, ... }
+  //   migration:      { txType:'migration', mint, ... }
+  if (!msg || !msg.mint) return;
+  const existingIdx = trenchesState.rows.findIndex(r => r.mint === msg.mint);
+  if (msg.txType === 'create') {
+    const row = {
+      mint: msg.mint,
+      symbol: msg.symbol || '?',
+      name: msg.name || '',
+      logo: msg.image || msg.uri || null,
+      dexId: 'pumpfun',
+      url: `https://pump.fun/coin/${msg.mint}`,
+      price: Number(msg.priceUsd || msg.solPrice) || 0,
+      mc: Number(msg.marketCapUsd || (msg.marketCapSol ? msg.marketCapSol * (swapState._fp || 150) : 0)) || 0,
+      vol24: 0,
+      ch24: 0, ch1: 0, liq: Number(msg.liquidity || 0),
+      createdAt: Math.floor(Date.now() / 1000),
+      ageMin: 0,
+      _flash: true,
+    };
+    if (existingIdx >= 0) trenchesState.rows[existingIdx] = { ...trenchesState.rows[existingIdx], ...row };
+    else trenchesState.rows.unshift(row);
+  } else if (msg.txType === 'migration') {
+    // Promote the token (will fall into Bonded column after reclassify)
+    if (existingIdx >= 0) {
+      trenchesState.rows[existingIdx].dexId = 'pumpswap';
+      trenchesState.rows[existingIdx].mc = Math.max(trenchesState.rows[existingIdx].mc, 90_000);
+    } else {
+      trenchesState.rows.unshift({
+        mint: msg.mint, symbol: msg.symbol || '?', name: msg.name || '',
+        logo: msg.image || null, dexId: 'pumpswap',
+        url: `https://pump.fun/coin/${msg.mint}`,
+        price: 0, mc: 100_000, vol24: 0, ch24: 0, ch1: 0, liq: 0,
+        createdAt: Math.floor(Date.now() / 1000), ageMin: 0,
+      });
+    }
+    toast({ title: `${msg.symbol || 'Token'} migrated`, sub: 'Graduated off Pump.fun', icon: '🎓', timeout: 3500 });
+  }
+  // Cap rows to avoid runaway memory
+  if (trenchesState.rows.length > 200) trenchesState.rows.length = 200;
+  paintTrenches();
+}
+
+function setTrenchesLiveMode(on) {
+  trenchesState.liveMode = on;
+  if (on) {
+    stopTrenchesLoop(); // pause polling while live
+    openTrenchesWS();
+  } else {
+    closeTrenchesWS();
+    startTrenchesLoop();
+    loadTrenches();
+  }
+  paintTrenchLiveStatus();
+}
+
 async function loadTrenches() {
   const target = $('#tr-new'); if (!target) return;
   try {
@@ -4791,12 +4935,19 @@ function stopTrenchesLoop() {
 }
 
 async function renderTrenchesPage() {
+  const live = trenchesState.liveMode;
+  const hasKey = !!localStorage.getItem(PUMPPORTAL_KEY);
   showPageView(`
     ${pageHeader({
       crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Trenches</span>`,
       title: 'Trenches',
-      sub: 'Real-time stream of newly-launched, almost-bonded, and graduated Solana launchpad tokens. Auto-refreshes every 10 seconds.',
-      actions: `<span class="muted small" id="tr-last">—</span><button class="ghost-btn small" id="tr-refresh">Refresh</button>`,
+      sub: 'Real-time stream of newly-launched, almost-bonded, and graduated Solana launchpad tokens. Toggle Live to stream events over WebSocket.',
+      actions: `
+        <span class="live-pill" id="tr-live-status" data-status="${live ? 'connecting' : 'idle'}">${live ? '◌ Connecting…' : '○ Polling'}</span>
+        <label class="live-toggle"><input type="checkbox" id="tr-live-toggle" ${live ? 'checked' : ''}><span>Live</span></label>
+        <button class="ghost-btn small" id="tr-key-btn" title="Set PumpPortal API key">${hasKey ? '🔑 Key set' : '🔑 Add key'}</button>
+        <span class="muted small" id="tr-last">—</span>
+        <button class="ghost-btn small" id="tr-refresh">Refresh</button>`,
     })}
     <div class="source-chips" id="trench-src-chips">
       ${TRENCHES_SOURCES.map(s => `<button data-trench-src="${s.id}" class="source-chip${s.id === trenchesState.source ? ' active' : ''}" style="--src-hue:${s.hue}">${escapeHtml(s.label)}<span class="src-count" data-trench-src-count="${s.id}">—</span></button>`).join('')}
@@ -4838,9 +4989,23 @@ async function renderTrenchesPage() {
     $$('#trench-src-chips .source-chip').forEach(x => x.classList.toggle('active', x === b));
     paintTrenches();
   }));
+  $('#tr-live-toggle').addEventListener('change', e => setTrenchesLiveMode(e.target.checked));
+  $('#tr-key-btn').addEventListener('click', () => {
+    const cur = localStorage.getItem(PUMPPORTAL_KEY) || '';
+    const v = prompt(
+      'PumpPortal API key (free at pumpportal.fun — leave blank to use the unauthenticated public stream).\n\nCurrent: ' + (cur ? cur.slice(0, 6) + '…' : '(none)'),
+      cur
+    );
+    if (v == null) return;
+    if (v.trim()) localStorage.setItem(PUMPPORTAL_KEY, v.trim());
+    else localStorage.removeItem(PUMPPORTAL_KEY);
+    if (trenchesState.liveMode) { closeTrenchesWS(); openTrenchesWS(); }
+    renderTrenchesPage();
+  });
 
   await loadTrenches();
-  startTrenchesLoop();
+  if (trenchesState.liveMode) openTrenchesWS();
+  else startTrenchesLoop();
 }
 
 async function renderCopyTradingPage() {
