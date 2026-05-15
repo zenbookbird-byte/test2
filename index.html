@@ -2887,7 +2887,8 @@ const BAKED_PROVIDER_KEYS = {
   // From dashboard.helius.dev → free tier 1M credits/mo
   helius:     '',
   // From quicknode.com → Endpoints → your endpoint → HTTPS URL (full URL incl. token)
-  quicknode:  '',
+  // The WSS URL is auto-derived from this by swapping the protocol.
+  quicknode:  'https://weathered-fittest-research.solana-mainnet.quiknode.pro/97fbbca9f18084b46e309680fed0131446c0e3b5/',
   // From pumpportal.fun (optional — leave blank for the public stream)
   pumpportal: '',
   // Any other Solana RPC URL (Triton, Shyft, Ankr, Chainstack, Alchemy …)
@@ -2915,6 +2916,12 @@ function applyProviderKeys() {
   RPC_ENDPOINTS['mainnet-beta'] = [...new Set([...mainnet, ...RPC_PUBLIC['mainnet-beta']])];
   RPC_ENDPOINTS['devnet']       = [...new Set([...devnet,  ...RPC_PUBLIC['devnet']])];
   if (typeof rpcHealth !== 'undefined') { rpcHealth.ok.clear(); rpcHealth.bad.clear(); }
+
+  // Auto-derive the WebSocket endpoint from the highest-priority HTTPS URL,
+  // so wallet `logsSubscribe` flows through your QuickNode/Helius/custom RPC.
+  const httpsToWss = (u) => u.replace(/^https?:/, 'wss:');
+  if (typeof RPC_WS !== 'undefined' && mainnet.length) RPC_WS['mainnet-beta'] = httpsToWss(mainnet[0]);
+  if (typeof RPC_WS !== 'undefined' && devnet.length)  RPC_WS['devnet']       = httpsToWss(devnet[0]);
 }
 // Keep RPC[] for any legacy uses
 const RPC = {
