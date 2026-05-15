@@ -1533,8 +1533,8 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 /* ----- Card (dense horizontal layout) ----- */
 .tr-card {
   display: grid;
-  grid-template-columns: 64px 1fr auto;
-  gap: 10px; padding: 10px 12px;
+  grid-template-columns: 52px minmax(0, 1fr) minmax(118px, auto);
+  gap: 10px; padding: 9px 11px;
   border-bottom: 1px solid #14172a;
   cursor: pointer; position: relative;
   background: #0a0c17; transition: background .12s;
@@ -1544,122 +1544,131 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 
 .tr-side {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  width: 64px; flex-shrink: 0;
+  width: 52px; flex-shrink: 0; min-width: 0;
 }
 .tr-logo {
-  width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
+  width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0;
   object-fit: cover; background: #14172a;
 }
 .tr-logo.fallback {
-  display: grid; place-items: center; color: #0a0820; font-weight: 700; font-size: 14px;
+  display: grid; place-items: center; color: #0a0820; font-weight: 700; font-size: 13px;
   background: linear-gradient(135deg, #9945ff, #14f195);
 }
 .tr-mintsuf {
   font-family: 'JetBrains Mono', monospace; font-size: 9px;
   color: #565a76; letter-spacing: -.02em;
+  max-width: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.tr-main { min-width: 0; display: grid; gap: 3px; align-content: start; }
+.tr-main { min-width: 0; display: grid; gap: 3px; align-content: start; overflow: hidden; }
 
 /* Row 1: symbol + name + copy */
 .tr-row1 {
   display: flex; align-items: center; gap: 6px; min-width: 0;
+  overflow: hidden;
 }
 .tr-sym {
-  font-weight: 700; font-size: 14px; color: var(--text);
-  letter-spacing: -.005em; flex-shrink: 0;
+  font-weight: 700; font-size: 13px; color: var(--text);
+  letter-spacing: -.005em; flex-shrink: 0; max-width: 110px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .tr-name-text {
-  font-size: 13px; color: #b0aede; font-weight: 500;
+  font-size: 12px; color: #8c87b3; font-weight: 500;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  min-width: 0;
+  min-width: 0; flex: 1;
 }
 .tr-copy {
   appearance: none; background: transparent; border: 0; cursor: pointer;
   color: #565a76; font-size: 11px; padding: 0; line-height: 1;
-  transition: color .12s;
+  transition: color .12s; flex-shrink: 0;
 }
 .tr-copy:hover { color: var(--text); }
 
-/* Row 2: age, icons, social, holders, txns */
+/* Row 2: age, icons, social, holders */
 .tr-row2 {
-  display: flex; align-items: center; gap: 8px; min-width: 0;
-  font-size: 11px; color: #8c87b3; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; gap: 7px; min-width: 0;
+  font-size: 10.5px; color: #8c87b3; font-variant-numeric: tabular-nums;
+  overflow: hidden;
 }
-.tr-age { color: var(--text); font-weight: 500; }
+.tr-age { color: var(--text); font-weight: 500; flex-shrink: 0; }
 .tr-time-left {
   display: inline-flex; align-items: center; gap: 3px;
   color: #ff9559; font-weight: 600; font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 .tr-time-left::before { content: '🔥'; font-size: 9px; filter: grayscale(.2); }
-.tr-icons { display: inline-flex; align-items: center; gap: 5px; color: #6a6e8a; }
+.tr-icons { display: inline-flex; align-items: center; gap: 4px; color: #6a6e8a; flex-shrink: 0; }
 .tr-icons a, .tr-icons span {
   display: inline-grid; place-items: center;
-  width: 14px; height: 14px; border-radius: 3px;
-  color: inherit; text-decoration: none; font-size: 11px;
+  height: 14px; border-radius: 3px;
+  color: inherit; text-decoration: none; font-size: 10.5px;
   transition: color .12s;
+  padding: 0 2px;
 }
 .tr-icons a:hover { color: var(--text); }
 .tr-icons .ic-on { color: #88f3c3; }
-.tr-tag {
-  display: inline-flex; align-items: center; gap: 3px;
-  color: #b0aede; font-weight: 500;
+.tr-handle {
+  color: #6a6e8a; font-size: 10px; flex-shrink: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.tr-handle { color: #6a6e8a; font-size: 10.5px; }
 .tr-handle .h { color: #88aafc; }
 
-/* Row 3: risk/holder badges */
+/* Row 3: risk/holder badges (must stay one line) */
 .tr-row3 {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px;
   font-size: 10.5px; font-variant-numeric: tabular-nums;
-  margin-top: 1px;
+  margin-top: 1px; min-width: 0;
+  overflow: hidden;
 }
 .tr-stat {
-  display: inline-flex; align-items: center; gap: 3px;
+  display: inline-flex; align-items: center; gap: 2px;
   color: #6a6e8a; font-weight: 600; letter-spacing: -.005em;
+  flex-shrink: 0;
 }
 .tr-stat .v { color: #b0aede; }
 .tr-stat.pos .v { color: #14f195; }
 .tr-stat.neg .v { color: #ff5a76; }
 .tr-stat.warn .v { color: #ffce91; }
-.tr-stat .ic { width: 12px; height: 12px; display: inline-grid; place-items: center; font-size: 11px; }
+.tr-stat .ic { display: inline-grid; place-items: center; font-size: 10.5px; line-height: 1; }
 .tr-stat .lbl { color: #565a76; font-size: 9.5px; letter-spacing: .04em; }
 
 .tr-paid {
   display: inline-flex; align-items: center; gap: 3px;
-  padding: 1px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 700;
+  padding: 1px 5px; border-radius: 4px; font-size: 9px; font-weight: 700;
   background: rgba(20,241,149,.14); color: #88f3c3; border: 1px solid rgba(20,241,149,.3);
-  text-transform: none; letter-spacing: .02em;
+  text-transform: none; letter-spacing: .02em; flex-shrink: 0;
 }
 .tr-ds {
-  padding: 1px 5px; border-radius: 4px; font-size: 9px; font-weight: 700;
+  padding: 1px 4px; border-radius: 4px; font-size: 9px; font-weight: 700;
   background: #14172a; color: #6a6e8a; border: 1px solid #1c1f2e;
-  letter-spacing: .04em;
+  letter-spacing: .04em; flex-shrink: 0;
 }
 
-/* Right side: V/MC + F/TX + sparkline + buy */
+/* Right side: V/MC + F/TX + sparkline (own row) + buy button */
 .tr-right {
-  display: grid; gap: 2px; align-content: start; justify-items: end;
-  min-width: 130px; text-align: right;
+  display: grid; gap: 3px;
+  grid-template-rows: auto auto auto auto;
+  align-content: start; justify-items: end;
+  text-align: right; min-width: 0;
 }
 .tr-vmc {
-  display: flex; gap: 8px; font-size: 11.5px; font-variant-numeric: tabular-nums;
+  display: flex; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.tr-vmc .lbl { color: #565a76; font-weight: 500; margin-right: 1px; font-size: 10px; }
+.tr-vmc .lbl { color: #565a76; font-weight: 500; margin-right: 2px; font-size: 9.5px; }
 .tr-vmc .v   { color: #14f195; font-weight: 700; }
 .tr-vmc .mc  { color: #ffd166; font-weight: 700; }
 
 .tr-ftx {
   display: flex; align-items: center; gap: 8px;
-  font-size: 10.5px; color: #6a6e8a; font-variant-numeric: tabular-nums;
+  font-size: 10px; color: #6a6e8a; font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.tr-ftx .lbl { color: #565a76; }
+.tr-ftx .lbl { color: #565a76; margin-right: 2px; }
 .tr-ftx .val { color: #b0aede; font-weight: 600; }
 
 .tr-spark {
-  width: 110px; height: 18px; display: block;
+  width: 100%; max-width: 130px; height: 16px; display: block;
 }
 .tr-spark path.line { fill: none; stroke-width: 1.4; }
 .tr-spark path.area { opacity: .2; }
@@ -1673,14 +1682,14 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   display: inline-flex; align-items: center; gap: 4px;
   background: linear-gradient(180deg, #5b6cff, #4858e8);
   color: #fff; border: 1px solid #6a7aff;
-  font: inherit; font-size: 11.5px; font-weight: 700;
-  padding: 5px 11px; border-radius: 7px;
+  font: inherit; font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 6px;
   letter-spacing: -.005em;
-  box-shadow: 0 4px 12px -4px rgba(91, 108, 255, .55);
+  box-shadow: 0 3px 10px -4px rgba(91, 108, 255, .55);
   transition: transform .12s, filter .12s;
-  margin-top: 2px;
+  margin-top: 1px; white-space: nowrap;
 }
-.tr-buybtn::before { content: '⚡'; font-size: 11px; }
+.tr-buybtn::before { content: '⚡'; font-size: 10.5px; }
 .tr-buybtn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .tr-buybtn:active { transform: translateY(0); }
 
@@ -5093,20 +5102,30 @@ function trenchRiskStats(t) {
 }
 
 function trenchCardHTML(t, opts = {}) {
-  const sym = (t.symbol || '?').slice(0, 12);
+  const sym = (t.symbol || '?').slice(0, 10);
   const name = t.name || '';
   const r = trenchRiskStats(t);
   const isPaid = !!t.paid || (t.socials && t.socials.length >= 2);
   const showTimeLeft = opts.col === 'new' && t.ageMin != null && t.ageMin < 24 * 60;
   const timeLeft = showTimeLeft ? fmtBondTimeLeft(t.ageMin) : '';
   const handle = (t.socials || []).find(s => /twitter|x\.com/i.test(s.url || ''));
-  const handleName = handle ? '@' + (handle.url.split('/').pop() || '').slice(0, 14) : '';
-  const followers = handle ? Math.floor((trenchRiskStats(t).top10 + 30) * 800) : 0;
+  // Only show handles that look like reasonable usernames (letters + max 16 chars, not bare digits)
+  const rawHandle = handle ? (handle.url.split('/').filter(Boolean).pop() || '') : '';
+  const handleName = rawHandle && /^[A-Za-z_][A-Za-z0-9_]{0,15}$/.test(rawHandle)
+    ? '@' + rawHandle
+    : '';
   const socials = (t.socials || []).slice(0, 3).map(trenchSocialIcon).join('');
   const sites   = (t.websites || []).slice(0, 1).map(w => trenchSocialIcon({ type: 'website', url: w.url })).join('');
 
   const txns24 = (Number(t.buys24 || 0) + Number(t.sells24 || 0));
-  const fee = (t.liq && t.vol24) ? (Number(t.liq) / 1000).toFixed(t.liq < 10000 ? 3 : 2) : '—';
+  // "F" in Axiom = transaction fee per swap (in SOL). We approximate as a tiny number scaled by liq.
+  const feeRaw = t.liq ? Math.max(0.001, Math.min(999, Number(t.liq) / 30000)) : 0;
+  const fee = feeRaw ? feeRaw.toFixed(feeRaw < 10 ? 3 : feeRaw < 100 ? 2 : 1) : '—';
+
+  // Mint suffix: pumpfun-launched mints end in "pump" (Axiom shows e.g. "8Fa…pump")
+  const mintShort = t.mint.slice(0, 3);
+  const mintEnd = /pump$/i.test(t.mint) ? 'pump' : t.mint.slice(-4);
+  const mintSuf = `${mintShort}…${mintEnd}`;
 
   return `
     <article class="tr-card${t.fresh ? ' fresh' : ''}" data-mint="${escapeHtml(t.mint)}">
@@ -5114,12 +5133,12 @@ function trenchCardHTML(t, opts = {}) {
         ${t.logo
           ? `<img class="tr-logo" src="${t.logo}" alt="" onerror="this.outerHTML='<span class=&quot;tr-logo fallback&quot;>${escapeHtml(sym.slice(0,2).toUpperCase())}</span>'">`
           : `<span class="tr-logo fallback">${escapeHtml(sym.slice(0,2).toUpperCase())}</span>`}
-        <span class="tr-mintsuf" title="${escapeHtml(t.mint)}">${escapeHtml(t.mint.slice(0,3))}…pump</span>
+        <span class="tr-mintsuf" title="${escapeHtml(t.mint)}">${escapeHtml(mintSuf)}</span>
       </div>
 
       <div class="tr-main">
         <div class="tr-row1">
-          <span class="tr-sym">${escapeHtml(sym)}</span>
+          <span class="tr-sym" title="${escapeHtml(t.symbol || '')}">${escapeHtml(sym)}</span>
           ${name ? `<span class="tr-name-text" title="${escapeHtml(name)}">${escapeHtml(name)}</span>` : ''}
           <button class="tr-copy" data-copy="${escapeHtml(t.mint)}" title="Copy mint">⎘</button>
         </div>
@@ -5128,10 +5147,8 @@ function trenchCardHTML(t, opts = {}) {
           ${timeLeft ? `<span class="tr-time-left">${timeLeft}</span>` : ''}
           <span class="tr-icons">
             ${sites}${socials}
-            <span title="Holders" class="ic-on">👥</span>
-            <span title="Txns ${txns24}">${txns24 ? fmt(txns24) : '0'}</span>
           </span>
-          ${handleName ? `<span class="tr-handle"><span class="h">${escapeHtml(handleName)}</span> <span style="color:#565a76">👤 ${fmt(followers)}</span></span>` : ''}
+          ${handleName ? `<span class="tr-handle" title="${escapeHtml(handleName)}"><span class="h">${escapeHtml(handleName)}</span></span>` : ''}
         </div>
         <div class="tr-row3">
           <span class="tr-stat ${r.top10 > 25 ? 'neg' : r.top10 > 15 ? 'warn' : 'pos'}" title="Top 10 holder %">
@@ -5151,11 +5168,11 @@ function trenchCardHTML(t, opts = {}) {
           <span><span class="lbl">MC</span><span class="mc">${t.mc ? fmtUSD(t.mc) : '$0'}</span></span>
         </div>
         <div class="tr-ftx">
-          <span><span class="lbl">F</span> <span class="val">${typeof fee === 'string' ? fee : fmt(fee)}</span></span>
-          <span><span class="lbl">TX</span> <span class="val">${fmt(txns24)}</span></span>
-          ${trenchSparkline(t)}
+          <span><span class="lbl">F</span><span class="val">${fee}</span></span>
+          <span><span class="lbl">TX</span><span class="val">${fmt(txns24)}</span></span>
         </div>
-        <button class="tr-buybtn" data-snipe="${escapeHtml(t.mint)}" title="Quick buy with preset amount">0 SOL</button>
+        ${trenchSparkline(t)}
+        <button class="tr-buybtn" data-snipe="${escapeHtml(t.mint)}" title="Quick buy with preset amount">${(trenchesState.buyAmount ?? 0.1)} SOL</button>
       </div>
     </article>`;
 }
