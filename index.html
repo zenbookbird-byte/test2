@@ -1871,6 +1871,59 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .docs-callout.success { background: rgba(20, 241, 149, .08); border-color: rgba(20, 241, 149, .3); }
 .docs-callout strong { display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
+/* Providers / settings page */
+.provider-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+.prov-card {
+  display: grid; gap: 10px;
+  padding: 18px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 14px;
+}
+.prov-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.prov-title { font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+.prov-pill {
+  font-size: 9.5px; padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--muted); letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+}
+.prov-pill.pill-on {
+  background: rgba(20, 241, 149, .18); color: #88f3c3;
+  border-color: rgba(20, 241, 149, .35);
+}
+.prov-tags { display: grid; gap: 4px; }
+.prov-tag { font-size: 12px; line-height: 1.45; }
+.prov-tag.pos   { color: #b9f7d8; }
+.prov-tag.muted { color: var(--muted); }
+.prov-steps {
+  margin: 0; padding: 0; list-style: none; display: grid; gap: 4px;
+  font-size: 12px; color: var(--muted); line-height: 1.5;
+}
+.prov-steps strong { color: var(--text); margin-right: 4px; }
+.prov-form { display: grid; gap: 8px; padding-top: 6px; border-top: 1px solid var(--stroke); }
+.prov-input {
+  appearance: none; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--stroke); font: inherit; font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; padding: 10px 12px; border-radius: 10px; outline: none;
+}
+.prov-input:focus { border-color: rgba(153, 69, 255, .55); box-shadow: 0 0 0 3px rgba(153, 69, 255, .15); }
+.prov-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.prov-status { min-height: 16px; }
+.prov-status .pos { color: var(--pos); }
+.prov-status .neg { color: var(--neg); }
+
+.rpc-chain {
+  margin: 0; padding: 0; list-style: none; display: grid; gap: 6px;
+  font-size: 12px;
+}
+.rpc-chain li {
+  display: flex; gap: 10px; align-items: center;
+  padding: 8px 12px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--stroke);
+}
+.rpc-chain .rpc-i { color: var(--muted-2); font-variant-numeric: tabular-nums; min-width: 22px; }
+
 /* Status page */
 .status-grid {
   display: grid; gap: 10px;
@@ -2803,7 +2856,10 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
  */
 
 // Multi-endpoint fallback chain — first that succeeds wins, others tried on error.
-const RPC_ENDPOINTS = {
+/* Public Solana RPC fallback chain. User-supplied keys (Helius, QuickNode, etc.)
+ * are prepended to this list at runtime by applyProviderKeys() so they win
+ * over the public endpoints. Keys live in localStorage. */
+const RPC_PUBLIC = {
   'mainnet-beta': [
     'https://api.mainnet-beta.solana.com',
     'https://solana-rpc.publicnode.com',
@@ -2817,6 +2873,27 @@ const RPC_ENDPOINTS = {
     'https://rpc.ankr.com/solana_devnet',
   ],
 };
+const RPC_ENDPOINTS = {
+  'mainnet-beta': [...RPC_PUBLIC['mainnet-beta']],
+  'devnet':       [...RPC_PUBLIC['devnet']],
+};
+function applyProviderKeys() {
+  const helius     = (localStorage.getItem('solscope:heliusKey')     || '').trim();
+  const quicknode  = (localStorage.getItem('solscope:quicknodeUrl')  || '').trim();
+  const custom     = (localStorage.getItem('solscope:customRpcUrl')  || '').trim();
+  const mainnet = [];
+  const devnet  = [];
+  if (custom)    mainnet.unshift(custom);
+  if (quicknode) mainnet.unshift(quicknode);
+  if (helius) {
+    mainnet.unshift(`https://mainnet.helius-rpc.com/?api-key=${helius}`);
+    devnet.unshift(`https://devnet.helius-rpc.com/?api-key=${helius}`);
+  }
+  RPC_ENDPOINTS['mainnet-beta'] = [...new Set([...mainnet, ...RPC_PUBLIC['mainnet-beta']])];
+  RPC_ENDPOINTS['devnet']       = [...new Set([...devnet,  ...RPC_PUBLIC['devnet']])];
+  // Drop any cached health so the new key gets tried first
+  if (typeof rpcHealth !== 'undefined') { rpcHealth.ok.clear(); rpcHealth.bad.clear(); }
+}
 // Keep RPC[] for any legacy uses
 const RPC = {
   'mainnet-beta': RPC_ENDPOINTS['mainnet-beta'][0],
@@ -6298,6 +6375,7 @@ function paintUserMenu() {
     body.innerHTML = `
       <a class="user-row" href="#/watchlist"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21z"/></svg></span>My Watchlist<span class="badge">${u.watchlist.length}</span></a>
       <a class="user-row" href="#/account"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.62l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.04-.7-1.62-.93l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.55-1.62.93l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.86c-.12.21-.08.47.12.62l2.03 1.58c-.05.3-.07.62-.07.94c0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.62l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.04.7 1.62.93l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.55 1.62-.93l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.62zM12 15.6A3.6 3.6 0 0 1 8.4 12A3.6 3.6 0 0 1 12 8.4a3.6 3.6 0 0 1 3.6 3.6a3.6 3.6 0 0 1-3.6 3.6"/></svg></span>Account settings</a>
+      <a class="user-row" href="#/settings"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2L3 7v6c0 5 3.84 9.74 9 11c5.16-1.26 9-6 9-11V7zm0 2.18L19 8v5c0 3.91-2.99 7.69-7 8.93C7.99 20.69 5 16.91 5 13V8z"/></svg></span>Provider keys</a>
       <a class="user-row" href="#/status"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2m-1 6h2v5l4.25 2.52l-1 1.64L11 13z"/></svg></span>API Status</a>
       <div class="user-divider"></div>
       <button class="user-row" id="user-switch"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 17l5-5l-5-5v3H4v4h12zM4 19h6v-2H4z"/></svg></span>Switch user</button>
@@ -7279,6 +7357,202 @@ document.addEventListener('click', (e) => {
 ROUTES['/watchlist'] = () => renderWatchlistPage();
 ROUTES['/account']   = () => renderAccountPage();
 ROUTES['/status']    = () => renderStatusPage();
+ROUTES['/settings']  = () => renderSettingsPage();
+ROUTES['/settings/providers'] = () => renderSettingsPage();
+
+/* ================================================================
+ *  Settings page (#/settings) — API keys for upgraded providers
+ * ================================================================ */
+const PROVIDERS = [
+  {
+    id: 'helius',
+    name: 'Helius',
+    storageKey: 'solscope:heliusKey',
+    free: 'Free tier: 1M credits / 10 RPS — perfect to remove rate limits.',
+    paid: 'Developer $49/mo, Business $499/mo (adds LaserStream / Yellowstone).',
+    url: 'https://www.helius.dev/pricing',
+    signup: 'https://dashboard.helius.dev/signup',
+    field: 'apiKey',
+    placeholder: 'a1b2c3d4-… (paste your API key)',
+    test: async (key) => {
+      const r = await fetch(`https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(key)}`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message || 'auth failed');
+      return 'connected · healthy';
+    },
+    instructions: [
+      'Click "Sign up" → create a free Helius account (email + password).',
+      'On the dashboard, copy the API Key for "Mainnet".',
+      'Paste it below and click Save. Helix prepends it to the RPC fallback chain.',
+    ],
+  },
+  {
+    id: 'pumpportal',
+    name: 'PumpPortal',
+    storageKey: PUMPPORTAL_KEY,
+    free: 'Free: subscribeNewToken + subscribeMigration (no rate limit, sub-second).',
+    paid: 'Paid only for per-token trade streams (0.01 SOL / 10k events).',
+    url: 'https://pumpportal.fun/data-api/real-time/',
+    signup: 'https://pumpportal.fun/login',
+    field: 'apiKey',
+    placeholder: 'pp-… (optional — leave blank for unauthenticated stream)',
+    test: async (key) => {
+      // Open a brief test WebSocket
+      return new Promise((res, rej) => {
+        const ws = new WebSocket(key ? `wss://pumpportal.fun/api/data?api-key=${encodeURIComponent(key)}` : 'wss://pumpportal.fun/api/data');
+        const t = setTimeout(() => { try { ws.close(); } catch {} rej(new Error('timeout')); }, 6000);
+        ws.addEventListener('open', () => { clearTimeout(t); try { ws.close(); } catch {} res(key ? 'authenticated stream OK' : 'public stream OK'); });
+        ws.addEventListener('error', () => { clearTimeout(t); rej(new Error('connection failed')); });
+      });
+    },
+    instructions: [
+      'Optional — the free public stream works without a key.',
+      'Sign up at pumpportal.fun if you want per-account rate limits or paid streams.',
+      'Paste the key below to authenticate the WebSocket on Trenches → Live.',
+    ],
+  },
+  {
+    id: 'quicknode',
+    name: 'QuickNode',
+    storageKey: 'solscope:quicknodeUrl',
+    free: 'No free tier for Solana — the public free endpoints are not from QuickNode.',
+    paid: 'Build $49/mo (80M credits) → Yellowstone gRPC available as a paid add-on.',
+    url: 'https://www.quicknode.com/pricing',
+    signup: 'https://dashboard.quicknode.com/sign-up',
+    field: 'fullUrl',
+    placeholder: 'https://your-name.solana-mainnet.quiknode.pro/abc123/',
+    test: async (url) => {
+      const r = await fetch(url, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+      });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      return 'connected · healthy';
+    },
+    instructions: [
+      'Create a QuickNode account (free signup, paid for actual endpoints).',
+      'On the dashboard, create a Solana mainnet endpoint and copy the HTTPS URL.',
+      'Paste the FULL URL (incl. token) here. Helix uses it as the highest-priority RPC.',
+    ],
+  },
+  {
+    id: 'customRpc',
+    name: 'Custom Solana RPC',
+    storageKey: 'solscope:customRpcUrl',
+    free: 'Bring your own — any standard Solana RPC endpoint works.',
+    paid: '—',
+    url: 'https://solana.com/rpc',
+    signup: null,
+    field: 'fullUrl',
+    placeholder: 'https://your-rpc-endpoint.example.com/',
+    test: async (url) => {
+      const r = await fetch(url, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+      });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      return 'connected · healthy';
+    },
+    instructions: [
+      'Got a Triton / Shyft / Ankr / Chainstack / Alchemy endpoint? Paste the full URL here.',
+      'Helix prepends it to the fallback chain at the highest priority.',
+    ],
+  },
+];
+
+function renderSettingsPage() {
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Settings</span><span class="sep">/</span><span>Providers</span>`,
+      title: 'Provider keys',
+      sub: 'Paste API keys to upgrade RPC + streaming throughput. Everything is stored locally on this device — keys never leave your browser.',
+    })}
+    <div class="provider-grid">
+      ${PROVIDERS.map(p => {
+        const saved = localStorage.getItem(p.storageKey) || '';
+        const masked = saved ? saved.slice(0, 6) + '…' + saved.slice(-4) : '';
+        return `
+          <div class="prov-card">
+            <div class="prov-head">
+              <div class="prov-title">${escapeHtml(p.name)} ${saved ? '<span class="prov-pill pill-on">Active</span>' : '<span class="prov-pill">Off</span>'}</div>
+              <a class="ghost-btn small" target="_blank" rel="noopener" href="${p.url}">Pricing ↗</a>
+            </div>
+            <div class="prov-tags">
+              <span class="prov-tag pos">${escapeHtml(p.free)}</span>
+              <span class="prov-tag muted">${escapeHtml(p.paid)}</span>
+            </div>
+            <ol class="prov-steps">
+              ${p.instructions.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}
+            </ol>
+            <form class="prov-form" data-prov="${p.id}">
+              <input class="prov-input" data-prov-input placeholder="${escapeHtml(p.placeholder)}" autocomplete="off" value="${escapeHtml(saved)}">
+              <div class="prov-actions">
+                <button type="submit" class="primary-btn small">Save &amp; test</button>
+                ${p.signup ? `<a class="ghost-btn small" target="_blank" rel="noopener" href="${p.signup}">Sign up ↗</a>` : ''}
+                ${saved ? '<button type="button" class="ghost-btn small" data-prov-clear>Clear</button>' : ''}
+              </div>
+              <div class="prov-status muted small" data-prov-status>${saved ? `Saved: <span class="mono">${escapeHtml(masked)}</span>` : ''}</div>
+            </form>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card glass" style="margin-top:18px">
+      <div class="card-head"><h3>Live RPC fallback chain</h3><span class="muted">First to respond wins</span></div>
+      <ol class="rpc-chain" id="rpc-chain-list"></ol>
+    </div>
+  `);
+
+  // Render the current chain
+  const chainEl = $('#rpc-chain-list');
+  if (chainEl) {
+    chainEl.innerHTML = RPC_ENDPOINTS['mainnet-beta'].map((u, i) =>
+      `<li><span class="rpc-i">${i + 1}.</span><span class="mono">${escapeHtml(u.replace(/api-key=[^&]+/, 'api-key=…'))}</span></li>`
+    ).join('');
+  }
+
+  // Wire up each form
+  $$('.prov-form').forEach(form => {
+    const id = form.dataset.prov;
+    const p = PROVIDERS.find(x => x.id === id);
+    const input = $('[data-prov-input]', form);
+    const status = $('[data-prov-status]', form);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = input.value.trim();
+      if (!v) {
+        localStorage.removeItem(p.storageKey);
+        status.innerHTML = '<span class="muted">Cleared.</span>';
+        applyProviderKeys();
+        return;
+      }
+      status.innerHTML = '<span class="muted">Testing…</span>';
+      try {
+        const detail = await p.test(v);
+        localStorage.setItem(p.storageKey, v);
+        applyProviderKeys();
+        status.innerHTML = `<span class="pos">✓ ${escapeHtml(detail)}</span>`;
+        toast({ title: `${p.name} key saved`, sub: detail, icon: '✓' });
+        // Refresh the chain list display
+        setTimeout(renderSettingsPage, 600);
+      } catch (err) {
+        status.innerHTML = `<span class="neg">✕ ${escapeHtml(err.message || String(err))}</span>`;
+      }
+    });
+    $('[data-prov-clear]', form)?.addEventListener('click', () => {
+      localStorage.removeItem(p.storageKey);
+      input.value = '';
+      applyProviderKeys();
+      renderSettingsPage();
+    });
+  });
+}
 
 // User-menu wiring
 document.addEventListener('click', (e) => {
@@ -7366,6 +7640,7 @@ const PALETTE_PAGES = [
   { title: 'Transaction Decoder', sub: '#/tool/decoder', icon: '🔍', route: '#/tool/decoder', keys: ['decoder','parse','tx','transaction'] },
   { title: 'API Status',       sub: '#/status',         icon: '●', route: '#/status',         keys: ['status','health','api','uptime'] },
   { title: 'Account settings', sub: '#/account',        icon: '⚙', route: '#/account',        keys: ['account','user','settings','sign','login'] },
+  { title: 'Provider keys',    sub: '#/settings',       icon: '🔑', route: '#/settings',       keys: ['settings','providers','helius','rpc','api','keys','quicknode','pumpportal'] },
   { title: 'Documentation',    sub: '#/docs/introduction', icon: '📖', route: '#/docs/introduction', keys: ['docs','help','guide','api','reference'] },
   { title: 'Pricing',          sub: '#/pricing',         icon: '$', route: '#/pricing',          keys: ['pricing','plan','pro','upgrade','billing','subscribe'] },
 ];
@@ -7889,6 +8164,8 @@ paintUserMenu();
 // Refresh the countdown pill every 60s while a trial is active.
 setInterval(() => { if (trialActive()) paintUserMenu(); }, 60_000);
 
+// Apply any provider keys saved in localStorage before the first RPC call.
+applyProviderKeys();
 init();
 
 </script>
