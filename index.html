@@ -2877,10 +2877,33 @@ const RPC_ENDPOINTS = {
   'mainnet-beta': [...RPC_PUBLIC['mainnet-beta']],
   'devnet':       [...RPC_PUBLIC['devnet']],
 };
+/* ================================================================
+ *  PROVIDER KEYS — paste your own keys here once and every visitor
+ *  uses them automatically. Nothing else to configure.
+ *
+ *  Leave blank to fall back to the public RPC fallback chain.
+ * ================================================================ */
+const BAKED_PROVIDER_KEYS = {
+  // From dashboard.helius.dev → free tier 1M credits/mo
+  helius:     '',
+  // From quicknode.com → Endpoints → your endpoint → HTTPS URL (full URL incl. token)
+  quicknode:  '',
+  // From pumpportal.fun (optional — leave blank for the public stream)
+  pumpportal: '',
+  // Any other Solana RPC URL (Triton, Shyft, Ankr, Chainstack, Alchemy …)
+  customRpc:  '',
+};
+
 function applyProviderKeys() {
-  const helius     = (localStorage.getItem('solscope:heliusKey')     || '').trim();
-  const quicknode  = (localStorage.getItem('solscope:quicknodeUrl')  || '').trim();
-  const custom     = (localStorage.getItem('solscope:customRpcUrl')  || '').trim();
+  // Hardcoded keys take priority; the localStorage Settings page can override
+  // them per-user but those are dev-only — end users never see that page.
+  const helius     = (localStorage.getItem('solscope:heliusKey')     || BAKED_PROVIDER_KEYS.helius     || '').trim();
+  const quicknode  = (localStorage.getItem('solscope:quicknodeUrl')  || BAKED_PROVIDER_KEYS.quicknode  || '').trim();
+  const custom     = (localStorage.getItem('solscope:customRpcUrl')  || BAKED_PROVIDER_KEYS.customRpc  || '').trim();
+  // PumpPortal isn't an RPC — it's a WebSocket key consumed elsewhere.
+  if (BAKED_PROVIDER_KEYS.pumpportal && !localStorage.getItem(PUMPPORTAL_KEY)) {
+    localStorage.setItem(PUMPPORTAL_KEY, BAKED_PROVIDER_KEYS.pumpportal);
+  }
   const mainnet = [];
   const devnet  = [];
   if (custom)    mainnet.unshift(custom);
@@ -2891,7 +2914,6 @@ function applyProviderKeys() {
   }
   RPC_ENDPOINTS['mainnet-beta'] = [...new Set([...mainnet, ...RPC_PUBLIC['mainnet-beta']])];
   RPC_ENDPOINTS['devnet']       = [...new Set([...devnet,  ...RPC_PUBLIC['devnet']])];
-  // Drop any cached health so the new key gets tried first
   if (typeof rpcHealth !== 'undefined') { rpcHealth.ok.clear(); rpcHealth.bad.clear(); }
 }
 // Keep RPC[] for any legacy uses
@@ -6386,7 +6408,6 @@ function paintUserMenu() {
     body.innerHTML = `
       <a class="user-row" href="#/watchlist"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21z"/></svg></span>My Watchlist<span class="badge">${u.watchlist.length}</span></a>
       <a class="user-row" href="#/account"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.62l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.04-.7-1.62-.93l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.55-1.62.93l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.86c-.12.21-.08.47.12.62l2.03 1.58c-.05.3-.07.62-.07.94c0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.62l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.04.7 1.62.93l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.55 1.62-.93l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.62zM12 15.6A3.6 3.6 0 0 1 8.4 12A3.6 3.6 0 0 1 12 8.4a3.6 3.6 0 0 1 3.6 3.6a3.6 3.6 0 0 1-3.6 3.6"/></svg></span>Account settings</a>
-      <a class="user-row" href="#/settings"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2L3 7v6c0 5 3.84 9.74 9 11c5.16-1.26 9-6 9-11V7zm0 2.18L19 8v5c0 3.91-2.99 7.69-7 8.93C7.99 20.69 5 16.91 5 13V8z"/></svg></span>Provider keys</a>
       <a class="user-row" href="#/status"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2m-1 6h2v5l4.25 2.52l-1 1.64L11 13z"/></svg></span>API Status</a>
       <div class="user-divider"></div>
       <button class="user-row" id="user-switch"><span class="ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 17l5-5l-5-5v3H4v4h12zM4 19h6v-2H4z"/></svg></span>Switch user</button>
@@ -7696,7 +7717,6 @@ const PALETTE_PAGES = [
   { title: 'Transaction Decoder', sub: '#/tool/decoder', icon: '🔍', route: '#/tool/decoder', keys: ['decoder','parse','tx','transaction'] },
   { title: 'API Status',       sub: '#/status',         icon: '●', route: '#/status',         keys: ['status','health','api','uptime'] },
   { title: 'Account settings', sub: '#/account',        icon: '⚙', route: '#/account',        keys: ['account','user','settings','sign','login'] },
-  { title: 'Provider keys',    sub: '#/settings',       icon: '🔑', route: '#/settings',       keys: ['settings','providers','helius','rpc','api','keys','quicknode','pumpportal'] },
   { title: 'Documentation',    sub: '#/docs/introduction', icon: '📖', route: '#/docs/introduction', keys: ['docs','help','guide','api','reference'] },
   { title: 'Pricing',          sub: '#/pricing',         icon: '$', route: '#/pricing',          keys: ['pricing','plan','pro','upgrade','billing','subscribe'] },
 ];
