@@ -3118,22 +3118,33 @@ async function loadJupTokenMap() {
     map.set(t.addr, { symbol: t.sym, name: t.name, decimals: t.dec });
   }
   map.set(WSOL_MINT, { ...map.get(WSOL_MINT), logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png' });
-  try {
-    const r = await fetch('https://tokens.jup.ag/tokens?tags=verified');
-    if (r.ok) {
+  // Jupiter Token API V2 ships at lite-api.jup.ag with a slightly different
+  // shape: each entry has `id` (mint) and `icon` rather than `address` / `logoURI`.
+  // Try V2 first, fall back to the legacy URL if V2 is unreachable.
+  const jupUrls = [
+    'https://lite-api.jup.ag/tokens/v2/tag?query=verified',
+    'https://tokens.jup.ag/tokens?tags=verified',
+  ];
+  for (const url of jupUrls) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
       const list = await r.json();
+      if (!Array.isArray(list)) continue;
       for (const t of list) {
-        // Don't overwrite hardcoded decimals; merge logoURI when present
-        const prev = map.get(t.address);
-        map.set(t.address, {
-          symbol: prev?.symbol || t.symbol,
-          name: prev?.name || t.name,
-          logoURI: t.logoURI || prev?.logoURI || null,
+        const addr = t.id || t.address;
+        if (!addr) continue;
+        const prev = map.get(addr);
+        map.set(addr, {
+          symbol:  prev?.symbol  || t.symbol,
+          name:    prev?.name    || t.name,
+          logoURI: t.icon || t.logoURI || prev?.logoURI || null,
           decimals: prev?.decimals ?? t.decimals,
         });
       }
-    }
-  } catch (_) { /* offline / rate-limited: hardcoded seed still works */ }
+      break; // success — don't hit the fallback
+    } catch (_) { /* try next */ }
+  }
   state.jupTokenMap = map;
   return map;
 }
@@ -6274,7 +6285,7 @@ GET https://api.dexscreener.com/token-boosts/top/v1</pre>
     <div class="card glass">
       <div class="card-head"><h3>Jupiter</h3></div>
       <p class="muted small">Verified token registry and best-route swap quoting across 20+ Solana DEXes.</p>
-      <pre class="code-block">GET https://tokens.jup.ag/tokens?tags=verified
+      <pre class="code-block">GET https://lite-api.jup.ag/tokens/v2/tag?query=verified
 GET https://lite-api.jup.ag/swap/v1/quote?inputMint=&lt;A&gt;&outputMint=&lt;B&gt;&amount=&lt;lamports&gt;&slippageBps=50</pre>
     </div>
     <div class="card glass">
@@ -6754,21 +6765,52 @@ function paintWatchlistButton() {
  *  API status page
  * ================================================================ */
 const STATUS_ENDPOINTS = [
-  { name: 'Solana RPC (Mainnet)', url: 'https://api.mainnet-beta.solana.com', test: async () => {
-      const r = await fetch('https://api.mainnet-beta.solana.com', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
-      });
-      const j = await r.json();
-      return j.result === 'ok' || j.error ? 'ok' : 'ok';
+  { name: 'Solana RPC (Mainnet)', url: 'Fallback chain (Helius → public → Ankr → …)', test: async () => {
+      // Walk the live fallback chain so the test reflects what the app
+      // actually does, not just a single endpoint. Reports the FIRST URL
+      // that responded healthily.
+      const endpoints = RPC_ENDPOINTS['mainnet-beta'];
+      const errs = [];
+      for (const url of endpoints) {
+        try {
+          const controller = new AbortController();
+          const to = setTimeout(() => controller.abort(), 4000);
+          const r = await fetch(url, {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+            signal: controller.signal,
+          });
+          clearTimeout(to);
+          if (!r.ok) { errs.push(`${url}: ${r.status}`); continue; }
+          const j = await r.json();
+          if (j.error && !j.result) { errs.push(`${url}: ${j.error.message || 'error'}`); continue; }
+          const host = (() => { try { return new URL(url).host; } catch { return url; } })();
+          return `ok via ${host}`;
+        } catch (e) { errs.push(`${url.replace(/\?api-key=[^&]+/, '?api-key=…')}: ${e.message}`); }
+      }
+      throw new Error(`all ${endpoints.length} endpoints failed (${errs[0] || 'unknown'})`);
     }},
-  { name: 'Solana RPC (Devnet)', url: 'https://api.devnet.solana.com', test: async () => {
-      const r = await fetch('https://api.devnet.solana.com', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
-      });
-      const j = await r.json();
-      return j.result === 'ok' || j.error ? 'ok' : 'ok';
+  { name: 'Solana RPC (Devnet)', url: 'Fallback chain (devnet)', test: async () => {
+      const endpoints = RPC_ENDPOINTS['devnet'];
+      const errs = [];
+      for (const url of endpoints) {
+        try {
+          const controller = new AbortController();
+          const to = setTimeout(() => controller.abort(), 4000);
+          const r = await fetch(url, {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
+            signal: controller.signal,
+          });
+          clearTimeout(to);
+          if (!r.ok) { errs.push(`${url}: ${r.status}`); continue; }
+          const j = await r.json();
+          if (j.error && !j.result) { errs.push(`${url}: ${j.error.message || 'error'}`); continue; }
+          const host = (() => { try { return new URL(url).host; } catch { return url; } })();
+          return `ok via ${host}`;
+        } catch (e) { errs.push(`${url}: ${e.message}`); }
+      }
+      throw new Error(`all ${endpoints.length} endpoints failed`);
     }},
   { name: 'DexScreener — tokens', url: 'https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112', test: async () => {
       const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
@@ -6793,10 +6835,24 @@ const STATUS_ENDPOINTS = [
       const list = Array.isArray(j) ? j : (j.profiles || []);
       return `${list.length} profiles`;
     }},
-  { name: 'Jupiter — verified token list', url: 'https://tokens.jup.ag/tokens?tags=verified', test: async () => {
-      const r = await fetch('https://tokens.jup.ag/tokens?tags=verified');
-      const list = await r.json();
-      return `${list.length} verified tokens`;
+  { name: 'Jupiter — verified token list', url: 'https://lite-api.jup.ag/tokens/v2/tag?query=verified', test: async () => {
+      // Token API V1 was deprecated in 2025; V2 lives at lite-api.jup.ag.
+      const urls = [
+        'https://lite-api.jup.ag/tokens/v2/tag?query=verified',
+        'https://tokens.jup.ag/tokens?tags=verified',
+      ];
+      let lastErr;
+      for (const u of urls) {
+        try {
+          const r = await fetch(u);
+          if (!r.ok) { lastErr = new Error('HTTP ' + r.status); continue; }
+          const list = await r.json();
+          if (!Array.isArray(list)) { lastErr = new Error('unexpected response'); continue; }
+          const host = (() => { try { return new URL(u).host; } catch { return u; } })();
+          return `${list.length} verified tokens via ${host}`;
+        } catch (e) { lastErr = e; }
+      }
+      throw lastErr || new Error('both endpoints failed');
     }},
   { name: 'Jupiter — swap quote', url: 'https://lite-api.jup.ag/swap/v1/quote', test: async () => {
       const r = await fetch('https://lite-api.jup.ag/swap/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000000&slippageBps=50');
@@ -7213,9 +7269,9 @@ wss://api.mainnet-beta.solana.com
 
   'jupiter': { title: 'Jupiter Swap', body: `
     <p>Token registry and swap quoting come from Jupiter.</p>
-    <h3>Verified token list</h3>
-    <pre class="code-block">GET https://tokens.jup.ag/tokens?tags=verified</pre>
-    <p>Returns ~4,000 tokens with symbol, name, decimals, and logoURI.</p>
+    <h3>Verified token list (V2)</h3>
+    <pre class="code-block">GET https://lite-api.jup.ag/tokens/v2/tag?query=verified</pre>
+    <p>Token API V2; returns an array with <code>id</code> (mint), <code>symbol</code>, <code>name</code>, <code>decimals</code>, and <code>icon</code>. V1 at <code>tokens.jup.ag/tokens?tags=verified</code> was deprecated in 2025 and is retained only as a fallback.</p>
     <h3>Swap quote</h3>
     <pre class="code-block">GET https://lite-api.jup.ag/swap/v1/quote
   ?inputMint=&lt;A&gt;
