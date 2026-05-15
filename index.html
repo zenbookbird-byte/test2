@@ -1088,10 +1088,15 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   border: 1px solid rgba(190, 245, 116, .35);
 }
 .mode-badge {
+  appearance: none; cursor: pointer; font: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
   font-size: 11px; padding: 5px 10px; border-radius: 999px;
   background: var(--surface); border: 1px solid var(--stroke);
   color: var(--muted); font-weight: 500; letter-spacing: .04em;
+  transition: color .15s, background .15s, border-color .15s;
 }
+.mode-badge:hover { color: var(--text); background: var(--surface-2); border-color: var(--stroke-strong); }
+.mode-badge[aria-expanded="true"] { color: var(--text); background: var(--surface-2); border-color: rgba(153, 69, 255, .45); }
 
 /* Limit-mode specific panels */
 .swap-token.price-token .swap-token-body { gap: 10px; }
@@ -1441,6 +1446,110 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .auth-legal a { color: var(--muted); }
 
 /* Watchlist */
+/* Trenches page (3-column real-time launchpad feed) */
+.trenches-cols {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 1100px) { .trenches-cols { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 760px)  { .trenches-cols { grid-template-columns: 1fr; } }
+
+.trench-col {
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  display: flex; flex-direction: column; min-height: 400px;
+  max-height: calc(100vh - 280px); overflow: hidden;
+}
+.trench-col-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px; border-bottom: 1px solid var(--stroke);
+}
+.trench-col-head h3 { margin: 0; font-size: 14px; font-weight: 700; }
+.trench-col-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+.trench-col-badge {
+  font-size: 10.5px; padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600;
+}
+.trench-col-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px;
+}
+.trench-col-body::-webkit-scrollbar { width: 8px; }
+.trench-col-body::-webkit-scrollbar-thumb { background: var(--stroke-strong); border-radius: 4px; }
+.tr-empty {
+  padding: 28px 16px; text-align: center; color: var(--muted-2); font-size: 12.5px;
+  border: 1px dashed var(--stroke-strong); border-radius: 10px;
+}
+
+.tr-card {
+  display: grid; gap: 8px;
+  padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--stroke);
+  transition: background .15s, border-color .15s, transform .12s;
+}
+.tr-card:hover { background: var(--surface-3); border-color: var(--stroke-strong); transform: translateY(-1px); }
+.tr-card-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tr-logo {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface-3);
+}
+.tr-logo.fallback {
+  display: grid; place-items: center; color: #0a0820; font-weight: 700; font-size: 10px;
+  background: linear-gradient(135deg, #9945ff, #14f195);
+}
+.tr-name { flex: 1; min-width: 0; }
+.tr-sym {
+  font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tr-src {
+  font-size: 9px; padding: 1px 6px; border-radius: 999px;
+  background: hsl(var(--src-hue, 260) 70% 25% / .5);
+  color: hsl(var(--src-hue, 260) 85% 80%);
+  border: 1px solid hsl(var(--src-hue, 260) 75% 55% / .35);
+  letter-spacing: .04em; text-transform: uppercase; font-weight: 700;
+  flex-shrink: 0;
+}
+.tr-meta {
+  font-size: 10.5px; color: var(--muted); margin-top: 1px;
+  display: flex; gap: 6px; align-items: center;
+}
+.tr-ext {
+  color: var(--muted); text-decoration: none; font-size: 13px;
+  width: 22px; height: 22px; display: inline-grid; place-items: center;
+  border-radius: 6px; flex-shrink: 0;
+}
+.tr-ext:hover { color: var(--text); background: var(--surface); }
+
+.tr-stats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+  padding: 4px 0;
+}
+.tr-stats > div { display: grid; gap: 1px; min-width: 0; }
+.tr-stats .lbl { font-size: 9.5px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .06em; }
+.tr-stats .val { font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tr-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 4px; border-top: 1px solid var(--stroke);
+  margin-top: 2px;
+}
+.tr-price { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tr-buy {
+  appearance: none; cursor: pointer;
+  background: rgba(20, 241, 149, .14); color: #88f3c3;
+  border: 1px solid rgba(20, 241, 149, .35);
+  font: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+  padding: 4px 8px; border-radius: 6px;
+}
+.tr-buy:hover { background: rgba(20, 241, 149, .22); color: #b9f7d8; }
+
 .watchlist-grid {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -2130,6 +2239,10 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
               <a class="ddi" href="#/trading/memescope" data-route="trading/memescope">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27H15l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14S14 12 14 9.5S12 5 9.5 5"/></svg></span>
                 <div><div class="ddi-title">Memescope</div><div class="ddi-sub">Advanced analytics for launchpad tokens</div></div>
+              </a>
+              <a class="ddi" href="#/trenches" data-route="trenches">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h2v-2H3zm0-4h2V7H3zm0 8h2v-2H3zm4 4h2v-2H7zm0-8h2V9H7zm0-8h2V5H7zm4 16h2v-2h-2zm0-4h2v-2h-2zm0-4h2V9h-2zm0-4h2V5h-2zm4 16h2v-2h-2zm0-4h2v-2h-2zm0-4h2V9h-2zm0-4h2V5h-2zm4 16h2v-2h-2zm0-4h2v-2h-2zm0-8h2V7h-2zm0 4h2v-2h-2z"/></svg></span>
+                <div><div class="ddi-title">Trenches <span class="here-pill" style="background:rgba(255,179,71,.2);color:#ffce91;border-color:rgba(255,179,71,.4)">LIVE</span></div><div class="ddi-sub">3-column real-time launchpad feed</div></div>
               </a>
             </div>
             <div class="dropdown-section">
@@ -4259,6 +4372,7 @@ const ROUTES = {
   '/trading/volume':    () => renderTradingPage('volume'),
   '/trading/memescope': () => renderTradingPage('memescope'),
   '/trading/copy':      () => renderCopyTradingPage(),
+  '/trenches':          () => renderTrenchesPage(),
   '/tool/checker':    () => renderToolPage('checker'),
   '/tool/holders':    () => renderToolPage('holders'),
   '/tool/decoder':    () => renderToolPage('decoder'),
@@ -4283,6 +4397,7 @@ function router() {
   // Stop page-specific timers when leaving
   if (hash !== '/watchlist' && typeof stopWatchlistAutoRefresh === 'function') stopWatchlistAutoRefresh();
   if (hash !== '/swap'      && typeof stopSwapAutoRefresh      === 'function') stopSwapAutoRefresh();
+  if (hash !== '/trenches'  && typeof stopTrenchesLoop         === 'function') stopTrenchesLoop();
   if (fn) fn();
   else showWalletView();
 }
@@ -4482,6 +4597,252 @@ function paintTradingRows() {
 }
 
 /* ----- Copy Trading page (top holders of high-volume tokens) ----- */
+/* ================================================================
+ *  Trenches page (#/trenches) — 3-column real-time launchpad feed
+ *  Inspired by trade.padre.gg/trenches:
+ *    NEW           : just-launched bonding-curve tokens (low MC)
+ *    ALMOST BONDED : close to graduating off pump.fun (~$50-80k MC)
+ *    BONDED        : completed bonding curve / moved to AMM
+ * ================================================================ */
+const trenchesState = {
+  rows: [],
+  source: '',        // '' = all, 'pumpfun', 'pumpswap', 'bags', ...
+  timer: null,
+  lastTick: 0,
+};
+const TRENCHES_SOURCES = [
+  { id: '',         label: 'All',       hue: 260 },
+  { id: 'pumpfun',  label: 'Pump.fun',  hue:  18 },
+  { id: 'pumpswap', label: 'Pump.swap', hue:   8 },
+  { id: 'bags',     label: 'Bags',      hue: 320 },
+  { id: 'raydium',  label: 'Raydium',   hue: 200 },
+  { id: 'meteora',  label: 'Meteora',   hue: 280 },
+];
+// Thresholds (USD market cap) to classify a token into a column.
+const TRENCH_THRESH = { newMax: 25_000, almostMin: 25_000, almostMax: 90_000 };
+
+/* Fetch a broad candidate set of fresh + boosted Solana tokens. */
+async function fetchTrenchesData() {
+  const [profiles, boosts] = await Promise.all([
+    fetchLatestTokenProfiles().catch(() => []),
+    fetchBoostedTokens().catch(() => []),
+  ]);
+  const mints = [...new Set([
+    ...profiles.slice(0, 30).map(p => p.tokenAddress),
+    ...boosts.slice(0, 30).map(b => b.tokenAddress),
+  ].filter(Boolean))];
+  const dsBatched = await fetchDexscreenerForMints(mints);
+
+  // Also fetch the raw token data (gives us pairCreatedAt for age + market cap)
+  const detailed = await Promise.all(mints.map(async mint => {
+    try {
+      const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+      if (!r.ok) return null;
+      const json = await r.json();
+      const sol = (json.pairs || []).filter(p => p.chainId === 'solana');
+      if (!sol.length) return null;
+      const best = sol.sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0))[0];
+      return { mint, pair: best };
+    } catch { return null; }
+  }));
+
+  return detailed.filter(Boolean).map(({ mint, pair: p }) => {
+    const price = Number(p.priceUsd) || 0;
+    const mc = Number(p.marketCap || p.fdv || 0);
+    const vol24 = Number(p.volume?.h24 || 0);
+    const ch24 = Number(p.priceChange?.h24 ?? 0);
+    const ch1 = Number(p.priceChange?.h1 ?? 0);
+    const liq = Number(p.liquidity?.usd || 0);
+    const createdAt = p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : null;
+    const ageMin = createdAt ? Math.max(0, (Date.now() / 1000 - createdAt) / 60) : null;
+    return {
+      mint, symbol: p.baseToken?.symbol || '?', name: p.baseToken?.name || '',
+      logo: p.info?.imageUrl || null,
+      dexId: (p.dexId || '').toLowerCase(),
+      url: p.url,
+      price, mc, vol24, ch24, ch1, liq,
+      createdAt, ageMin,
+    };
+  });
+}
+
+function classifyTrench(t) {
+  // BONDED: high market cap + on AMM (not pumpfun)
+  if (t.mc >= TRENCH_THRESH.almostMax || (t.dexId && t.dexId !== 'pumpfun' && t.mc > 30_000)) {
+    return 'bonded';
+  }
+  // ALMOST BONDED: pumpfun-style with $25-90k MC
+  if (t.mc >= TRENCH_THRESH.almostMin && t.mc < TRENCH_THRESH.almostMax) {
+    return 'almost';
+  }
+  // NEW: anything else (low MC or very recent)
+  return 'new';
+}
+
+function fmtAge(min) {
+  if (min == null) return '—';
+  if (min < 1)   return '<1m';
+  if (min < 60)  return `${Math.floor(min)}m`;
+  if (min < 1440) return `${Math.floor(min / 60)}h`;
+  return `${Math.floor(min / 1440)}d`;
+}
+
+function trenchCardHTML(t) {
+  const ch = Number(t.ch24 || 0);
+  const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
+  const srcLabel = SOURCE_LABEL[t.dexId] || (t.dexId || '—');
+  const srcHue = SOURCE_HUE[t.dexId] ?? 260;
+  return `
+    <article class="tr-card" data-mint="${escapeHtml(t.mint)}">
+      <div class="tr-card-head">
+        ${t.logo ? `<img class="tr-logo" src="${t.logo}" alt="" onerror="this.outerHTML='<span class=&quot;tr-logo fallback&quot;>${escapeHtml((t.symbol||'?').slice(0,2).toUpperCase())}</span>'">` : `<span class="tr-logo fallback">${escapeHtml((t.symbol||'?').slice(0,2).toUpperCase())}</span>`}
+        <div class="tr-name">
+          <div class="tr-sym">${escapeHtml(t.symbol)} ${t.dexId ? `<span class="tr-src" style="--src-hue:${srcHue}">${escapeHtml(srcLabel)}</span>` : ''}</div>
+          <div class="tr-meta">
+            <span class="mono">${shorten(t.mint, 4, 4)}</span>
+            <span>·</span>
+            <span>${fmtAge(t.ageMin)}</span>
+          </div>
+        </div>
+        <a class="tr-ext" href="${t.url || '#'}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>
+      </div>
+      <div class="tr-stats">
+        <div><span class="lbl">MC</span><span class="val">${t.mc ? fmtUSD(t.mc) : '—'}</span></div>
+        <div><span class="lbl">Liq</span><span class="val">${t.liq ? fmtUSD(t.liq) : '—'}</span></div>
+        <div><span class="lbl">Vol 24h</span><span class="val">${t.vol24 ? fmtUSD(t.vol24) : '—'}</span></div>
+        <div><span class="lbl">24h</span><span class="val delta ${cls}">${fmtPct(ch)}</span></div>
+      </div>
+      <div class="tr-foot">
+        <span class="tr-price">${t.price ? fmtUSD(t.price, t.price < 1 ? 6 : 4) : '—'}</span>
+        <button class="tr-buy" data-mint="${escapeHtml(t.mint)}">Quick swap →</button>
+      </div>
+    </article>`;
+}
+
+function paintTrenches() {
+  let rows = trenchesState.rows.slice();
+  if (trenchesState.source) rows = rows.filter(r => r.dexId === trenchesState.source);
+
+  const newRows    = rows.filter(r => classifyTrench(r) === 'new');
+  const almostRows = rows.filter(r => classifyTrench(r) === 'almost');
+  const bondedRows = rows.filter(r => classifyTrench(r) === 'bonded');
+
+  // Sort: NEW = newest first, ALMOST = closest-to-graduate by MC, BONDED = highest volume
+  newRows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  almostRows.sort((a, b) => (b.mc || 0) - (a.mc || 0));
+  bondedRows.sort((a, b) => (b.vol24 || 0) - (a.vol24 || 0));
+
+  const fill = (id, list, emptyMsg) => {
+    const el = $(`#tr-${id}`);
+    if (!el) return;
+    el.innerHTML = list.length
+      ? list.map(trenchCardHTML).join('')
+      : `<div class="tr-empty">${emptyMsg}</div>`;
+    el.querySelectorAll('.tr-card').forEach(c => c.addEventListener('click', e => {
+      if (e.target.closest('.tr-buy') || e.target.closest('.tr-ext')) return;
+      openTokenDetail(c.dataset.mint);
+    }));
+    el.querySelectorAll('.tr-buy').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      swapState.to = b.dataset.mint;
+      swapState.from = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // USDC
+      swapState.mode = 'market';
+      location.hash = '#/swap';
+    }));
+    // Update count badge
+    const badge = document.querySelector(`[data-col-badge="${id}"]`);
+    if (badge) badge.textContent = list.length;
+  };
+
+  fill('new',    newRows,    'Waiting for fresh launches…');
+  fill('almost', almostRows, 'Waiting for near-bonded tokens…');
+  fill('bonded', bondedRows, 'Waiting for graduates…');
+
+  // Update source counts
+  const counts = {};
+  for (const r of trenchesState.rows) counts[r.dexId || ''] = (counts[r.dexId || ''] || 0) + 1;
+  document.querySelectorAll('[data-trench-src-count]').forEach(el => {
+    const id = el.dataset.trenchSrcCount;
+    el.textContent = id === '' ? trenchesState.rows.length : (counts[id] || 0);
+  });
+  const tick = $('#tr-last');
+  if (tick) tick.textContent = `updated ${new Date().toLocaleTimeString()}`;
+}
+
+async function loadTrenches() {
+  const target = $('#tr-new'); if (!target) return;
+  try {
+    const rows = await fetchTrenchesData();
+    if (rows.length) trenchesState.rows = rows;
+    paintTrenches();
+  } catch (err) {
+    console.warn('Trenches fetch failed', err);
+  }
+}
+
+function startTrenchesLoop() {
+  stopTrenchesLoop();
+  trenchesState.timer = setInterval(() => {
+    if (location.hash === '#/trenches') loadTrenches();
+  }, 10_000);
+}
+function stopTrenchesLoop() {
+  if (trenchesState.timer) { clearInterval(trenchesState.timer); trenchesState.timer = null; }
+}
+
+async function renderTrenchesPage() {
+  showPageView(`
+    ${pageHeader({
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Trenches</span>`,
+      title: 'Trenches',
+      sub: 'Real-time stream of newly-launched, almost-bonded, and graduated Solana launchpad tokens. Auto-refreshes every 10 seconds.',
+      actions: `<span class="muted small" id="tr-last">—</span><button class="ghost-btn small" id="tr-refresh">Refresh</button>`,
+    })}
+    <div class="source-chips" id="trench-src-chips">
+      ${TRENCHES_SOURCES.map(s => `<button data-trench-src="${s.id}" class="source-chip${s.id === trenchesState.source ? ' active' : ''}" style="--src-hue:${s.hue}">${escapeHtml(s.label)}<span class="src-count" data-trench-src-count="${s.id}">—</span></button>`).join('')}
+    </div>
+    <div class="trenches-cols">
+      <section class="trench-col">
+        <header class="trench-col-head">
+          <span class="trench-col-dot pulse" style="background:#ffd166;box-shadow:0 0 10px #ffd166"></span>
+          <h3>New</h3>
+          <span class="trench-col-badge" data-col-badge="new">—</span>
+          <span class="muted small" style="margin-left:auto">Bonding · MC &lt; $25k</span>
+        </header>
+        <div class="trench-col-body" id="tr-new"><div class="modal-loading">Loading…</div></div>
+      </section>
+      <section class="trench-col">
+        <header class="trench-col-head">
+          <span class="trench-col-dot pulse" style="background:#ff9559;box-shadow:0 0 10px #ff9559"></span>
+          <h3>Almost Bonded</h3>
+          <span class="trench-col-badge" data-col-badge="almost">—</span>
+          <span class="muted small" style="margin-left:auto">$25k – $90k MC</span>
+        </header>
+        <div class="trench-col-body" id="tr-almost"><div class="modal-loading">Loading…</div></div>
+      </section>
+      <section class="trench-col">
+        <header class="trench-col-head">
+          <span class="trench-col-dot pulse" style="background:#14f195;box-shadow:0 0 10px #14f195"></span>
+          <h3>Bonded</h3>
+          <span class="trench-col-badge" data-col-badge="bonded">—</span>
+          <span class="muted small" style="margin-left:auto">Graduated · MC &gt; $90k</span>
+        </header>
+        <div class="trench-col-body" id="tr-bonded"><div class="modal-loading">Loading…</div></div>
+      </section>
+    </div>
+  `);
+
+  $('#tr-refresh').addEventListener('click', loadTrenches);
+  $$('#trench-src-chips .source-chip').forEach(b => b.addEventListener('click', () => {
+    trenchesState.source = b.dataset.trenchSrc;
+    $$('#trench-src-chips .source-chip').forEach(x => x.classList.toggle('active', x === b));
+    paintTrenches();
+  }));
+
+  await loadTrenches();
+  startTrenchesLoop();
+}
+
 async function renderCopyTradingPage() {
   showPageView(`
     ${pageHeader({
@@ -4915,7 +5276,7 @@ async function renderSwapPage() {
         <div class="swap-card-head">
           ${renderSwapModeTabs()}
           <div class="right">
-            <span class="mode-badge">${MODE_LABELS[m]} ⚙</span>
+            <button class="mode-badge" id="swap-settings-btn" type="button" aria-haspopup="true" aria-expanded="false">${MODE_LABELS[m]} <svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align:-2px"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.04-.7-1.62-.93l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.55-1.62.93l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.86c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94c0 .32.02.64.07.94l-2.03 1.58c-.2.14-.24.41-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.04.7 1.62.93l.36 2.54c.05.24.24.41.47.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.55 1.62-.93l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.2.07-.47-.12-.61zM12 15.6A3.6 3.6 0 1 1 15.6 12A3.6 3.6 0 0 1 12 15.6"/></svg></button>
           </div>
         </div>
 
@@ -4993,8 +5354,21 @@ async function renderSwapPage() {
     } catch { toast({ title: 'Clipboard blocked', icon: '⚠' }); }
   });
 
-  // Settings popover (shared)
+  // Settings popover (shared) — gear in the mode badge toggles the popover
+  const settingsBtn = $('#swap-settings-btn');
   const settingsPop = $('#swap-settings-pop');
+  settingsBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = settingsPop.classList.toggle('open');
+    settingsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if (!settingsPop || !settingsPop.classList.contains('open')) return;
+    if (!e.target.closest('#swap-settings-pop') && !e.target.closest('#swap-settings-btn')) {
+      settingsPop.classList.remove('open');
+      settingsBtn?.setAttribute('aria-expanded', 'false');
+    }
+  });
   $$('.slip-chip').forEach(c => c.addEventListener('click', () => {
     $$('.slip-chip').forEach(x => x.classList.toggle('active', x === c));
     $('#slip-custom').value = '';
@@ -6703,6 +7077,7 @@ const PALETTE_PAGES = [
   { title: 'Top Gainers',      sub: '#/trading/gainers', icon: '🚀', route: '#/trading/gainers', keys: ['gainers','rise','up','top','perf'] },
   { title: 'High Volume',      sub: '#/trading/volume', icon: '📊', route: '#/trading/volume', keys: ['volume','liquid','top'] },
   { title: 'Memescope',        sub: '#/trading/memescope', icon: '🐸', route: '#/trading/memescope', keys: ['meme','memescope','boost','launchpad'] },
+  { title: 'Trenches',         sub: '#/trenches',          icon: '⛏', route: '#/trenches',          keys: ['trench','trenches','pumpfun','bonding','live'] },
   { title: 'Copy Trading',     sub: '#/trading/copy', icon: '👥', route: '#/trading/copy', keys: ['copy','mirror','whale'] },
   { title: 'My Watchlist',     sub: '#/watchlist',      icon: '★', route: '#/watchlist',      keys: ['watch','saved','favorites','starred'] },
   { title: 'Token Checker',    sub: '#/tool/checker',   icon: '🛡', route: '#/tool/checker',   keys: ['checker','safety','rug','score'] },
