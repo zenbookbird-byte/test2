@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Demo explorer — Slipstream overlay</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0b0e14; color: #cdd6e3;
+    font: 400 14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 24px 16px 80px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  .demo-flag {
+    background: rgba(94,234,212,.08); border: 1px solid rgba(94,234,212,.3);
+    color: #5eead4; border-radius: 9px; padding: 9px 13px; font-size: 12.5px; margin-bottom: 18px;
+  }
+  .xhead { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .xtoken { width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg,#f0883e,#e3b341); flex: none; }
+  h1 { font-size: 21px; color: #f0f3f8; }
+  .xsub { color: #6b7689; font-size: 13px; }
+  .xstats { display: flex; gap: 22px; margin: 14px 0 24px; flex-wrap: wrap; }
+  .xstat .l { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #6b7689; }
+  .xstat .v { font-size: 16px; font-weight: 600; color: #f0f3f8; }
+  .card {
+    background: #11151d; border: 1px solid #20262f; border-radius: 12px;
+    margin-bottom: 18px; overflow: hidden;
+  }
+  .card-h { padding: 13px 16px; border-bottom: 1px solid #20262f; font-weight: 600; color: #f0f3f8;
+    display: flex; justify-content: space-between; align-items: center; }
+  .card-h .mut { font-weight: 400; font-size: 12px; color: #6b7689; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+    color: #6b7689; padding: 9px 16px; background: #0e1219; }
+  td { padding: 11px 16px; border-top: 1px solid #20262f; font-size: 13px; }
+  td.r, th.r { text-align: right; }
+  .addr { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; color: #8ab4f8; }
+  .rank { color: #6b7689; width: 32px; }
+  .pct-bar { display: inline-block; height: 5px; background: #2b3340; border-radius: 3px;
+    width: 70px; vertical-align: middle; margin-right: 7px; overflow: hidden; }
+  .pct-bar span { display: block; height: 100%; background: #5eead4; }
+  .feed-row { padding: 12px 16px; border-top: 1px solid #20262f; display: flex; gap: 10px; align-items: baseline; }
+  .feed-row:first-child { border-top: none; }
+  .badge-buy { color: #4ade80; font-weight: 600; font-size: 12px; }
+  .badge-sell { color: #f87171; font-weight: 600; font-size: 12px; }
+  .feed-time { color: #6b7689; font-size: 12px; margin-left: auto; }
+  a { color: #8ab4f8; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .tweet { padding: 16px; display: flex; gap: 12px; }
+  .tw-av { width: 42px; height: 42px; border-radius: 50%; background: #2b3340; flex: none; }
+  .tw-name { font-weight: 700; color: #f0f3f8; }
+  .tw-handle { color: #6b7689; }
+  .tw-body { margin-top: 5px; color: #e3e8ef; }
+  .note { color: #6b7689; font-size: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="demo-flag">
+    <strong>Slipstream demo page.</strong> This mimics a block-explorer token page. The Slipstream
+    overlay is loaded below — hover any teal-underlined address or the pill next to it to see the
+    wallet card. The floating panel is bottom-right. Click a pill, then “Add label”, to tag a wallet.
+  </div>
+
+  <div class="xhead">
+    <div class="xtoken"></div>
+    <div>
+      <h1>$PUMPED <span class="xsub">/ Pumped Coin</span></h1>
+      <div class="xsub">Solana · token Gx2cPq9rT8sWvN4kHp7mTcZ3dEfGhJ6uVwXy1Az8B9</div>
+    </div>
+  </div>
+  <div class="xstats">
+    <div class="xstat"><div class="l">Price</div><div class="v">$0.01240</div></div>
+    <div class="xstat"><div class="l">Market cap</div><div class="v">$1.42M</div></div>
+    <div class="xstat"><div class="l">Liquidity</div><div class="v">$284k</div></div>
+    <div class="xstat"><div class="l">Holders</div><div class="v">3,124</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Top Holders <span class="mut">page 1 of 63</span></div>
+    <table>
+      <thead>
+        <tr><th class="rank">#</th><th>Address</th><th class="r">Amount</th><th>Share</th><th class="r">Value</th><th class="r">Age</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="rank">1</td><td class="addr">5Qz8Gv9rT2sWxYbN4kHp7mTcZ3dEfGhJ6uVwXy1Az8B</td><td class="r">14.2M</td><td><span class="pct-bar"><span style="width:62%"></span></span>9.1%</td><td class="r">$176k</td><td class="r">8 mo</td></tr>
+        <tr><td class="rank">2</td><td class="addr">7Kp3wRt8sFv2NbXyZ4kHm9Tcd5EfGhJ6uVwAz1Q2sWx</td><td class="r">9.8M</td><td><span class="pct-bar"><span style="width:43%"></span></span>6.3%</td><td class="r">$121k</td><td class="r">1 yr</td></tr>
+        <tr><td class="rank">3</td><td class="addr">3Km9dTy6fHp2wRtZ8sFv4NbXyA5EfGhJ6uVwQ1az8Bn</td><td class="r">7.1M</td><td><span class="pct-bar"><span style="width:31%"></span></span>4.6%</td><td class="r">$88k</td><td class="r">2 yr</td></tr>
+        <tr><td class="rank">4</td><td class="addr">8Fp4wRt2sKv9NbXyZ3kHm7Tcd1EfGhJ5uVwAz6Q4sWp</td><td class="r">6.4M</td><td><span class="pct-bar"><span style="width:28%"></span></span>4.1%</td><td class="r">$79k</td><td class="r">2 days</td></tr>
+        <tr><td class="rank">5</td><td class="addr">Hk2mNp8qRv3wXyZ7bC4dEfGhJ5tUvWxYz1aBcD6eFg9</td><td class="r">5.9M</td><td><span class="pct-bar"><span style="width:26%"></span></span>3.8%</td><td class="r">$73k</td><td class="r">5 mo</td></tr>
+        <tr><td class="rank">6</td><td class="addr">2Cn9jKp1dHx4wRtZ7sFv5NbXyA8EfGhJ6uVwQ3az9Bm</td><td class="r">4.7M</td><td><span class="pct-bar"><span style="width:21%"></span></span>3.0%</td><td class="r">$58k</td><td class="r">3 yr</td></tr>
+        <tr><td class="rank">7</td><td class="addr">9Dy7mRz4qHp2wKtZ8sFv5NbXyA6EfGhJ3uVwQ1az8Bk</td><td class="r">4.1M</td><td><span class="pct-bar"><span style="width:18%"></span></span>2.6%</td><td class="r">$51k</td><td class="r">3 yr</td></tr>
+        <tr><td class="rank">8</td><td class="addr">Wq4rTy7uPp2sDfGhJ9kLzXcVbN3mAe6oIuYt5rEw8Qa</td><td class="r">3.6M</td><td><span class="pct-bar"><span style="width:16%"></span></span>2.3%</td><td class="r">$45k</td><td class="r">11 mo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Recent traders <span class="mut">across chains · last 6</span></div>
+    <div class="feed-row"><span class="badge-buy">BUY</span> <a href="/address/0x8a9f3c2b1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a">0x8a9f…7f8a</a> bought 124k $BRETT on Base <span class="feed-time">2m ago</span></div>
+    <div class="feed-row"><span class="badge-sell">SELL</span> <a href="/address/0x3f7a2c9b8d1e4f5a6b7c8d9e0f1a2b3c4d5e6f70">0x3f7a…6f70</a> sold $PEPE on Ethereum <span class="feed-time">5m ago</span></div>
+    <div class="feed-row"><span class="badge-buy">BUY</span> <a href="/address/0xdead1c4f9a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d">0xdead…5c6d</a> deployed a new token <span class="feed-time">9m ago</span></div>
+    <div class="feed-row"><span class="badge-buy">BUY</span> <a href="/address/0x6e7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f50">0x6e7a…4f50</a> bought $DOGE on Ethereum <span class="feed-time">14m ago</span></div>
+    <div class="feed-row"><span class="badge-buy">BUY</span> <a href="/address/0x11aa22bb33cc44dd55ee66ff77aa88bb99cc00dd">0x11aa…00dd</a> bought $AERO on Base <span class="feed-time">21m ago</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Mentioned on X</div>
+    <div class="tweet">
+      <div class="tw-av"></div>
+      <div>
+        <div><span class="tw-name">crypto anon</span> <span class="tw-handle">@anon · 1h</span></div>
+        <div class="tw-body">
+          whoever is behind 5Qz8Gv9rT2sWxYbN4kHp7mTcZ3dEfGhJ6uVwXy1Az8B has been
+          accumulating quietly all week. paying attention.
+        </div>
+        <div class="note">↑ Slipstream resolves the address inline, even inside a tweet.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Slipstream overlay: loaded directly so the demo works without installing the extension -->
+<link rel="stylesheet" href="../src/content.css" />
+<script src="../src/data.js"></script>
+<script src="../src/content.js"></script>
+</body>
+</html>

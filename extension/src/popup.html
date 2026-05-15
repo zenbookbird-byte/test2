@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Slipstream</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="pop-head">
+    <div class="pop-logo"></div>
+    <div>
+      <div class="pop-title">Slipstream</div>
+      <div class="pop-sub">Smart-money overlay</div>
+    </div>
+    <label class="pop-switch" title="Enable overlay">
+      <input type="checkbox" id="enabled" />
+      <span class="pop-slider"></span>
+    </label>
+  </header>
+
+  <section class="pop-stats">
+    <div class="pop-stat"><div class="pop-stat-v" id="stat-db">0</div><div class="pop-stat-l">in network</div></div>
+    <div class="pop-stat"><div class="pop-stat-v" id="stat-mine">0</div><div class="pop-stat-l">my labels</div></div>
+    <div class="pop-stat"><div class="pop-stat-v" id="stat-chains">5</div><div class="pop-stat-l">chains</div></div>
+  </section>
+
+  <section class="pop-block">
+    <div class="pop-block-h">Add a label</div>
+    <input id="lbl-addr" class="pop-input" placeholder="Wallet address (0x… or Solana)" />
+    <input id="lbl-name" class="pop-input" placeholder="Label, e.g. “my degen alt”" />
+    <input id="lbl-note" class="pop-input" placeholder="Note (optional)" />
+    <button id="lbl-save" class="pop-btn pop-btn-primary">Save label</button>
+    <div id="lbl-msg" class="pop-msg"></div>
+  </section>
+
+  <section class="pop-block">
+    <div class="pop-block-h">My labels <span id="mine-count" class="pop-count">0</span></div>
+    <div id="mine-list" class="pop-list"></div>
+  </section>
+
+  <section class="pop-block">
+    <div class="pop-block-h">Network wallets</div>
+    <div id="db-list" class="pop-list pop-list-scroll"></div>
+  </section>
+
+  <footer class="pop-foot">
+    <a id="open-demo" href="#" class="pop-link">Open demo page →</a>
+    <span class="pop-mut">v1.0.0</span>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
