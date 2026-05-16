@@ -815,6 +815,95 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .page-table .table th .sort-ind { opacity: 0; margin-left: 4px; }
 .page-table .table th.sorted .sort-ind { opacity: 1; }
 
+/* ===== Trending — dense market table (Padre-style) ===== */
+.trend-card {
+  background: #0a0c17; border: 1px solid #1c1f2e; border-radius: 12px;
+  overflow: hidden;
+}
+.trend-scroll { overflow-x: auto; }
+.trend-scroll::-webkit-scrollbar { height: 8px; }
+.trend-scroll::-webkit-scrollbar-thumb { background: #1c1f2e; border-radius: 4px; }
+.trend-table {
+  width: 100%; border-collapse: collapse; min-width: 1080px;
+  font-size: 12.5px; font-variant-numeric: tabular-nums;
+}
+.trend-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: #0d1020; color: #565a76;
+  font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+  text-align: right; padding: 10px 14px; white-space: nowrap;
+  border-bottom: 1px solid #1c1f2e; cursor: pointer; user-select: none;
+}
+.trend-table thead th:first-child,
+.trend-table thead th.tcol-tok { text-align: left; }
+.trend-table thead th:hover { color: var(--text); }
+.trend-table thead th.sorted { color: #c4b1ff; }
+.trend-table thead th .ind { opacity: .6; font-size: 9px; }
+.trend-table tbody td {
+  padding: 9px 14px; text-align: right; white-space: nowrap;
+  border-bottom: 1px solid #14172a; color: var(--text);
+}
+.trend-table tbody tr { cursor: pointer; transition: background .1s; }
+.trend-table tbody tr:hover td { background: #11142a; }
+.trend-table tbody tr:last-child td { border-bottom: 0; }
+.trend-rank { color: #565a76; font-weight: 600; text-align: left !important; width: 30px; }
+
+/* Token cell */
+.trend-tok { display: flex; align-items: center; gap: 10px; text-align: left; min-width: 200px; }
+.trend-logo {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; object-fit: cover;
+  background: #14172a;
+}
+.trend-logo.fallback {
+  display: grid; place-items: center; color: #0a0820; font-weight: 700; font-size: 12px;
+  background: linear-gradient(135deg, #9945ff, #14f195);
+}
+.trend-tok-text { min-width: 0; }
+.trend-tok-top { display: flex; align-items: center; gap: 6px; }
+.trend-sym { font-weight: 700; font-size: 13px; color: var(--text); }
+.trend-src {
+  font-size: 8.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: 1px 5px; border-radius: 4px;
+  background: hsl(var(--src-hue,260) 70% 24% / .6); color: hsl(var(--src-hue,260) 85% 80%);
+  border: 1px solid hsl(var(--src-hue,260) 75% 55% / .35);
+}
+.trend-tok-sub {
+  display: flex; align-items: center; gap: 6px; margin-top: 1px;
+  font-size: 10.5px; color: var(--muted);
+}
+.trend-tok-sub .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+.trend-tok-sub a { color: #6a6e8a; text-decoration: none; font-size: 11px; }
+.trend-tok-sub a:hover { color: var(--text); }
+
+.trend-delta.pos { color: #14f195; }
+.trend-delta.neg { color: #ff5a76; }
+.trend-delta.neutral { color: var(--muted); }
+.trend-table td.tcol-active { background: rgba(196,177,255,.05); }
+.trend-table th.tcol-active { color: #c4b1ff; }
+
+.trend-txns { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
+.trend-txns .b { color: #14f195; font-weight: 600; }
+.trend-txns .s { color: #ff5a76; }
+
+.trend-spark { width: 72px; height: 22px; vertical-align: middle; }
+
+.trend-buy {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(180deg, #5b6cff, #4858e8);
+  color: #fff; border: 1px solid #6a7aff;
+  font: inherit; font-size: 11px; font-weight: 700;
+  padding: 5px 10px; border-radius: 7px;
+}
+.trend-buy::before { content: '⚡'; font-size: 10px; }
+.trend-buy:hover { filter: brightness(1.1); }
+
+.trend-toolbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.trend-count { font-size: 11.5px; color: var(--muted); margin-left: auto; }
+
 /* Nav link active state */
 .nav-link.is-active,
 .ddi.is-active { color: var(--text); }
@@ -5184,12 +5273,13 @@ async function renderTradingPage(view) {
         </div>
         <button class="ghost-btn small" id="refresh-page">Refresh</button>`,
     })}
-    <div class="source-chips" id="source-chips">
-      ${SOURCES.map(s => `<button data-source="${s.id}" class="source-chip${s.id === tradingState.source ? ' active' : ''}" style="--src-hue:${s.hue}">${escapeHtml(s.label)}<span class="src-count" data-source-count="${s.id}">—</span></button>`).join('')}
+    <div class="trend-toolbar">
+      <div class="source-chips" id="source-chips" style="margin:0">
+        ${SOURCES.map(s => `<button data-source="${s.id}" class="source-chip${s.id === tradingState.source ? ' active' : ''}" style="--src-hue:${s.hue}">${escapeHtml(s.label)}<span class="src-count" data-source-count="${s.id}">—</span></button>`).join('')}
+      </div>
+      <span class="trend-count" id="trend-count">—</span>
     </div>
-    <div class="card glass page-table">
-      <div id="trading-rows"><div class="modal-loading">Loading…</div></div>
-    </div>
+    <div id="trading-rows"><div class="modal-loading">Loading…</div></div>
   `);
 
   $('#refresh-page').addEventListener('click', () => loadTradingRows());
@@ -5221,18 +5311,24 @@ async function loadTradingRows() {
       rows = profiles.slice(0, 40).map(p => buildRow(p.tokenAddress, prices.get(p.tokenAddress), p));
     } else {
       const pairs = await fetchSolanaPairs();
-      rows = pairs.map(p => ({
-        mint: p.baseToken?.address, symbol: p.baseToken?.symbol, name: p.baseToken?.name,
-        logo: p.info?.imageUrl, url: p.url,
-        dexId: (p.dexId || '').toLowerCase(),
-        pairAddress: p.pairAddress,
-        price: Number(p.priceUsd) || null,
-        change: { m5: Number(p.priceChange?.m5 ?? 0), h1: Number(p.priceChange?.h1 ?? 0), h6: Number(p.priceChange?.h6 ?? 0), h24: Number(p.priceChange?.h24 ?? 0) },
-        volume: { m5: Number(p.volume?.m5 ?? 0), h1: Number(p.volume?.h1 ?? 0), h6: Number(p.volume?.h6 ?? 0), h24: Number(p.volume?.h24 ?? 0) },
-        liquidity: Number(p.liquidity?.usd ?? 0),
-        mcap: Number(p.marketCap ?? p.fdv ?? 0),
-        createdAt: p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : null,
-      })).filter(r => r.mint);
+      rows = pairs.map(p => {
+        const tx = (k) => ({ buys: Number(p.txns?.[k]?.buys || 0), sells: Number(p.txns?.[k]?.sells || 0) });
+        return {
+          mint: p.baseToken?.address, symbol: p.baseToken?.symbol, name: p.baseToken?.name,
+          logo: p.info?.imageUrl, url: p.url,
+          dexId: (p.dexId || '').toLowerCase(),
+          pairAddress: p.pairAddress,
+          price: Number(p.priceUsd) || null,
+          change: { m5: Number(p.priceChange?.m5 ?? 0), h1: Number(p.priceChange?.h1 ?? 0), h6: Number(p.priceChange?.h6 ?? 0), h24: Number(p.priceChange?.h24 ?? 0) },
+          volume: { m5: Number(p.volume?.m5 ?? 0), h1: Number(p.volume?.h1 ?? 0), h6: Number(p.volume?.h6 ?? 0), h24: Number(p.volume?.h24 ?? 0) },
+          txns:   { m5: tx('m5'), h1: tx('h1'), h6: tx('h6'), h24: tx('h24') },
+          liquidity: Number(p.liquidity?.usd ?? 0),
+          mcap: Number(p.marketCap ?? p.fdv ?? 0),
+          socials: Array.isArray(p.info?.socials) ? p.info.socials : [],
+          websites: Array.isArray(p.info?.websites) ? p.info.websites : [],
+          createdAt: p.pairCreatedAt ? Math.floor(p.pairCreatedAt / 1000) : null,
+        };
+      }).filter(r => r.mint);
     }
     tradingState.rows = rows;
     paintTradingRows();
@@ -5252,8 +5348,23 @@ function buildRow(mint, px, extra = {}) {
     price: px?.price ?? null,
     change: { m5: 0, h1: 0, h6: 0, h24: Number(px?.change24h ?? 0) },
     volume:  { m5: 0, h1: 0, h6: 0, h24: 0 },
+    txns:    { m5: { buys: 0, sells: 0 }, h1: { buys: 0, sells: 0 }, h6: { buys: 0, sells: 0 }, h24: { buys: 0, sells: 0 } },
+    socials: [], websites: [],
     liquidity: 0, mcap: 0, createdAt: null,
   };
+}
+
+/* Mini sparkline reconstructed from the 4 real price-change windows. */
+function tradingSparkline(change) {
+  const at = c => 1 / (1 + (Number(c) || 0) / 100);
+  const pts = [at(change.h24), at(change.h6), at(change.h1), at(change.m5), 1];
+  const min = Math.min(...pts), max = Math.max(...pts), span = (max - min) || 1;
+  const W = 72, H = 22, N = pts.length;
+  const xs = i => (i / (N - 1)) * W;
+  const ys = v => H - ((v - min) / span) * (H - 4) - 2;
+  const line = pts.map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const cls = (Number(change.h24) || 0) >= 0 ? 'pos' : 'neg';
+  return `<svg class="tr-spark trend-spark ${cls}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="line" d="${line}"/></svg>`;
 }
 
 function paintTradingRows() {
@@ -5263,12 +5374,11 @@ function paintTradingRows() {
   const r = tradingState.range;
   let rows = tradingState.rows.slice();
 
-  if (view === 'gainers') rows.sort((a, b) => (b.change[r] || -Infinity) - (a.change[r] || -Infinity));
-  else if (view === 'volume') rows.sort((a, b) => (b.volume[r] || 0) - (a.volume[r] || 0));
-  else if (view === 'trending') rows.sort((a, b) => (b.volume[r] || 0) - (a.volume[r] || 0));
+  if (view === 'gainers') rows.sort((a, b) => (b.change[r] ?? -Infinity) - (a.change[r] ?? -Infinity));
+  else if (view === 'volume' || view === 'trending') rows.sort((a, b) => (b.volume[r] || 0) - (a.volume[r] || 0));
   else if (view === 'latest') {/* keep order from API */}
 
-  // Update per-source counts in the chip bar
+  // Per-source counts in the chip bar
   const counts = {};
   for (const row of rows) counts[row.dexId || ''] = (counts[row.dexId || ''] || 0) + 1;
   document.querySelectorAll('[data-source-count]').forEach(el => {
@@ -5276,66 +5386,94 @@ function paintTradingRows() {
     el.textContent = id === '' ? rows.length : (counts[id] || 0);
   });
 
-  // Apply the source filter
-  if (tradingState.source) {
-    rows = rows.filter(row => row.dexId === tradingState.source);
-  }
+  if (tradingState.source) rows = rows.filter(row => row.dexId === tradingState.source);
 
   if (!rows.length) {
     container.innerHTML = `<div class="page-empty"><h3>No matching rows</h3><p>${tradingState.source ? `No ${SOURCE_LABEL[tradingState.source]} tokens in the current set — try another source or hit Refresh.` : `The provider didn't return any rows. Try again in a moment.`}</p></div>`;
     return;
   }
 
+  const tfCols = [['m5','5m'], ['h1','1h'], ['h6','6h'], ['h24','24h']];
+  const delta = (v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n === 0) return `<span class="trend-delta neutral">0%</span>`;
+    return `<span class="trend-delta ${n > 0 ? 'pos' : 'neg'}">${fmtPct(n)}</span>`;
+  };
+
   container.innerHTML = `
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Token</th>
-            <th>Source</th>
-            <th class="num">Price</th>
-            <th class="num">${tradingState.range.toUpperCase()}</th>
-            <th class="num">Liquidity</th>
-            <th class="num">Volume ${tradingState.range.toUpperCase()}</th>
-            <th class="num">Market Cap</th>
-            <th class="num">Age</th>
-            <th></th>
-          </tr>
-        </thead>
+    <div class="trend-card"><div class="trend-scroll">
+      <table class="trend-table">
+        <thead><tr>
+          <th class="trend-rank">#</th>
+          <th class="tcol-tok">Token</th>
+          <th>Price</th>
+          <th>Age</th>
+          <th>Liquidity</th>
+          <th>Market Cap</th>
+          <th>Volume ${r.toUpperCase()}</th>
+          <th>Txns ${r.toUpperCase()}</th>
+          ${tfCols.map(([k, l]) => `<th class="${k === r ? 'tcol-active sorted' : ''}">${l}</th>`).join('')}
+          <th>Trend</th>
+          <th></th>
+        </tr></thead>
         <tbody>
           ${rows.map((row, i) => {
-            const ch = row.change[r] ?? 0;
-            const cls = ch > 0 ? 'pos' : ch < 0 ? 'neg' : 'neutral';
-            const label = SOURCE_LABEL[row.dexId] || (row.dexId ? row.dexId : '—');
+            const label = SOURCE_LABEL[row.dexId] || (row.dexId || '');
             const hue = SOURCE_HUE[row.dexId] ?? 260;
+            const tx = row.txns?.[r] || { buys: 0, sells: 0 };
+            const xUrl = (row.socials || []).find(s => /twitter|x\.com/i.test(s.url || ''))?.url;
+            const tgUrl = (row.socials || []).find(s => /t\.me|telegram/i.test(s.url || ''))?.url;
+            const site = (row.websites || [])[0]?.url;
             return `<tr data-mint="${escapeHtml(row.mint)}">
-              <td class="rank-cell">${i + 1}</td>
+              <td class="trend-rank">${i + 1}</td>
               <td>
-                <div class="token-id">
-                  ${row.logo ? `<img class="token-logo" src="${row.logo}" alt="" onerror="this.remove()">` : `<span class="token-logo fallback" style="display:inline-flex;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:#0a0820;font-weight:700;font-size:11px;background:linear-gradient(135deg,#9945ff,#14f195)">${escapeHtml((row.symbol||'?').slice(0,2).toUpperCase())}</span>`}
-                  <div class="token-text">
-                    <div class="token-sym">${escapeHtml(row.symbol || '?')}</div>
-                    <div class="token-sub muted">${escapeHtml(row.name || shorten(row.mint, 4, 4))}</div>
+                <div class="trend-tok">
+                  ${row.logo
+                    ? `<img class="trend-logo" src="${row.logo}" alt="" onerror="this.outerHTML='<span class=&quot;trend-logo fallback&quot;>${escapeHtml((row.symbol||'?').slice(0,2).toUpperCase())}</span>'">`
+                    : `<span class="trend-logo fallback">${escapeHtml((row.symbol||'?').slice(0,2).toUpperCase())}</span>`}
+                  <div class="trend-tok-text">
+                    <div class="trend-tok-top">
+                      <span class="trend-sym">${escapeHtml(row.symbol || '?')}</span>
+                      ${label ? `<span class="trend-src" style="--src-hue:${hue}">${escapeHtml(label)}</span>` : ''}
+                    </div>
+                    <div class="trend-tok-sub">
+                      <span class="nm">${escapeHtml(row.name || shorten(row.mint, 4, 4))}</span>
+                      ${site ? `<a href="${escapeHtml(site)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Website">🌐</a>` : ''}
+                      ${xUrl ? `<a href="${escapeHtml(xUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="X">𝕏</a>` : ''}
+                      ${tgUrl ? `<a href="${escapeHtml(tgUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Telegram">✈</a>` : ''}
+                    </div>
                   </div>
                 </div>
               </td>
-              <td>${row.dexId ? `<span class="source-pill" style="--src-hue:${hue}">${escapeHtml(label)}</span>` : '<span class="muted">—</span>'}</td>
-              <td class="num">${row.price ? fmtUSD(row.price, row.price < 1 ? 6 : 2) : '—'}</td>
-              <td class="num delta ${cls}">${fmtPct(ch)}</td>
-              <td class="num">${row.liquidity ? fmtUSD(row.liquidity) : '—'}</td>
-              <td class="num">${row.volume[r] ? fmtUSD(row.volume[r]) : '—'}</td>
-              <td class="num">${row.mcap ? fmtUSD(row.mcap) : '—'}</td>
-              <td class="num">${row.createdAt ? timeAgo(row.createdAt).replace(' ago','') : '—'}</td>
-              <td class="num"><a class="ext" href="${row.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">DEX ↗</a></td>
+              <td>${row.price ? fmtUSD(row.price, row.price < 1 ? 6 : 2) : '—'}</td>
+              <td>${row.createdAt ? timeAgo(row.createdAt).replace(' ago', '') : '—'}</td>
+              <td>${row.liquidity ? fmtUSD(row.liquidity) : '—'}</td>
+              <td>${row.mcap ? fmtUSD(row.mcap) : '—'}</td>
+              <td>${row.volume[r] ? fmtUSD(row.volume[r]) : '—'}</td>
+              <td><span class="trend-txns"><span class="b">${fmt(tx.buys)}</span><span class="s">${fmt(tx.sells)}</span></span></td>
+              ${tfCols.map(([k]) => `<td class="${k === r ? 'tcol-active' : ''}">${delta(row.change[k])}</td>`).join('')}
+              <td>${tradingSparkline(row.change)}</td>
+              <td><button class="trend-buy" data-buy="${escapeHtml(row.mint)}" onclick="event.stopPropagation()">${trenchesState.buyAmount ?? 0.1}</button></td>
             </tr>`;
           }).join('')}
         </tbody>
       </table>
-    </div>`;
+    </div></div>`;
+
   $$('#trading-rows tbody tr').forEach(tr => tr.addEventListener('click', () => {
     const m = tr.dataset.mint; if (m) openTokenDetail(m);
   }));
+  $$('#trading-rows .trend-buy').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    swapState.from = 'So11111111111111111111111111111111111111112';
+    swapState.to = b.dataset.buy;
+    swapState.amount = trenchesState.buyAmount || 0.1;
+    swapState.mode = 'market';
+    location.hash = '#/swap';
+    toast({ title: 'Quick buy loaded', sub: (swapState.amount) + ' SOL → review on Swap', icon: '⚡', timeout: 3000 });
+  }));
+  const cnt = $('#trend-count');
+  if (cnt) cnt.textContent = `${rows.length} tokens`;
 }
 
 /* ----- Copy Trading page (top holders of high-volume tokens) ----- */
