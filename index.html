@@ -3050,6 +3050,28 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .wp-installs { color: var(--muted); font-size: 12px; padding: 8px 2px 2px; line-height: 1.7; }
 .wp-installs a { color: #88aafc; }
 
+.ww-card { margin-top: 14px; }
+.ww-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ww-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.ww-status { font-size: 11px; font-weight: 600; color: var(--muted); padding: 2px 8px;
+  border-radius: 99px; background: var(--surface-2); margin-left: 6px; }
+.ww-status.live { color: #14f195; background: rgba(20,241,149,.12); }
+.ww-status.error { color: #ffb454; background: rgba(255,180,84,.12); }
+.ww-list { display: flex; flex-direction: column; gap: 4px; max-height: 380px; overflow-y: auto; }
+.ww-empty { color: var(--muted); font-size: 13px; padding: 14px 4px; }
+.ww-row { display: grid; grid-template-columns: 54px 1fr auto auto auto; gap: 10px;
+  align-items: center; padding: 8px 10px; border-radius: 9px; background: var(--surface);
+  cursor: pointer; font-size: 12.5px; }
+.ww-row:hover { background: var(--surface-2); }
+.ww-side { font-weight: 800; font-size: 10.5px; letter-spacing: .06em; text-align: center;
+  padding: 3px 0; border-radius: 5px; }
+.ww-row.buy .ww-side { color: #14f195; background: rgba(20,241,149,.14); }
+.ww-row.sell .ww-side { color: #ff5d6c; background: rgba(255,93,108,.14); }
+.ww-wallet { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ww-mint { font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+.ww-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+.ww-time { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -5253,7 +5275,8 @@ function init() {
     else openWalletPicker();
   });
   walletStore.restore();
-  detectBackend();
+  detectBackend().then(() => walletWatch.sync());
+  walletWatch.sync();
 
   // Feature 5 — keyboard nav between tokens on the token page
   document.addEventListener('keydown', (e) => {
@@ -9523,6 +9546,157 @@ function openWalletImportModal() {
   $$('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));
 }
 
+/* ============================================================
+ *  Wallet activity alerts — live buy/sell notifications for
+ *  tracked wallets, via PumpPortal subscribeAccountTrade.
+ *  Covers pump.fun / PumpSwap trades.
+ * ============================================================ */
+const walletWatch = {
+  ws: null,
+  status: 'idle',          // 'idle' | 'connecting' | 'live' | 'error'
+  keys: [],
+  alerts: [],
+  KEY: 'solscope:walletAlerts',
+  _retry: null,
+  _loaded: false,
+
+  load() {
+    if (this._loaded) return;
+    this._loaded = true;
+    try { this.alerts = JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { this.alerts = []; }
+  },
+  _save() {
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.alerts.slice(0, 80))); } catch {}
+  },
+  labelFor(addr) {
+    const w = userStore.current()?.watchlist?.find(x => x.address === addr);
+    return w?.label || shorten(addr, 4, 4);
+  },
+
+  // Connect / re-subscribe to match the current watchlist.
+  sync() {
+    this.load();
+    const addrs = (userStore.current()?.watchlist || []).map(w => w.address).slice(0, 100);
+    if (!addrs.length) { this.stop(); this.keys = []; return; }
+    const same = addrs.length === this.keys.length && addrs.every(a => this.keys.includes(a));
+    if (same && (this.status === 'live' || this.status === 'connecting')) return;
+    this.keys = addrs;
+    this._connect();
+  },
+
+  _connect() {
+    this._teardown();
+    if (!this.keys.length) return;
+    this.status = 'connecting';
+    paintWalletWatchFeed();
+    let ws;
+    try { ws = new WebSocket('wss://pumpportal.fun/api/data'); }
+    catch { this.status = 'error'; this._scheduleRetry(); return; }
+    this.ws = ws;
+    ws.addEventListener('open', () => {
+      this.status = 'live';
+      try { ws.send(JSON.stringify({ method: 'subscribeAccountTrade', keys: this.keys })); } catch {}
+      paintWalletWatchFeed();
+    });
+    ws.addEventListener('message', (e) => {
+      let m; try { m = JSON.parse(e.data); } catch { return; }
+      this._onTrade(m);
+    });
+    ws.addEventListener('close', () => {
+      this.ws = null;
+      if (this.status !== 'idle') { this.status = 'error'; this._scheduleRetry(); paintWalletWatchFeed(); }
+    });
+    ws.addEventListener('error', () => {});
+  },
+
+  _scheduleRetry() {
+    clearTimeout(this._retry);
+    this._retry = setTimeout(() => { if (this.keys.length) this._connect(); }, 8000);
+  },
+  _teardown() {
+    clearTimeout(this._retry);
+    if (this.ws) { try { this.ws.close(); } catch {} this.ws = null; }
+  },
+  stop() {
+    this._teardown();
+    this.status = 'idle';
+    paintWalletWatchFeed();
+  },
+
+  _onTrade(m) {
+    if (!m || !m.txType) return;
+    const trader = m.traderPublicKey || m.trader || '';
+    if (!trader || !this.keys.includes(trader)) return;
+    const a = {
+      wallet: trader,
+      label: this.labelFor(trader),
+      mint: m.mint || '',
+      txType: m.txType === 'sell' ? 'sell' : 'buy',
+      sol: Number(m.solAmount || 0),
+      tokens: Number(m.tokenAmount || 0),
+      ts: Date.now(),
+      signature: m.signature || '',
+    };
+    this.alerts.unshift(a);
+    if (this.alerts.length > 80) this.alerts.length = 80;
+    this._save();
+    this._notify(a);
+    paintWalletWatchFeed();
+  },
+
+  _notify(a) {
+    const buy = a.txType === 'buy';
+    toast({
+      title: `${a.label} ${buy ? 'bought' : 'sold'}`,
+      sub: `${a.sol ? a.sol.toFixed(3) + ' SOL · ' : ''}${shorten(a.mint, 4, 4)}`,
+      icon: buy ? '🟢' : '🔴',
+      timeout: 6500,
+      onClick: a.mint ? () => { location.hash = '#/token/' + a.mint; } : undefined,
+    });
+  },
+
+  clear() { this.alerts = []; this._save(); paintWalletWatchFeed(); },
+};
+
+function walletWatchFeedHTML() {
+  return `
+    <div class="ww-card card glass">
+      <div class="ww-head">
+        <h3>Live wallet activity <span class="ww-status" id="ww-status">Idle</span></h3>
+        <button class="ghost-btn small" id="ww-clear">Clear</button>
+      </div>
+      <p class="muted small" style="margin:0 0 8px">Buys &amp; sells from your tracked wallets, in real time. Covers pump.fun / PumpSwap trades.</p>
+      <div class="ww-list" id="wallet-watch-feed"></div>
+    </div>`;
+}
+function paintWalletWatchFeed() {
+  const st = document.getElementById('ww-status');
+  if (st) {
+    st.className = 'ww-status ' + walletWatch.status;
+    st.textContent = walletWatch.status === 'live' ? 'Live'
+      : walletWatch.status === 'connecting' ? 'Connecting…'
+      : walletWatch.status === 'error' ? 'Reconnecting…' : 'Idle';
+  }
+  const list = document.getElementById('wallet-watch-feed');
+  if (!list) return;
+  if (!walletWatch.alerts.length) {
+    list.innerHTML = '<div class="ww-empty">No activity yet — buys and sells from your tracked wallets will appear here live.</div>';
+    return;
+  }
+  list.innerHTML = walletWatch.alerts.slice(0, 50).map(a => {
+    const buy = a.txType === 'buy';
+    return `<div class="ww-row ${buy ? 'buy' : 'sell'}"${a.mint ? ` data-mint="${escapeHtml(a.mint)}"` : ''}>
+      <span class="ww-side">${buy ? 'BUY' : 'SELL'}</span>
+      <span class="ww-wallet" title="${escapeHtml(a.wallet)}">${escapeHtml(a.label)}</span>
+      <span class="ww-mint">${escapeHtml(shorten(a.mint, 4, 4))}</span>
+      <span class="ww-amt">${a.sol ? a.sol.toFixed(3) + ' SOL' : '—'}</span>
+      <span class="ww-time">${timeAgo(Math.floor(a.ts / 1000))}</span>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.ww-row[data-mint]').forEach(r =>
+    r.addEventListener('click', () => { location.hash = '#/token/' + r.dataset.mint; }));
+}
+
 async function renderWatchlistPage() {
   const u = userStore.current();
   if (!u) {
@@ -9598,6 +9772,7 @@ async function renderWatchlistPage() {
           </div>
         </div>`).join('')}
     </div>
+    ${walletWatchFeedHTML()}
   `);
 
   // Wire actions
@@ -9620,8 +9795,11 @@ async function renderWatchlistPage() {
   bindTokenWatchSection();
   $('#wl-import')?.addEventListener('click', openWalletImportModal);
   $('#refresh-page').addEventListener('click', loadWatchlistStats);
+  $('#ww-clear')?.addEventListener('click', () => walletWatch.clear());
   loadWatchlistStats();
   startWatchlistAutoRefresh();
+  walletWatch.sync();
+  paintWalletWatchFeed();
 }
 
 let watchlistTimer = null;
@@ -9685,6 +9863,7 @@ function paintWatchlistButton() {
     }
     paintWatchlistButton();
     paintUserMenu();
+    walletWatch.sync();
   });
   row.appendChild(btn);
 }
