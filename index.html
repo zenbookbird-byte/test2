@@ -2262,10 +2262,11 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 }
 .rw-btn {
   appearance: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700;
-  padding: 10px 16px; border-radius: 9px; white-space: nowrap;
+  padding: 10px 16px; border-radius: 9px; white-space: nowrap; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   border: 1px solid transparent; transition: filter .12s, transform .1s;
 }
-.rw-btn:hover { transform: translateY(-1px); }
+.rw-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
 .rw-btn.primary { background: linear-gradient(135deg, #c4b1ff, #9be9c8); color: #0c0a1e; }
 .rw-btn.ghost { background: var(--surface-2); border-color: var(--stroke); color: var(--text); }
 .rw-btn.x { background: #111; border-color: var(--stroke-strong); color: #fff; }
@@ -8425,9 +8426,22 @@ function renderRewardsPage() {
       <div class="rw-hero">
         <span class="rw-badge">Affiliate program</span>
         <h2>Earn <span class="pct">30%</span> cashback<br>for every user you refer</h2>
-        <p>Create a free account to get your personal referral link. You earn 30% of every payment your referrals make — every month, for as long as they stay subscribed.</p>
-        <a class="rw-btn primary" href="#/account">Create account to get your link →</a>
+        <p>Enter a name to instantly get your personal referral link. You earn 30% of every payment your referrals make — every month, for as long as they stay subscribed. Free, no card.</p>
+        <form id="rw-signup" class="rw-link-row" style="width:100%;max-width:480px">
+          <input id="rw-name" class="rw-link-input" placeholder="Your name or trader handle" autocomplete="off" required>
+          <button class="rw-btn primary" type="submit">Get my link →</button>
+        </form>
       </div>`);
+    const form = $('#rw-signup');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = $('#rw-name').value.trim();
+      if (!name) { toast({ title: 'Enter a name first', icon: '!', timeout: 2500 }); return; }
+      try { userStore.create(name, null); }
+      catch { userStore.create(`${name} · ${Math.floor(Math.random() * 1000)}`, null); }
+      toast({ title: 'Account created', sub: '24h Pro trial started — here is your referral link.', icon: '🎉', timeout: 5000 });
+      renderRewardsPage();
+    });
     return;
   }
 
