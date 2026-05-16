@@ -3032,6 +3032,24 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
   .tx-mid, .tx-right { text-align: left; }
 }
 
+.wallet-picker { display: flex; flex-direction: column; gap: 8px; }
+.wp-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--stroke); cursor: pointer; color: var(--text);
+  font-size: 14px; font-weight: 600; text-align: left; font-family: inherit;
+  transition: background .12s, border-color .12s; }
+.wp-item:hover { background: var(--surface-2); border-color: var(--stroke-strong); }
+.wp-ico { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+  background: var(--surface-2); display: inline-flex; align-items: center; justify-content: center; }
+.wp-ico-g { background: #fff; color: #4285f4; font-weight: 800; font-size: 16px; }
+.wp-name { flex: 1; min-width: 0; }
+.wp-tag { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--surface-2);
+  padding: 3px 8px; border-radius: 99px; }
+.wp-social { background: linear-gradient(135deg, rgba(66,133,244,.14), rgba(52,168,83,.1));
+  border-color: rgba(66,133,244,.32); }
+.wp-empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
+.wp-installs { color: var(--muted); font-size: 12px; padding: 8px 2px 2px; line-height: 1.7; }
+.wp-installs a { color: #88aafc; }
+
 </style>
 </head>
 <body>
@@ -3712,6 +3730,21 @@ const PLATFORM_FEE = {
 function platformFeeActive() {
   return PLATFORM_FEE.bps > 0 && !!PLATFORM_FEE.feeAccount;
 }
+
+/* ================================================================
+ *  WEB3AUTH — optional Google / social login.
+ *
+ *  Leave clientId blank to disable (the wallet picker then shows only
+ *  browser-extension wallets). To enable:
+ *    1. Create a free project at dashboard.web3auth.io
+ *    2. Add your deployed domain to the project's allowed origins
+ *    3. Paste the Client ID below
+ *  Web3Auth turns a Google account into a non-custodial Solana wallet.
+ * ================================================================ */
+const WEB3AUTH = {
+  clientId: '',                  // <-- paste your Web3Auth Client ID
+  network: 'sapphire_mainnet',   // or 'sapphire_devnet' while testing
+};
 
 function applyProviderKeys() {
   // Hardcoded keys take priority; the localStorage Settings page can override
@@ -4578,6 +4611,30 @@ function safeUrl(u) {
   const s = String(u ?? '').trim();
   return /^https?:\/\//i.test(s) ? escapeHtml(s) : '';
 }
+/* Like safeUrl, but also allows data:image/ — wallet icons are data URIs. */
+function safeImgSrc(u) {
+  const s = String(u ?? '').trim();
+  return (/^https?:\/\//i.test(s) || /^data:image\//i.test(s)) ? escapeHtml(s) : '';
+}
+const _B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function bs58encode(bytes) {
+  const b = Array.from(bytes), digits = [];
+  for (const byte of b) {
+    let carry = byte;
+    for (let i = 0; i < digits.length; i++) { carry += digits[i] << 8; digits[i] = carry % 58; carry = (carry / 58) | 0; }
+    while (carry > 0) { digits.push(carry % 58); carry = (carry / 58) | 0; }
+  }
+  let str = '';
+  for (const byte of b) { if (byte === 0) str += '1'; else break; }
+  for (let i = digits.length - 1; i >= 0; i--) str += _B58[digits[i]];
+  return str || '1';
+}
+function b64ToBytes(b64) { return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
+function bytesToB64(bytes) {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
 
 /* ---------------- Activity pagination ---------------- */
 async function loadMoreTx() {
@@ -5197,11 +5254,9 @@ function init() {
   // Feature 1 — Connect Wallet button + silent eager-connect on load
   $('#wallet-btn')?.addEventListener('click', () => {
     if (walletStore.isConnected()) walletStore.disconnect();
-    else walletStore.connect();
+    else openWalletPicker();
   });
-  if (localStorage.getItem(walletStore.KEY)) {
-    setTimeout(() => walletStore.connect(true), 400);
-  }
+  walletStore.restore();
 
   // Feature 5 — keyboard nav between tokens on the token page
   document.addEventListener('keydown', (e) => {
@@ -6378,57 +6433,123 @@ const tokenPageState = {
 /* ============================================================
  *  FEATURE 1 — Browser wallet connection (Phantom / Solflare)
  * ============================================================ */
+/* Wallet Standard discovery — finds every installed Solana wallet
+   (Phantom, Solflare, Backpack, Coinbase, OKX, Glow, …) without
+   hard-coding any of them. */
+const walletRegistry = {
+  wallets: [],
+  _onChange: [],
+  onChange(fn) { this._onChange.push(fn); },
+  _emit() { this._onChange.forEach(fn => { try { fn(); } catch {} }); },
+  _add(w) {
+    if (!w || this.wallets.includes(w)) return;
+    const isSolana = (w.chains || []).some(c => String(c).startsWith('solana:'));
+    const canConnect = w.features && w.features['standard:connect'];
+    const canSign = w.features && (w.features['solana:signAndSendTransaction'] || w.features['solana:signTransaction']);
+    if (!isSolana || !canConnect || !canSign) return;
+    this.wallets.push(w);
+    this._emit();
+  },
+  init() {
+    const api = { register: (w) => { this._add(w); return () => {}; } };
+    window.addEventListener('wallet-standard:register-wallet', (e) => {
+      try { if (typeof e.detail === 'function') e.detail(api); } catch {}
+    });
+    try { window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail: api })); } catch {}
+  },
+};
+walletRegistry.init();
+
 const walletStore = {
-  KEY: 'solscope:walletConnected',
-  provider: null,
+  KEY: 'solscope:wallet',
+  kind: null,            // 'standard' | 'web3auth'
   providerName: null,
+  icon: null,
   pubkey: null,
   balance: null,
-  detect() {
-    if (window.solana?.isPhantom) return { p: window.solana, name: 'Phantom' };
-    if (window.solflare?.isSolflare || window.solflare) return { p: window.solflare, name: 'Solflare' };
-    if (window.solana) return { p: window.solana, name: 'Wallet' };
-    return null;
-  },
-  async connect(silent = false) {
-    const d = this.detect();
-    if (!d) {
-      if (!silent) {
-        toast({ title: 'No Solana wallet found', sub: 'Install Phantom or Solflare to connect.', icon: '👻', timeout: 5000 });
-        window.open('https://phantom.app/', '_blank', 'noopener');
-      }
-      return false;
-    }
+  _wallet: null,         // Wallet Standard wallet
+  _account: null,        // Wallet Standard account
+  _w3aWallet: null,      // Web3Auth Solana wallet wrapper
+
+  isConnected() { return !!this.pubkey; },
+  connect() { openWalletPicker(); },
+
+  async connectStandard(wallet, silent = false) {
     try {
-      const res = silent ? await d.p.connect({ onlyIfTrusted: true }) : await d.p.connect();
-      this.provider = d.p;
-      this.providerName = d.name;
-      this.pubkey = (res?.publicKey || d.p.publicKey)?.toString();
-      if (!this.pubkey) return false;
-      localStorage.setItem(this.KEY, '1');
-      d.p.on?.('disconnect', () => this._onDisconnect());
-      d.p.on?.('accountChanged', () => { this.pubkey = d.p.publicKey?.toString() || null; this.refreshBalance(); });
-      await this.refreshBalance();
-      paintWalletBtn();
-      if (!silent) toast({ title: `${d.name} connected`, sub: shorten(this.pubkey, 6, 6), icon: '✓', timeout: 3500 });
-      // Refresh the token page wallet row if we're on it
-      if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
+      const res = await wallet.features['standard:connect'].connect(silent ? { silent: true } : undefined);
+      const accounts = res?.accounts || wallet.accounts || [];
+      const acct = accounts.find(a => (a.chains || []).some(c => String(c).startsWith('solana:'))) || accounts[0];
+      if (!acct) { if (!silent) toast({ title: 'No account returned by wallet', icon: '✕', timeout: 3000 }); return false; }
+      this.kind = 'standard';
+      this._wallet = wallet;
+      this._account = acct;
+      this.pubkey = acct.address;
+      this.providerName = wallet.name;
+      this.icon = wallet.icon || null;
+      wallet.features['standard:events']?.on('change', (props) => {
+        if (props.accounts) {
+          const a = props.accounts[0];
+          if (a) { this._account = a; this.pubkey = a.address; this.refreshBalance().then(paintWalletBtn); }
+          else this._onDisconnect();
+        }
+      });
+      this._afterConnect(silent);
       return true;
     } catch (e) {
       if (!silent) toast({ title: 'Connection cancelled', sub: e.message || '', icon: '✕', timeout: 3000 });
       return false;
     }
   },
+
+  async connectWeb3Auth(silent = false) {
+    try {
+      const w3a = await getWeb3Auth();
+      if (!w3a.connected) {
+        if (silent) return false;
+        await w3a.connect();
+      }
+      if (!w3a.connected) return false;
+      const sw = await makeSolanaWallet(w3a.provider);
+      const accs = await sw.requestAccounts();
+      if (!accs || !accs.length) return false;
+      this.kind = 'web3auth';
+      this._w3aWallet = sw;
+      this.pubkey = accs[0];
+      this.providerName = 'Google';
+      this.icon = null;
+      this._afterConnect(silent);
+      return true;
+    } catch (e) {
+      if (!silent) toast({ title: 'Google sign-in failed', sub: e.message || '', icon: '✕', timeout: 4500 });
+      return false;
+    }
+  },
+
+  _afterConnect(silent) {
+    localStorage.setItem(this.KEY, JSON.stringify({ kind: this.kind, name: this.providerName }));
+    paintWalletBtn();
+    this.refreshBalance().then(paintWalletBtn);
+    if (!silent) toast({ title: `${this.providerName} connected`, sub: shorten(this.pubkey, 6, 6), icon: '✓', timeout: 3500 });
+    if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
+    if (location.hash === '#/swap') { try { getSwapQuote(); } catch {} }
+  },
+
   async disconnect() {
-    try { await this.provider?.disconnect?.(); } catch {}
+    try {
+      if (this.kind === 'standard') await this._wallet?.features?.['standard:disconnect']?.disconnect();
+      if (this.kind === 'web3auth') await _w3a?.logout?.();
+    } catch {}
     this._onDisconnect();
   },
+
   _onDisconnect() {
-    this.provider = null; this.pubkey = null; this.balance = null;
+    this.kind = this.providerName = this.icon = this.pubkey = this.balance = null;
+    this._wallet = this._account = this._w3aWallet = null;
     localStorage.removeItem(this.KEY);
     paintWalletBtn();
     if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
   },
+
   async refreshBalance() {
     if (!this.pubkey) return;
     try {
@@ -6436,20 +6557,102 @@ const walletStore = {
       this.balance = (r?.value || 0) / LAMPORTS_PER_SOL;
     } catch { this.balance = null; }
   },
-  isConnected() { return !!this.pubkey; },
+
+  restore() {
+    let saved;
+    try { saved = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch {}
+    if (!saved) return;
+    if (saved.kind === 'web3auth') { this.connectWeb3Auth(true); return; }
+    if (saved.kind === 'standard') {
+      const tryConnect = () => {
+        const w = walletRegistry.wallets.find(x => x.name === saved.name);
+        if (w) { this.connectStandard(w, true); return true; }
+        return false;
+      };
+      if (!tryConnect()) walletRegistry.onChange(() => { if (!this.isConnected()) tryConnect(); });
+    }
+  },
+
+  // Sign + broadcast a base64 transaction; returns the signature string.
+  async signAndSendBase64(b64) {
+    const bytes = b64ToBytes(b64);
+    if (this.kind === 'standard') {
+      const sas = this._wallet.features['solana:signAndSendTransaction'];
+      if (sas) {
+        const out = await sas.signAndSendTransaction({
+          account: this._account, transaction: bytes, chain: 'solana:mainnet',
+        });
+        const sig = Array.isArray(out) ? out[0]?.signature : out?.signature;
+        return typeof sig === 'string' ? sig : bs58encode(sig);
+      }
+      const st = this._wallet.features['solana:signTransaction'];
+      const out = await st.signTransaction({ account: this._account, transaction: bytes, chain: 'solana:mainnet' });
+      const signed = Array.isArray(out) ? out[0]?.signedTransaction : out?.signedTransaction;
+      return await rpc('sendTransaction', [bytesToB64(signed), { encoding: 'base64', maxRetries: 3 }]);
+    }
+    if (this.kind === 'web3auth') {
+      const web3 = await loadWeb3();
+      const tx = web3.VersionedTransaction.deserialize(bytes);
+      const res = await this._w3aWallet.signAndSendTransaction(tx);
+      return res?.signature || res;
+    }
+    throw new Error('No wallet connected');
+  },
 };
 
 function paintWalletBtn() {
   const btn = $('#wallet-btn'); if (!btn) return;
   if (walletStore.isConnected()) {
     btn.classList.add('connected');
-    btn.innerHTML = `<span class="dot"></span>${shorten(walletStore.pubkey, 4, 4)}${walletStore.balance != null ? ` · ${walletStore.balance.toFixed(2)} SOL` : ''}`;
-    btn.title = `${walletStore.providerName} — click to disconnect`;
+    btn.innerHTML = `<span class="dot"></span>${escapeHtml(shorten(walletStore.pubkey, 4, 4))}${walletStore.balance != null ? ` · ${walletStore.balance.toFixed(2)} SOL` : ''}`;
+    btn.title = `${walletStore.providerName || 'Wallet'} — click to disconnect`;
   } else {
     btn.classList.remove('connected');
     btn.textContent = 'Connect Wallet';
-    btn.title = 'Connect Phantom or Solflare';
+    btn.title = 'Connect a Solana wallet';
   }
+}
+
+/* Wallet picker modal — lists every detected Wallet Standard wallet
+   plus Google login when Web3Auth is configured. */
+function openWalletPicker() {
+  openModal('Connect a wallet', 'Choose how to connect to Solana');
+  renderWalletPicker();
+  walletRegistry.onChange(() => {
+    if (!$('#modal')?.hidden && $('.wallet-picker')) renderWalletPicker();
+  });
+}
+function renderWalletPicker() {
+  const body = $('#modal-body'); if (!body) return;
+  const wallets = walletRegistry.wallets;
+  let html = '<div class="wallet-picker">';
+  if (WEB3AUTH.clientId) {
+    html += `<button class="wp-item wp-social" type="button" data-w3a="1">
+      <span class="wp-ico wp-ico-g">G</span>
+      <span class="wp-name">Continue with Google</span>
+      <span class="wp-tag">Social</span></button>`;
+  }
+  if (wallets.length) {
+    html += wallets.map((w, i) => `<button class="wp-item" type="button" data-wallet="${i}">
+      ${w.icon ? `<img class="wp-ico" src="${safeImgSrc(w.icon)}" alt="">` : '<span class="wp-ico"></span>'}
+      <span class="wp-name">${escapeHtml(w.name)}</span></button>`).join('');
+  } else if (!WEB3AUTH.clientId) {
+    html += `<div class="wp-empty">No Solana wallet detected in this browser.</div>`;
+  }
+  html += `<div class="wp-installs">New to Solana? Install
+    <a href="https://phantom.app/" target="_blank" rel="noopener">Phantom</a>,
+    <a href="https://solflare.com/" target="_blank" rel="noopener">Solflare</a> or
+    <a href="https://backpack.app/" target="_blank" rel="noopener">Backpack</a>.</div></div>`;
+  body.innerHTML = html;
+  body.querySelectorAll('[data-wallet]').forEach(el => el.addEventListener('click', () => {
+    const w = walletRegistry.wallets[+el.dataset.wallet];
+    closeModal();
+    if (w) walletStore.connectStandard(w, false);
+  }));
+  body.querySelector('[data-w3a]')?.addEventListener('click', () => {
+    closeModal();
+    walletStore.connectWeb3Auth(false);
+  });
 }
 
 /* ============================================================
@@ -8251,6 +8454,42 @@ async function loadWeb3() {
   return _web3Lib;
 }
 
+/* Web3Auth (Google / social login). Lazy-loaded only when used, and
+   only when WEB3AUTH.clientId is configured. NOTE: the Web3Auth flow
+   needs a real Client ID and should be verified in a live browser —
+   it cannot be exercised in a headless test environment. */
+let _w3a = null, _w3aSol = null;
+async function getWeb3Auth() {
+  if (!WEB3AUTH.clientId) throw new Error('Web3Auth is not configured');
+  if (_w3a) return _w3a;
+  const [modal, base, sol] = await Promise.all([
+    import('https://esm.sh/@web3auth/modal@9'),
+    import('https://esm.sh/@web3auth/base@9'),
+    import('https://esm.sh/@web3auth/solana-provider@9'),
+  ]);
+  _w3aSol = sol;
+  const chainConfig = {
+    chainNamespace: base.CHAIN_NAMESPACES.SOLANA,
+    chainId: '0x1',
+    rpcTarget: 'https://api.mainnet-beta.solana.com',
+    displayName: 'Solana Mainnet',
+    blockExplorerUrl: 'https://solscan.io',
+    ticker: 'SOL',
+    tickerName: 'Solana',
+  };
+  const privateKeyProvider = new sol.SolanaPrivateKeyProvider({ config: { chainConfig } });
+  _w3a = new modal.Web3Auth({
+    clientId: WEB3AUTH.clientId,
+    web3AuthNetwork: WEB3AUTH.network || 'sapphire_mainnet',
+    privateKeyProvider,
+  });
+  await _w3a.initModal();
+  return _w3a;
+}
+async function makeSolanaWallet(provider) {
+  return new _w3aSol.SolanaWallet(provider);
+}
+
 /* Poll signature status until the swap is confirmed (or times out). */
 async function confirmSignature(sig, tries = 24) {
   for (let i = 0; i < tries; i++) {
@@ -8273,8 +8512,8 @@ async function executeSwap() {
   if (swapState._executing) return;
 
   if (!walletStore.isConnected()) {
-    const ok = await walletStore.connect();
-    if (!ok) return;
+    walletStore.connect();
+    return;
   }
   if (!swapState.quote) {
     await getSwapQuote();
@@ -8313,25 +8552,9 @@ async function executeSwap() {
     const { swapTransaction } = await res.json();
     if (!swapTransaction) throw new Error('No transaction returned by Jupiter');
 
-    const web3 = await loadWeb3();
-    const bytes = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
-    const tx = web3.VersionedTransaction.deserialize(bytes);
-
     cta.textContent = 'Confirm in your wallet…';
-    const provider = walletStore.provider;
-    let signature;
-    if (provider?.signAndSendTransaction) {
-      const out = await provider.signAndSendTransaction(tx);
-      signature = out?.signature || out;
-    } else if (provider?.signTransaction) {
-      const signed = await provider.signTransaction(tx);
-      const raw = signed.serialize();
-      let bin = '';
-      for (const b of raw) bin += String.fromCharCode(b);
-      signature = await rpc('sendTransaction', [btoa(bin), { encoding: 'base64', maxRetries: 3 }]);
-    } else {
-      throw new Error('Wallet cannot sign transactions');
-    }
+    const signature = await walletStore.signAndSendBase64(swapTransaction);
+    if (!signature) throw new Error('Wallet did not return a signature');
 
     cta.textContent = 'Confirming…';
     const solscan = `${SOLSCAN}/tx/${signature}`;
@@ -8361,7 +8584,7 @@ async function executeSwap() {
 function onMarketCta() {
   if (swapState._executing) return;
   if (!walletStore.isConnected()) {
-    walletStore.connect().then(ok => { if (ok && $('#swap-cta')) getSwapQuote(); });
+    walletStore.connect();
     return;
   }
   if (swapState.quote && $('#swap-out')?.value) return executeSwap();
