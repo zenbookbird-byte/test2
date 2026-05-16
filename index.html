@@ -3076,6 +3076,25 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
   color: var(--muted); margin-top: 8px; font-weight: 600; }
 .tier-cta.trial:hover { color: var(--text); border-color: var(--text); transform: none; }
 
+.tk-track-strip { margin: 8px 0 0; }
+.tk-track-empty { color: var(--muted); font-size: 12px; padding: 8px 10px;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 9px; }
+.tk-track-title { font-size: 12px; font-weight: 700; margin: 2px 2px 6px; }
+.tk-track-title .muted { color: var(--muted); font-weight: 500; }
+.tk-track-rows { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+.tk-track-row { display: grid; grid-template-columns: 46px 1fr auto auto auto; gap: 9px;
+  align-items: center; padding: 6px 9px; border-radius: 8px; background: var(--surface);
+  font-size: 12px; border-left: 3px solid transparent; }
+.tk-track-row.buy { border-left-color: #14f195; }
+.tk-track-row.sell { border-left-color: #ff5d6c; }
+.tk-track-row .s { font-weight: 800; font-size: 10px; letter-spacing: .05em; }
+.tk-track-row.buy .s { color: #14f195; }
+.tk-track-row.sell .s { color: #ff5d6c; }
+.tk-track-row .w { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-track-row .mc { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+.tk-track-row .a { font-variant-numeric: tabular-nums; color: var(--muted); }
+.tk-track-row .t { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -6825,6 +6844,7 @@ function openTokenTradeWS(mint) {
     });
     if (tokenTape.trades.length > 60) tokenTape.trades.length = 60;
     if (tokenPageState.tab === 'trades' && location.hash.startsWith('#/token/')) paintTradeTape();
+    paintTrackedActivity();
   });
   ws.addEventListener('close', () => { tokenTape.status = 'idle'; paintTapeStatus(); });
   ws.addEventListener('error', () => { tokenTape.status = 'error'; paintTapeStatus(); });
@@ -6841,6 +6861,36 @@ function paintTapeStatus() {
     tokenTape.status === 'live' ? 'Live · PumpPortal' :
     tokenTape.status === 'connecting' ? 'Connecting…' :
     tokenTape.status === 'error' ? 'Stream unavailable' : 'Idle'}`;
+}
+
+/* Live strip under the chart: buys/sells on THIS token by the user's
+   tracked wallets, tagged with the market cap at the time of trade. */
+function paintTrackedActivity() {
+  const el = document.getElementById('tk-track-strip');
+  if (!el) return;
+  const wl = userStore.current()?.watchlist || [];
+  const tracked = new Map(wl.map(w => [w.address, w.label]));
+  if (!tracked.size) {
+    el.innerHTML = `<div class="tk-track-empty">Add wallets to your watchlist to see their buys &amp; sells on this token, with the market cap at each trade.</div>`;
+    return;
+  }
+  const hits = tokenTape.trades.filter(t => tracked.has(t.trader)).slice(0, 14);
+  if (!hits.length) {
+    el.innerHTML = `<div class="tk-track-empty"><strong>Tracked-wallet activity</strong> · watching ${tracked.size} wallet${tracked.size === 1 ? '' : 's'} — no trades on this token yet.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="tk-track-title">Tracked-wallet activity <span class="muted">· live</span></div>
+    <div class="tk-track-rows">${hits.map(t => {
+      const buy = t.type === 'buy';
+      const label = tracked.get(t.trader) || shorten(t.trader, 4, 4);
+      return `<div class="tk-track-row ${buy ? 'buy' : 'sell'}" title="${escapeHtml(t.trader)}">
+        <span class="s">${buy ? 'BUY' : 'SELL'}</span>
+        <span class="w">${escapeHtml(label)}</span>
+        <span class="mc">${t.mc ? '@ ' + fmtUSD(t.mc) + ' MC' : ''}</span>
+        <span class="a">${t.sol ? t.sol.toFixed(2) + ' SOL' : ''}</span>
+        <span class="t">${timeAgo(Math.floor(t.ts / 1000))}</span>
+      </div>`;
+    }).join('')}</div>`;
 }
 
 async function renderTokenPage(mint) {
@@ -6883,6 +6933,7 @@ async function renderTokenPage(mint) {
 
     // Feature 3 — open the live trade tape stream
     openTokenTradeWS(mint);
+    paintTrackedActivity();
 
     // Feature 2 — real holder/concentration stats (async, repaints grid)
     fetchHolderStats(mint, supply).then(stats => {
@@ -7023,6 +7074,8 @@ function tokenPageHTML(mint, loading) {
             ? `<iframe src="${safeUrl(chartUrl)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>`
             : `<div class="chart-fallback">${loading ? 'Loading chart…' : 'No tradeable pair found for this token.'}</div>`}
         </div>
+
+        <div class="tk-track-strip" id="tk-track-strip"></div>
 
         <div class="tk-bottom">
           <div class="tk-tabs" id="tk-tabs">
