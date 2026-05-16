@@ -2029,6 +2029,124 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 }
 .tk-addr-row a:hover, .tk-addr-row button:hover { color: var(--text); }
 
+/* Topbar Connect Wallet button */
+.wallet-btn {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #9945ff, #7b61ff);
+  color: #fff; border: 1px solid rgba(153,69,255,.5);
+  font: inherit; font-size: 12.5px; font-weight: 600;
+  padding: 7px 13px; border-radius: 9px;
+  white-space: nowrap; transition: filter .12s, transform .12s;
+}
+.wallet-btn:hover { filter: brightness(1.1); }
+.wallet-btn.connected {
+  background: rgba(20,241,149,.12); color: #88f3c3;
+  border-color: rgba(20,241,149,.4);
+}
+.wallet-btn .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #14f195;
+  box-shadow: 0 0 6px #14f195;
+}
+
+/* Token page: header action buttons (star / alert) */
+.tk-head-acts { display: inline-flex; gap: 6px; align-items: center; }
+.tk-icon-btn {
+  appearance: none; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: #11142a; border: 1px solid #1c1f2e;
+  color: var(--muted); font-size: 14px;
+  display: inline-grid; place-items: center;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.tk-icon-btn:hover { color: var(--text); border-color: #2b3047; }
+.tk-icon-btn.active { color: #ffd166; border-color: rgba(255,209,102,.4); background: rgba(255,209,102,.1); }
+.tk-icon-btn.alert-on { color: #88aafc; border-color: rgba(136,170,252,.4); background: rgba(136,170,252,.1); }
+
+/* PnL calculator widget */
+.tk-pnl {
+  display: grid; gap: 8px;
+}
+.tk-pnl-row { display: flex; gap: 6px; }
+.tk-pnl-row .tk-amt-input { flex: 1; margin-bottom: 0; }
+.tk-pnl-out {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  padding: 9px; border-radius: 8px; background: #0d1020;
+}
+.tk-pnl-out > div { display: grid; gap: 1px; }
+.tk-pnl-out .lbl { font-size: 9.5px; color: #565a76; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.tk-pnl-out .v { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.tk-pnl-out .v.pos { color: #14f195; }
+.tk-pnl-out .v.neg { color: #ff5a76; }
+
+/* Live trade tape rows */
+.trade-row-buy  td:nth-child(2) { color: #14f195; font-weight: 700; }
+.trade-row-sell td:nth-child(2) { color: #ff5a76; font-weight: 700; }
+.tk-tape-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--muted); padding: 6px 12px;
+}
+.tk-tape-status .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #565a76;
+}
+.tk-tape-status.live .dot { background: #14f195; box-shadow: 0 0 6px #14f195; animation: pulse-dot 2s infinite; }
+
+/* Similar tokens grid */
+.tk-similar {
+  display: grid; gap: 6px; padding: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.tk-sim-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px; border-radius: 8px; cursor: pointer;
+  background: #11142a; border: 1px solid #1c1f2e;
+  transition: background .12s, border-color .12s;
+}
+.tk-sim-card:hover { background: #1a1d33; border-color: #2b3047; }
+.tk-sim-card img, .tk-sim-card .ph {
+  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; background: #14172a;
+}
+.tk-sim-card .ph { display: grid; place-items: center; font-size: 10px; font-weight: 700; color: #0a0820;
+  background: linear-gradient(135deg, #9945ff, #14f195); }
+.tk-sim-card .info { min-width: 0; flex: 1; }
+.tk-sim-card .sym { font-size: 12px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-sim-card .mc { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Keyboard nav hint */
+.tk-navhint {
+  font-size: 10px; color: #565a76;
+}
+.tk-navhint kbd {
+  background: #14172a; border: 1px solid #1c1f2e; border-radius: 4px;
+  padding: 1px 5px; font-family: inherit; font-size: 10px; color: var(--muted);
+}
+
+/* Token watchlist section on watchlist page */
+.tokenwatch-grid {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.tw-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; border-radius: 12px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--stroke);
+  transition: transform .15s, border-color .15s;
+}
+.tw-card:hover { transform: translateY(-2px); border-color: var(--stroke-strong); }
+.tw-card img, .tw-card .ph {
+  width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0; background: var(--surface-2);
+}
+.tw-card .ph { display: grid; place-items: center; font-weight: 700; color: #0a0820;
+  background: linear-gradient(135deg, #9945ff, #14f195); }
+.tw-card .info { flex: 1; min-width: 0; }
+.tw-card .sym { font-weight: 700; font-size: 14px; }
+.tw-card .mc { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tw-card .rm {
+  appearance: none; background: transparent; border: 0; cursor: pointer;
+  color: var(--muted-2); font-size: 14px;
+}
+.tw-card .rm:hover { color: var(--neg); }
+
 .watchlist-grid {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -2871,6 +2989,8 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
           <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
           <button class="net-btn" data-network="devnet" role="tab" aria-selected="false">Devnet</button>
         </nav>
+
+        <button class="wallet-btn" id="wallet-btn" type="button">Connect Wallet</button>
 
         <div class="user-menu" id="user-menu">
           <button class="user-btn" id="user-btn" aria-haspopup="true" aria-expanded="false">
@@ -4915,6 +5035,31 @@ function init() {
     if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
   });
 
+  // Feature 1 — Connect Wallet button + silent eager-connect on load
+  $('#wallet-btn')?.addEventListener('click', () => {
+    if (walletStore.isConnected()) walletStore.disconnect();
+    else walletStore.connect();
+  });
+  if (localStorage.getItem(walletStore.KEY)) {
+    setTimeout(() => walletStore.connect(true), 400);
+  }
+
+  // Feature 5 — keyboard nav between tokens on the token page
+  document.addEventListener('keydown', (e) => {
+    if (!location.hash.startsWith('#/token/')) return;
+    if (e.target.matches('input, textarea, select')) return;
+    const list = tokenPageState.navList;
+    if (!list.length) return;
+    let idx = tokenPageState.navIndex;
+    if (e.key === 'ArrowRight' || e.key === ']') idx++;
+    else if (e.key === 'ArrowLeft' || e.key === '[') idx--;
+    else return;
+    if (idx < 0 || idx >= list.length) return;
+    e.preventDefault();
+    tokenPageState.navIndex = idx;
+    location.hash = '#/token/' + list[idx];
+  });
+
   // Hash router
   window.addEventListener('hashchange', router);
   router();
@@ -5009,8 +5154,9 @@ function router() {
     if (typeof closeTrenchesWS === 'function') closeTrenchesWS();
     if (typeof stopEnrichmentLoop === 'function') stopEnrichmentLoop();
   }
-  if (!hash.startsWith('/token/') && tokenPageState?.refreshTimer) {
-    clearInterval(tokenPageState.refreshTimer); tokenPageState.refreshTimer = null;
+  if (!hash.startsWith('/token/')) {
+    if (tokenPageState?.refreshTimer) { clearInterval(tokenPageState.refreshTimer); tokenPageState.refreshTimer = null; }
+    if (typeof closeTokenTradeWS === 'function') closeTokenTradeWS();
   }
   // Dynamic route: /token/<mint>
   if (hash.startsWith('/token/')) {
@@ -5633,6 +5779,9 @@ function paintTrenches() {
   fill('almost', almostRows, 'Waiting for near-bonded tokens…');
   fill('bonded', bondedRows, 'Waiting for graduates…');
 
+  // Feature 5 — ordered mint list for token-page keyboard nav
+  tokenPageState.navList = [...newRows, ...almostRows, ...bondedRows].map(r => r.mint);
+
   paintTrenchSummary();
 
   // Update source counts
@@ -6040,11 +6189,214 @@ const tokenPageState = {
   exitStrat: false,
   gas: { priority: 0.003, mev: 0.004, slippage: 20, on: true },
   refreshTimer: null,
+  holderStats: null,
+  navList: [],     // mints for keyboard prev/next
+  navIndex: -1,
 };
+
+/* ============================================================
+ *  FEATURE 1 — Browser wallet connection (Phantom / Solflare)
+ * ============================================================ */
+const walletStore = {
+  KEY: 'solscope:walletConnected',
+  provider: null,
+  providerName: null,
+  pubkey: null,
+  balance: null,
+  detect() {
+    if (window.solana?.isPhantom) return { p: window.solana, name: 'Phantom' };
+    if (window.solflare?.isSolflare || window.solflare) return { p: window.solflare, name: 'Solflare' };
+    if (window.solana) return { p: window.solana, name: 'Wallet' };
+    return null;
+  },
+  async connect(silent = false) {
+    const d = this.detect();
+    if (!d) {
+      if (!silent) {
+        toast({ title: 'No Solana wallet found', sub: 'Install Phantom or Solflare to connect.', icon: '👻', timeout: 5000 });
+        window.open('https://phantom.app/', '_blank', 'noopener');
+      }
+      return false;
+    }
+    try {
+      const res = silent ? await d.p.connect({ onlyIfTrusted: true }) : await d.p.connect();
+      this.provider = d.p;
+      this.providerName = d.name;
+      this.pubkey = (res?.publicKey || d.p.publicKey)?.toString();
+      if (!this.pubkey) return false;
+      localStorage.setItem(this.KEY, '1');
+      d.p.on?.('disconnect', () => this._onDisconnect());
+      d.p.on?.('accountChanged', () => { this.pubkey = d.p.publicKey?.toString() || null; this.refreshBalance(); });
+      await this.refreshBalance();
+      paintWalletBtn();
+      if (!silent) toast({ title: `${d.name} connected`, sub: shorten(this.pubkey, 6, 6), icon: '✓', timeout: 3500 });
+      // Refresh the token page wallet row if we're on it
+      if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
+      return true;
+    } catch (e) {
+      if (!silent) toast({ title: 'Connection cancelled', sub: e.message || '', icon: '✕', timeout: 3000 });
+      return false;
+    }
+  },
+  async disconnect() {
+    try { await this.provider?.disconnect?.(); } catch {}
+    this._onDisconnect();
+  },
+  _onDisconnect() {
+    this.provider = null; this.pubkey = null; this.balance = null;
+    localStorage.removeItem(this.KEY);
+    paintWalletBtn();
+    if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
+  },
+  async refreshBalance() {
+    if (!this.pubkey) return;
+    try {
+      const r = await rpc('getBalance', [this.pubkey]);
+      this.balance = (r?.value || 0) / LAMPORTS_PER_SOL;
+    } catch { this.balance = null; }
+  },
+  isConnected() { return !!this.pubkey; },
+};
+
+function paintWalletBtn() {
+  const btn = $('#wallet-btn'); if (!btn) return;
+  if (walletStore.isConnected()) {
+    btn.classList.add('connected');
+    btn.innerHTML = `<span class="dot"></span>${shorten(walletStore.pubkey, 4, 4)}${walletStore.balance != null ? ` · ${walletStore.balance.toFixed(2)} SOL` : ''}`;
+    btn.title = `${walletStore.providerName} — click to disconnect`;
+  } else {
+    btn.classList.remove('connected');
+    btn.textContent = 'Connect Wallet';
+    btn.title = 'Connect Phantom or Solflare';
+  }
+}
+
+/* ============================================================
+ *  FEATURE 2 — Real holder/concentration stats from RPC
+ * ============================================================ */
+async function fetchHolderStats(mint, supply) {
+  try {
+    const r = await rpc('getTokenLargestAccounts', [mint]);
+    const list = (r?.value || []);
+    if (!list.length) return null;
+    const amounts = list.map(a => Number(a.uiAmount || 0)).filter(n => n > 0);
+    const top10 = amounts.slice(0, 10).reduce((s, x) => s + x, 0);
+    const top1  = amounts[0] || 0;
+    return {
+      top10Pct: supply ? (top10 / supply) * 100 : null,
+      top1Pct:  supply ? (top1  / supply) * 100 : null,
+      accountsShown: list.length,
+      largest: list[0]?.address || null,
+    };
+  } catch { return null; }
+}
+
+/* ============================================================
+ *  FEATURE 4 — Token watchlist + price/MC alerts (localStorage)
+ * ============================================================ */
+const tokenWatch = {
+  KEY: 'solscope:tokenWatch',
+  list() { try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { return []; } },
+  save(v) { localStorage.setItem(this.KEY, JSON.stringify(v)); },
+  has(mint) { return this.list().some(t => t.mint === mint); },
+  toggle(mint, symbol, logo) {
+    const v = this.list();
+    const i = v.findIndex(t => t.mint === mint);
+    if (i >= 0) { v.splice(i, 1); this.save(v); return false; }
+    v.unshift({ mint, symbol: symbol || '?', logo: logo || null, addedAt: Date.now() });
+    this.save(v);
+    return true;
+  },
+  remove(mint) { this.save(this.list().filter(t => t.mint !== mint)); },
+};
+
+const tokenAlerts = {
+  KEY: 'solscope:tokenAlerts',
+  list() { try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { return []; } },
+  save(v) { localStorage.setItem(this.KEY, JSON.stringify(v)); },
+  forMint(mint) { return this.list().filter(a => a.mint === mint); },
+  add(alert) { const v = this.list(); v.push({ ...alert, id: 'a_' + Math.random().toString(36).slice(2, 9), createdAt: Date.now(), fired: false }); this.save(v); },
+  remove(id) { this.save(this.list().filter(a => a.id !== id)); },
+  /* Evaluate alerts for a mint against current metrics; fire toasts. */
+  check(mint, { mc, price }) {
+    let changed = false;
+    const v = this.list();
+    for (const a of v) {
+      if (a.mint !== mint || a.fired) continue;
+      const cur = a.metric === 'price' ? price : mc;
+      if (cur == null) continue;
+      const hit = a.op === 'above' ? cur >= a.value : cur <= a.value;
+      if (hit) {
+        a.fired = true; changed = true;
+        toast({
+          title: `Alert · ${a.symbol}`,
+          sub: `${a.metric === 'price' ? 'Price' : 'Market cap'} ${a.op} ${a.metric === 'price' ? fmtUSD(a.value, 6) : fmtUSD(a.value)}`,
+          icon: '🔔', timeout: 8000,
+        });
+      }
+    }
+    if (changed) this.save(v);
+  },
+};
+
+/* ============================================================
+ *  FEATURE 3 — Live trade tape (PumpPortal subscribeTokenTrade)
+ * ============================================================ */
+const tokenTape = { ws: null, mint: null, trades: [], status: 'idle' };
+
+function openTokenTradeWS(mint) {
+  closeTokenTradeWS();
+  tokenTape.mint = mint;
+  tokenTape.trades = [];
+  tokenTape.status = 'connecting';
+  let ws;
+  try { ws = new WebSocket('wss://pumpportal.fun/api/data'); }
+  catch { tokenTape.status = 'error'; return; }
+  tokenTape.ws = ws;
+  ws.addEventListener('open', () => {
+    tokenTape.status = 'live';
+    ws.send(JSON.stringify({ method: 'subscribeTokenTrade', keys: [mint] }));
+    paintTapeStatus();
+  });
+  ws.addEventListener('message', (e) => {
+    let m; try { m = JSON.parse(e.data); } catch { return; }
+    if (!m || m.mint !== mint || !m.txType) return;
+    tokenTape.trades.unshift({
+      type: m.txType,                       // 'buy' | 'sell'
+      sol: Number(m.solAmount || 0),
+      tokens: Number(m.tokenAmount || 0),
+      trader: m.traderPublicKey || '',
+      mc: Number(m.marketCapSol ? m.marketCapSol * (swapState._fp || 150) : 0),
+      ts: Date.now(),
+    });
+    if (tokenTape.trades.length > 60) tokenTape.trades.length = 60;
+    if (tokenPageState.tab === 'trades' && location.hash.startsWith('#/token/')) paintTradeTape();
+  });
+  ws.addEventListener('close', () => { tokenTape.status = 'idle'; paintTapeStatus(); });
+  ws.addEventListener('error', () => { tokenTape.status = 'error'; paintTapeStatus(); });
+}
+function closeTokenTradeWS() {
+  if (tokenTape.ws) { try { tokenTape.ws.close(); } catch {} tokenTape.ws = null; }
+  tokenTape.status = 'idle';
+}
+function paintTapeStatus() {
+  const el = document.getElementById('tk-tape-status');
+  if (!el) return;
+  el.className = 'tk-tape-status' + (tokenTape.status === 'live' ? ' live' : '');
+  el.innerHTML = `<span class="dot"></span>${
+    tokenTape.status === 'live' ? 'Live · PumpPortal' :
+    tokenTape.status === 'connecting' ? 'Connecting…' :
+    tokenTape.status === 'error' ? 'Stream unavailable' : 'Idle'}`;
+}
 
 async function renderTokenPage(mint) {
   if (tokenPageState.refreshTimer) { clearInterval(tokenPageState.refreshTimer); tokenPageState.refreshTimer = null; }
+  closeTokenTradeWS();
   tokenPageState.mint = mint;
+  tokenPageState.holderStats = null;
+  tokenPageState.tab = 'trades';
+  // Keyboard nav index (navList may be set by the Trenches click handler)
+  tokenPageState.navIndex = tokenPageState.navList.indexOf(mint);
 
   // Skeleton (with loading state) so the page paints immediately
   showPageView(tokenPageHTML(mint, /* loading */ true));
@@ -6065,13 +6417,29 @@ async function renderTokenPage(mint) {
     const decimals = supplyR?.value?.decimals ?? null;
     const info = accountInfo?.data?.parsed?.info || {};
     tokenPageState.pair = pair;
-    tokenPageState.meta = { ...meta, supply, decimals, mintAuth: info.mintAuthority, freezeAuth: info.freezeAuthority, pairs };
+    tokenPageState.meta = {
+      ...meta, supply, decimals,
+      mintAuth: info.mintAuthority, freezeAuth: info.freezeAuthority,
+      verified: tokenMap.has(mint), pairs,
+    };
 
     showPageView(tokenPageHTML(mint, false));
     bindTokenPageEvents();
     paintTokenTab('trades');
 
-    // Live refresh of pair data every 6s
+    // Feature 3 — open the live trade tape stream
+    openTokenTradeWS(mint);
+
+    // Feature 2 — real holder/concentration stats (async, repaints grid)
+    fetchHolderStats(mint, supply).then(stats => {
+      tokenPageState.holderStats = stats;
+      paintTokenSecurityGrid();
+    });
+
+    // Feature 5 — real 24h sparkline from GeckoTerminal OHLCV
+    if (pair?.pairAddress) loadTokenSparkline(pair.pairAddress);
+
+    // Live refresh of pair data every 6s + alert checks
     tokenPageState.refreshTimer = setInterval(async () => {
       if (!location.hash.startsWith('#/token/')) return;
       try {
@@ -6080,13 +6448,47 @@ async function renderTokenPage(mint) {
         const j = await r.json();
         const ps = (j.pairs || []).filter(p => p.chainId === 'solana')
           .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0));
-        if (ps.length) { tokenPageState.pair = ps[0]; tokenPageState.meta.pairs = ps; paintTokenLiveStats(); }
+        if (ps.length) {
+          tokenPageState.pair = ps[0]; tokenPageState.meta.pairs = ps;
+          paintTokenLiveStats();
+          tokenAlerts.check(mint, {
+            mc: Number(ps[0].marketCap || ps[0].fdv || 0),
+            price: Number(ps[0].priceUsd || 0),
+          });
+        }
       } catch {}
     }, 6000);
   } catch (err) {
     const view = $('#page-view');
     if (view) view.innerHTML = `<div class="page-empty"><h3>Couldn't load token</h3><p>${escapeHtml(err.message)}</p><a class="ghost-btn small" href="#/trenches">← Back to Trenches</a></div>`;
   }
+}
+
+/* Feature 5 — fetch a real minute-OHLCV sparkline from GeckoTerminal */
+async function loadTokenSparkline(pairAddr) {
+  try {
+    const r = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${pairAddr}/ohlcv/minute?limit=60&aggregate=5`);
+    if (!r.ok) return;
+    const j = await r.json();
+    const list = j?.data?.attributes?.ohlcv_list || [];
+    if (list.length < 2) return;
+    // ohlcv_list rows: [ts, open, high, low, close, volume] — newest first
+    const closes = list.map(row => Number(row[4])).reverse();
+    const el = document.getElementById('tk-spark-real');
+    if (el) el.outerHTML = renderRealSparkline(closes);
+  } catch {}
+}
+function renderRealSparkline(closes) {
+  if (!closes || closes.length < 2) return `<svg id="tk-spark-real" class="tr-spark" viewBox="0 0 120 28"></svg>`;
+  const min = Math.min(...closes), max = Math.max(...closes);
+  const span = (max - min) || 1;
+  const W = 120, H = 28, N = closes.length;
+  const xs = i => (i / (N - 1)) * W;
+  const ys = v => H - ((v - min) / span) * (H - 3) - 1.5;
+  const line = closes.map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const area = `${line} L${W},${H} L0,${H} Z`;
+  const up = closes[closes.length - 1] >= closes[0];
+  return `<svg id="tk-spark-real" class="tr-spark ${up ? 'pos' : 'neg'}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:120px;height:28px"><path class="area" d="${area}"/><path class="line" d="${line}"/></svg>`;
 }
 
 function tokenPageHTML(mint, loading) {
@@ -6100,13 +6502,8 @@ function tokenPageHTML(mint, loading) {
   const mc = Number(p?.marketCap || p?.fdv || 0);
   const liq = Number(p?.liquidity?.usd || 0);
   const vol24 = Number(p?.volume?.h24 || 0);
-  const fees = liq * 0.003;  // approx 0.3% LP fee accrual proxy
   const supply = m.supply;
   const ageMin = p?.pairCreatedAt ? Math.max(0, (Date.now() - p.pairCreatedAt) / 60000) : null;
-  const r = trenchRiskStats({ mint, buys24: Number(p?.txns?.h24?.buys || 0), sells24: Number(p?.txns?.h24?.sells || 0) });
-  const sniperCount = Math.round((r.snipers || 0) * 0.6);
-  const freshBuyCount = Math.round((r.bundle + r.snipers) * 12);
-  const insiders = Math.round(r.dev + r.bundle);
   const ch = {
     m5:  Number(p?.priceChange?.m5  ?? 0),
     h1:  Number(p?.priceChange?.h1  ?? 0),
@@ -6148,15 +6545,22 @@ function tokenPageHTML(mint, loading) {
                 <a href="https://dexscreener.com/solana/${mint}" target="_blank" rel="noopener" title="DexScreener">📊</a>
                 <a href="${SOLSCAN}/token/${mint}" target="_blank" rel="noopener" title="Solscan">🔍</a>
                 <span class="mono" style="color:var(--muted);font-size:10.5px;cursor:pointer" data-copy="${escapeHtml(mint)}" title="Copy mint">${mintShort} ⎘</span>
+                <span class="tk-head-acts">
+                  <button class="tk-icon-btn ${tokenWatch.has(mint) ? 'active' : ''}" id="tk-star" title="Add to watchlist">★</button>
+                  <button class="tk-icon-btn ${tokenAlerts.forMint(mint).length ? 'alert-on' : ''}" id="tk-alert" title="Set price / market-cap alert">🔔</button>
+                </span>
               </div>
             </div>
           </div>
-          <div class="tk-price-big" id="tk-price-big">${mc ? fmtUSD(mc) : (price ? fmtUSD(price, price < 1 ? 6 : 4) : '—')}</div>
+          <div style="display:grid;gap:3px;justify-items:center;align-content:center">
+            <div class="tk-price-big" id="tk-price-big">${mc ? fmtUSD(mc) : (price ? fmtUSD(price, price < 1 ? 6 : 4) : '—')}</div>
+            <svg id="tk-spark-real" class="tr-spark" viewBox="0 0 120 28" style="width:120px;height:28px"></svg>
+          </div>
           <div class="tk-stats-row" id="tk-stats-row">
             <div class="tk-stat"><span class="lbl">Price</span><span class="val">${price ? fmtUSD(price, price < 1 ? 6 : 4) : '—'}</span></div>
             <div class="tk-stat"><span class="lbl">Liquidity</span><span class="val">${liq ? fmtUSD(liq) : '—'}</span></div>
             <div class="tk-stat"><span class="lbl">Supply</span><span class="val">${supply ? fmtSupply(supply) : '—'}</span></div>
-            <div class="tk-stat"><span class="lbl">Fees</span><span class="val dim">≡ ${fees ? fmt(fees / 100, 2) : '—'}</span></div>
+            <div class="tk-stat"><span class="lbl">Vol 24h</span><span class="val">${vol24 ? fmtUSD(vol24) : '—'}</span></div>
           </div>
         </div>
 
@@ -6174,6 +6578,7 @@ function tokenPageHTML(mint, loading) {
             <button class="tk-tab ${tokenPageState.tab === 'holders' ? 'active' : ''}" data-tab="holders">Holders <span class="count" id="tk-holder-ct"></span></button>
             <button class="tk-tab ${tokenPageState.tab === 'top' ? 'active' : ''}" data-tab="top">Top Traders</button>
             <button class="tk-tab ${tokenPageState.tab === 'pairs' ? 'active' : ''}" data-tab="pairs">Pairs <span class="count">${m.pairs ? m.pairs.length : ''}</span></button>
+            <button class="tk-tab ${tokenPageState.tab === 'similar' ? 'active' : ''}" data-tab="similar">Similar</button>
           </div>
           <div class="tk-bottom-body" id="tk-bottom-body">
             <div class="empty">${loading ? 'Loading…' : 'Pick a tab above to load data.'}</div>
@@ -6183,10 +6588,10 @@ function tokenPageHTML(mint, loading) {
 
       <aside class="tk-side">
         <div class="tk-card">
-          <div class="tk-wallet-row">
+          <div class="tk-wallet-row" id="tk-wallet-row" style="cursor:pointer" title="Connect / disconnect wallet">
             <div class="av"></div>
-            <span class="lbl">Starting Solana Wallet</span>
-            <span class="bal">0.00<span class="sol">≡</span></span>
+            <span class="lbl">${walletStore.isConnected() ? shorten(walletStore.pubkey, 5, 5) : 'Connect a wallet'}</span>
+            <span class="bal">${walletStore.isConnected() && walletStore.balance != null ? walletStore.balance.toFixed(2) : '0.00'}<span class="sol">≡</span></span>
           </div>
 
           <div class="tk-bs-tabs" id="tk-bs-tabs">
@@ -6239,18 +6644,24 @@ function tokenPageHTML(mint, loading) {
         </div>
 
         <div class="tk-card">
-          <h4>Token Data &amp; Security <span class="toggle">▾</span></h4>
-          <div class="tk-sec-grid">
-            <div><span class="ic">👥</span><span class="v ${r.top10 > 25 ? 'neg' : r.top10 > 15 ? 'warn' : 'pos'}">${r.top10}%</span><span class="lbl-sm">Top 10 H.</span></div>
-            <div><span class="ic">⚙</span><span class="v ${r.dev > 4 ? 'neg' : 'pos'}">${r.dev}%</span><span class="lbl-sm">Dev holding</span></div>
-            <div><span class="ic">🎯</span><span class="v ${sniperCount > 5 ? 'warn' : 'pos'}">${r.snipers}% <span style="color:var(--muted);font-size:10px;font-weight:500">${sniperCount}</span></span><span class="lbl-sm">Snipers</span></div>
-            <div><span class="ic">🔒</span><span class="v ${insiders > 8 ? 'neg' : 'pos'}">${insiders}%</span><span class="lbl-sm">Insiders H.</span></div>
-            <div><span class="ic">🧅</span><span class="v ${r.bundle > 10 ? 'warn' : 'pos'}">${r.bundle}%</span><span class="lbl-sm">Bundles H.</span></div>
-            <div><span class="ic">🌱</span><span class="v">${freshBuyCount}</span><span class="lbl-sm">Fresh buys</span></div>
-            <div><span class="ic">📈</span><span class="v">&gt; 2%</span><span class="lbl-sm">Fresh holding</span></div>
-            <div><span class="ic">🔑</span><span class="v ${m.mintAuth ? 'neg' : 'pos'}">${m.mintAuth ? 'Yes' : 'No'}</span><span class="lbl-sm">Mint Auth.</span></div>
-            <div><span class="ic">❄</span><span class="v ${m.freezeAuth ? 'neg' : 'pos'}">${m.freezeAuth ? 'Yes' : 'No'}</span><span class="lbl-sm">Freeze Auth.</span></div>
+          <h4>PnL Calculator</h4>
+          <div class="tk-pnl">
+            <div class="tk-pnl-row">
+              <div class="tk-amt-input"><span class="lbl">Entry MC</span><input type="number" id="pnl-entry" placeholder="${mc ? Math.round(mc) : 0}" step="any"><span class="unit">$</span></div>
+            </div>
+            <div class="tk-pnl-row">
+              <div class="tk-amt-input"><span class="lbl">Invested</span><input type="number" id="pnl-amt" value="1" step="any"><span class="unit">SOL</span></div>
+            </div>
+            <div class="tk-pnl-out">
+              <div><span class="lbl">Current value</span><span class="v" id="pnl-value">—</span></div>
+              <div><span class="lbl">Profit / Loss</span><span class="v" id="pnl-result">—</span></div>
+            </div>
           </div>
+        </div>
+
+        <div class="tk-card">
+          <h4>Token Data &amp; Security</h4>
+          <div class="tk-sec-grid" id="tk-sec-grid">${tokenSecurityGridHTML()}</div>
           <div class="tk-addr-row">
             <span class="lbl">CA:</span>
             <span class="addr" title="${escapeHtml(mint)}">${escapeHtml(shorten(mint, 6, 6))}</span>
@@ -6276,6 +6687,86 @@ function fmtSupply(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
   if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
   return fmt(n);
+}
+
+/* Real-data Token Data & Security grid (no synthetic numbers). */
+function tokenSecurityGridHTML() {
+  const p = tokenPageState.pair;
+  const m = tokenPageState.meta || {};
+  const hs = tokenPageState.holderStats;
+  const liq = Number(p?.liquidity?.usd || 0);
+  const vol24 = Number(p?.volume?.h24 || 0);
+  const tx24 = (Number(p?.txns?.h24?.buys || 0) + Number(p?.txns?.h24?.sells || 0));
+  const ageMin = p?.pairCreatedAt ? Math.max(0, (Date.now() - p.pairCreatedAt) / 60000) : null;
+
+  const top10 = hs?.top10Pct;
+  const top1  = hs?.top1Pct;
+  const cell = (ic, vHtml, lbl) => `<div><span class="ic">${ic}</span><span class="v">${vHtml}</span><span class="lbl-sm">${lbl}</span></div>`;
+  const pctCell = (ic, pct, lbl, warnAt, badAt) => {
+    if (pct == null) return cell(ic, '<span style="color:#565a76">…</span>', lbl);
+    const cls = pct >= badAt ? 'neg' : pct >= warnAt ? 'warn' : 'pos';
+    return `<div><span class="ic">${ic}</span><span class="v ${cls}">${pct.toFixed(1)}%</span><span class="lbl-sm">${lbl}</span></div>`;
+  };
+  const yesNo = (ic, bad, lbl) => `<div><span class="ic">${ic}</span><span class="v ${bad ? 'neg' : 'pos'}">${bad ? 'Yes' : 'No'}</span><span class="lbl-sm">${lbl}</span></div>`;
+
+  return [
+    pctCell('👥', top10, 'Top 10 Hold', 30, 50),
+    pctCell('🥇', top1, 'Top Holder', 10, 20),
+    cell('💧', liq ? fmtUSD(liq) : '—', 'Liquidity'),
+    cell('📊', vol24 ? fmtUSD(vol24) : '—', 'Volume 24h'),
+    cell('⏱', ageMin != null ? fmtAgeCompact(ageMin) : '—', 'Pair Age'),
+    cell('🔄', tx24 ? fmt(tx24) : '—', 'Txns 24h'),
+    `<div><span class="ic">✓</span><span class="v ${m.verified ? 'pos' : 'warn'}">${m.verified ? 'Yes' : 'No'}</span><span class="lbl-sm">Jup Verified</span></div>`,
+    yesNo('🔑', !!m.mintAuth, 'Mint Auth'),
+    yesNo('❄', !!m.freezeAuth, 'Freeze Auth'),
+  ].join('');
+}
+function paintTokenSecurityGrid() {
+  const el = document.getElementById('tk-sec-grid');
+  if (el) el.innerHTML = tokenSecurityGridHTML();
+}
+
+/* Reflect connected-wallet state into the trading-panel wallet row. */
+function paintTokenWalletRow() {
+  const row = document.getElementById('tk-wallet-row');
+  if (!row) return;
+  const lbl = row.querySelector('.lbl');
+  const bal = row.querySelector('.bal');
+  if (walletStore.isConnected()) {
+    if (lbl) lbl.textContent = shorten(walletStore.pubkey, 5, 5);
+    if (bal) bal.innerHTML = `${walletStore.balance != null ? walletStore.balance.toFixed(2) : '0.00'}<span class="sol">≡</span>`;
+  } else {
+    if (lbl) lbl.textContent = 'Connect a wallet';
+    if (bal) bal.innerHTML = `0.00<span class="sol">≡</span>`;
+  }
+}
+
+/* Render the live trade tape (Feature 3) into the bottom panel. */
+function paintTradeTape() {
+  const body = document.getElementById('tk-bottom-body');
+  if (!body) return;
+  const trades = tokenTape.trades;
+  body.innerHTML = `
+    <div id="tk-tape-status" class="tk-tape-status"><span class="dot"></span>Idle</div>
+    <table>
+      <thead><tr><th>Time</th><th>Type</th><th class="num">SOL</th><th class="num">Tokens</th><th class="num">MC</th><th>Trader</th></tr></thead>
+      <tbody id="tk-tape-rows">
+        ${trades.length ? trades.map(tradeRowHTML).join('')
+          : `<tr><td colspan="6" class="muted" style="text-align:center;padding:24px">Waiting for live trades…</td></tr>`}
+      </tbody>
+    </table>`;
+  paintTapeStatus();
+}
+function tradeRowHTML(t) {
+  const ago = Math.floor((Date.now() - t.ts) / 1000);
+  return `<tr class="trade-row-${t.type}">
+    <td class="muted">${ago < 60 ? ago + 's' : Math.floor(ago / 60) + 'm'}</td>
+    <td>${t.type === 'buy' ? 'Buy' : 'Sell'}</td>
+    <td class="num">${t.sol ? t.sol.toFixed(3) : '—'}</td>
+    <td class="num">${t.tokens ? fmt(t.tokens) : '—'}</td>
+    <td class="num">${t.mc ? fmtUSD(t.mc) : '—'}</td>
+    <td class="mono">${t.trader ? shorten(t.trader, 4, 4) : '—'}</td>
+  </tr>`;
 }
 
 function paintTokenLiveStats() {
@@ -6355,6 +6846,92 @@ function bindTokenPageEvents() {
     swapState.mode = 'market';
     location.hash = '#/swap';
   });
+
+  // Feature 4 — watchlist star
+  $('#tk-star')?.addEventListener('click', e => {
+    const sym = tokenPageState.pair?.baseToken?.symbol || tokenPageState.meta?.symbol || '?';
+    const logo = tokenPageState.pair?.info?.imageUrl || null;
+    const added = tokenWatch.toggle(tokenPageState.mint, sym, logo);
+    e.currentTarget.classList.toggle('active', added);
+    toast({ title: added ? 'Added to watchlist' : 'Removed from watchlist', sub: sym, icon: added ? '★' : '☆', timeout: 2200 });
+  });
+
+  // Feature 4 — price / market-cap alert
+  $('#tk-alert')?.addEventListener('click', () => openAlertDialog(tokenPageState.mint));
+
+  // Feature 1 — wallet row toggles connect / disconnect
+  $('#tk-wallet-row')?.addEventListener('click', () => {
+    if (walletStore.isConnected()) walletStore.disconnect();
+    else walletStore.connect();
+  });
+
+  // Feature 5 — PnL calculator (live recompute)
+  const recalcPnl = () => {
+    const entry = Number($('#pnl-entry')?.value) || Number(tokenPageState.pair?.marketCap || tokenPageState.pair?.fdv || 0);
+    const investedSol = Number($('#pnl-amt')?.value) || 0;
+    const curMc = Number(tokenPageState.pair?.marketCap || tokenPageState.pair?.fdv || 0);
+    const valEl = $('#pnl-value'), resEl = $('#pnl-result');
+    if (!valEl || !resEl) return;
+    if (!entry || !curMc || !investedSol) { valEl.textContent = '—'; resEl.textContent = '—'; resEl.className = 'v'; return;}
+    const mult = curMc / entry;
+    const curValue = investedSol * mult;
+    const pnl = curValue - investedSol;
+    valEl.textContent = curValue.toFixed(3) + ' SOL';
+    resEl.textContent = `${pnl >= 0 ? '+' : ''}${pnl.toFixed(3)} SOL (${fmtPct((mult - 1) * 100)})`;
+    resEl.className = 'v ' + (pnl >= 0 ? 'pos' : 'neg');
+  };
+  $('#pnl-entry')?.addEventListener('input', recalcPnl);
+  $('#pnl-amt')?.addEventListener('input', recalcPnl);
+  recalcPnl();
+}
+
+/* Feature 4 — alert dialog */
+function openAlertDialog(mint) {
+  const existing = tokenAlerts.forMint(mint);
+  const sym = tokenPageState.pair?.baseToken?.symbol || '?';
+  const curMc = Number(tokenPageState.pair?.marketCap || tokenPageState.pair?.fdv || 0);
+  openModal('Price alert', sym);
+  const body = $('#modal-body');
+  body.innerHTML = `
+    <div style="display:grid;gap:12px">
+      <p class="muted small" style="margin:0">Get a toast notification when this token crosses a threshold (checked while the page is open).</p>
+      <div style="display:grid;gap:8px">
+        <label class="muted small">Metric</label>
+        <select id="al-metric" class="filter-input" style="padding:8px 10px">
+          <option value="mc">Market cap</option>
+          <option value="price">Price (USD)</option>
+        </select>
+        <label class="muted small">Condition</label>
+        <select id="al-op" class="filter-input" style="padding:8px 10px">
+          <option value="above">Rises above</option>
+          <option value="below">Falls below</option>
+        </select>
+        <label class="muted small">Value (USD)</label>
+        <input id="al-value" class="filter-input" type="number" step="any" placeholder="${curMc ? Math.round(curMc * 2) : 'e.g. 100000'}" style="padding:8px 10px">
+      </div>
+      <button class="primary-btn small" id="al-add">Add alert</button>
+      ${existing.length ? `
+        <div style="border-top:1px solid var(--stroke);padding-top:10px">
+          <div class="muted small" style="margin-bottom:6px">Active alerts</div>
+          ${existing.map(a => `
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px">
+              <span style="flex:1">${a.metric === 'price' ? 'Price' : 'MC'} ${a.op} ${fmtUSD(a.value, a.metric === 'price' ? 6 : 2)}${a.fired ? ' · <span class="delta pos">fired</span>' : ''}</span>
+              <button class="ghost-btn small" data-del-alert="${a.id}">Remove</button>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+  $('#al-add').addEventListener('click', () => {
+    const value = Number($('#al-value').value);
+    if (!value || value <= 0) { toast({ title: 'Enter a value', icon: '!', timeout: 2500 }); return; }
+    tokenAlerts.add({ mint, symbol: sym, metric: $('#al-metric').value, op: $('#al-op').value, value });
+    closeModal();
+    $('#tk-alert')?.classList.add('alert-on');
+    toast({ title: 'Alert set', sub: sym, icon: '🔔', timeout: 2500 });
+  });
+  body.querySelectorAll('[data-del-alert]').forEach(b => b.addEventListener('click', () => {
+    tokenAlerts.remove(b.dataset.delAlert);
+    openAlertDialog(mint);
+  }));
 }
 
 async function paintTokenTab(tab) {
@@ -6415,27 +6992,35 @@ async function paintTokenTab(tab) {
   }
 
   if (tab === 'trades') {
-    // DexScreener doesn't expose trades over REST — show recent txn aggregates and link out
-    const tx24 = p?.txns?.h24 || {}, tx1 = p?.txns?.h1 || {}, tx5m = p?.txns?.m5 || {};
-    body.innerHTML = `
-      <table>
-        <thead><tr><th>Window</th><th class="num">Buys</th><th class="num">Sells</th><th class="num">Total</th><th class="num">Net</th></tr></thead>
-        <tbody>
-          ${['m5','h1','h6','h24'].map(k => {
-            const tx = p?.txns?.[k] || {};
-            const b = Number(tx.buys||0), s = Number(tx.sells||0);
-            const lbl = k === 'm5' ? '5 minutes' : k === 'h1' ? '1 hour' : k === 'h6' ? '6 hours' : '24 hours';
-            return `<tr>
-              <td>${lbl}</td>
-              <td class="num" style="color:#14f195">${fmt(b)}</td>
-              <td class="num" style="color:#ff5a76">${fmt(s)}</td>
-              <td class="num">${fmt(b + s)}</td>
-              <td class="num" style="color:${b >= s ? '#14f195' : '#ff5a76'}">${b >= s ? '+' : ''}${fmt(b - s)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-      <div style="padding:14px;text-align:center"><a class="ghost-btn small" target="_blank" rel="noopener" href="https://dexscreener.com/solana/${p?.pairAddress || mint}">Live trade tape on DexScreener ↗</a></div>`;
+    // Feature 3 — live trade tape from PumpPortal subscribeTokenTrade
+    paintTradeTape();
+    return;
+  }
+
+  if (tab === 'similar') {
+    body.innerHTML = `<div class="empty">Finding similar tokens…</div>`;
+    try {
+      const pairs = await fetchSolanaPairs();
+      const myMc = Number(p?.marketCap || p?.fdv || 0);
+      const ranked = pairs
+        .filter(pp => pp.baseToken?.address && pp.baseToken.address !== mint)
+        .map(pp => ({ pp, mc: Number(pp.marketCap || pp.fdv || 0) }))
+        .filter(x => x.mc > 0)
+        .sort((a, b) => Math.abs(a.mc - myMc) - Math.abs(b.mc - myMc))
+        .slice(0, 12);
+      if (!ranked.length) { body.innerHTML = `<div class="empty">No similar tokens found.</div>`; return; }
+      body.innerHTML = `<div class="tk-similar">${ranked.map(({ pp, mc }) => {
+        const s = pp.baseToken.symbol || '?';
+        const img = pp.info?.imageUrl;
+        return `<div class="tk-sim-card" data-mint="${escapeHtml(pp.baseToken.address)}">
+          ${img ? `<img src="${img}" alt="" onerror="this.outerHTML='<span class=&quot;ph&quot;>${escapeHtml(s.slice(0,2).toUpperCase())}</span>'">` : `<span class="ph">${escapeHtml(s.slice(0,2).toUpperCase())}</span>`}
+          <div class="info"><div class="sym">${escapeHtml(s)}</div><div class="mc">${fmtUSD(mc)}</div></div>
+        </div>`;
+      }).join('')}</div>`;
+      body.querySelectorAll('.tk-sim-card').forEach(c => c.addEventListener('click', () => openTokenDetail(c.dataset.mint)));
+    } catch (err) {
+      body.innerHTML = `<div class="empty">Couldn't load similar tokens.</div>`;
+    }
     return;
   }
 
@@ -7877,6 +8462,36 @@ function renderAccountPage() {
 }
 
 /* ----- Watchlist page ----- */
+function tokenWatchSectionHTML() {
+  const toks = tokenWatch.list();
+  if (!toks.length) return '';
+  return `
+    <h3 style="margin:6px 0 0;font-size:15px;font-weight:700">Saved tokens <span style="color:var(--muted);font-weight:500">(${toks.length})</span></h3>
+    <div class="tokenwatch-grid" id="tw-grid">
+      ${toks.map(t => {
+        const s = t.symbol || '?';
+        return `<div class="tw-card" data-mint="${escapeHtml(t.mint)}">
+          ${t.logo
+            ? `<img src="${t.logo}" alt="" onerror="this.outerHTML='<span class=&quot;ph&quot;>${escapeHtml(s.slice(0,2).toUpperCase())}</span>'">`
+            : `<span class="ph">${escapeHtml(s.slice(0,2).toUpperCase())}</span>`}
+          <div class="info"><div class="sym">${escapeHtml(s)}</div><div class="mc">${shorten(t.mint, 4, 4)}</div></div>
+          <button class="rm" data-rm="${escapeHtml(t.mint)}" title="Remove">✕</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+function bindTokenWatchSection() {
+  $$('#tw-grid .tw-card').forEach(c => c.addEventListener('click', e => {
+    if (e.target.closest('[data-rm]')) return;
+    openTokenDetail(c.dataset.mint);
+  }));
+  $$('#tw-grid [data-rm]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    tokenWatch.remove(b.dataset.rm);
+    renderWatchlistPage();
+  }));
+}
+
 async function renderWatchlistPage() {
   const u = userStore.current();
   if (!u) {
@@ -7886,11 +8501,13 @@ async function renderWatchlistPage() {
         title: 'My Watchlist',
         sub: 'Sign in to save wallets and track them in one place.',
       })}
+      ${tokenWatchSectionHTML()}
       <div class="page-empty">
         <h3>Not signed in</h3>
-        <p>Create a local user to keep a watchlist on this device.</p>
+        <p>Create a local user to keep a wallet watchlist on this device. Saved tokens don't require sign-in.</p>
         <p style="margin-top:12px"><a class="primary-btn small" href="#/account">Sign in or create user</a></p>
       </div>`);
+    bindTokenWatchSection();
     return;
   }
   if (!u.watchlist.length) {
@@ -7900,11 +8517,13 @@ async function renderWatchlistPage() {
         title: 'My Watchlist',
         sub: `Saved wallets for ${escapeHtml(u.name)}.`,
       })}
+      ${tokenWatchSectionHTML()}
       <div class="page-empty">
         <h3>No saved wallets yet</h3>
         <p>Track any wallet, then click "Save to watchlist" to add it here.</p>
         <p style="margin-top:12px"><a class="primary-btn small" href="#/wallet">Go to wallet tracker</a></p>
       </div>`);
+    bindTokenWatchSection();
     return;
   }
   showPageView(`
@@ -7914,6 +8533,8 @@ async function renderWatchlistPage() {
       sub: `${u.watchlist.length} saved wallet${u.watchlist.length === 1 ? '' : 's'} for ${escapeHtml(u.name)}.`,
       actions: `<button class="ghost-btn small" id="refresh-page">Refresh values</button>`,
     })}
+    ${tokenWatchSectionHTML()}
+    ${tokenWatch.list().length ? '<h3 style="margin:6px 0 0;font-size:15px;font-weight:700">Saved wallets</h3>' : ''}
     <div class="watchlist-grid" id="wl-grid">
       ${u.watchlist.map(w => `
         <div class="wl-card" data-addr="${escapeHtml(w.address)}">
@@ -7955,6 +8576,7 @@ async function renderWatchlistPage() {
     });
   });
 
+  bindTokenWatchSection();
   $('#refresh-page').addEventListener('click', loadWatchlistStats);
   loadWatchlistStats();
   startWatchlistAutoRefresh();
