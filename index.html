@@ -237,21 +237,11 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .ticker-chg.neg { color: var(--neg); }
 .ticker-loading { padding: 2px 4px; }
 
-.net-switch {
-  display: inline-flex; gap: 4px; padding: 4px;
-  background: var(--surface); border: 1px solid var(--stroke); border-radius: 999px;
-  flex-shrink: 0;
-}
-.net-btn {
-  appearance: none; border: 0; background: transparent; color: var(--muted);
-  padding: 6px 12px; border-radius: 999px; cursor: pointer; font: inherit;
-  font-size: 12px; font-weight: 500; transition: color .2s, background .2s;
-}
-.net-btn:hover { color: var(--text); }
-.net-btn.active {
-  color: #0c0a1e;
-  background: linear-gradient(135deg, #c4b1ff, #9be9c8);
-  box-shadow: 0 6px 20px -10px rgba(153, 69, 255, .8);
+.net-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 11px; border-radius: 999px; flex-shrink: 0;
+  background: rgba(20,241,149,.1); border: 1px solid rgba(20,241,149,.3);
+  color: #88f3c3; font-size: 11.5px; font-weight: 600;
 }
 
 /* Layout */
@@ -2985,10 +2975,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
       </nav>
 
       <div class="topbar-right">
-        <nav class="net-switch" role="tablist" aria-label="Network">
-          <button class="net-btn active" data-network="mainnet-beta" role="tab" aria-selected="true">Mainnet</button>
-          <button class="net-btn" data-network="devnet" role="tab" aria-selected="false">Devnet</button>
-        </nav>
+        <span class="net-badge" title="Solana Mainnet">● Mainnet</span>
 
         <button class="wallet-btn" id="wallet-btn" type="button">Connect Wallet</button>
 
@@ -3427,7 +3414,7 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   <script>
 /* Helix — Solana Intelligence Platform
  * Static, no-build. Talks directly to:
- *   - Solana JSON-RPC (mainnet/devnet)
+ *   - Solana JSON-RPC (mainnet)
  *   - DexScreener (price + 24h change, CORS-friendly)
  *   - Jupiter token registry (symbol/name/logo, CORS-friendly)
  */
@@ -3444,15 +3431,9 @@ const RPC_PUBLIC = {
     'https://endpoints.omniatech.io/v1/sol/mainnet/public',
     'https://api.metaplex.solana.com',
   ],
-  'devnet': [
-    'https://api.devnet.solana.com',
-    'https://solana-devnet-rpc.publicnode.com',
-    'https://rpc.ankr.com/solana_devnet',
-  ],
 };
 const RPC_ENDPOINTS = {
   'mainnet-beta': [...RPC_PUBLIC['mainnet-beta']],
-  'devnet':       [...RPC_PUBLIC['devnet']],
 };
 /* ================================================================
  *  PROVIDER KEYS — paste your own keys here once and every visitor
@@ -3483,27 +3464,20 @@ function applyProviderKeys() {
     localStorage.setItem(PUMPPORTAL_KEY, BAKED_PROVIDER_KEYS.pumpportal);
   }
   const mainnet = [];
-  const devnet  = [];
   if (custom)    mainnet.unshift(custom);
   if (quicknode) mainnet.unshift(quicknode);
-  if (helius) {
-    mainnet.unshift(`https://mainnet.helius-rpc.com/?api-key=${helius}`);
-    devnet.unshift(`https://devnet.helius-rpc.com/?api-key=${helius}`);
-  }
+  if (helius)    mainnet.unshift(`https://mainnet.helius-rpc.com/?api-key=${helius}`);
   RPC_ENDPOINTS['mainnet-beta'] = [...new Set([...mainnet, ...RPC_PUBLIC['mainnet-beta']])];
-  RPC_ENDPOINTS['devnet']       = [...new Set([...devnet,  ...RPC_PUBLIC['devnet']])];
   if (typeof rpcHealth !== 'undefined') { rpcHealth.ok.clear(); rpcHealth.bad.clear(); }
 
   // Auto-derive the WebSocket endpoint from the highest-priority HTTPS URL,
   // so wallet `logsSubscribe` flows through your QuickNode/Helius/custom RPC.
   const httpsToWss = (u) => u.replace(/^https?:/, 'wss:');
   if (typeof RPC_WS !== 'undefined' && mainnet.length) RPC_WS['mainnet-beta'] = httpsToWss(mainnet[0]);
-  if (typeof RPC_WS !== 'undefined' && devnet.length)  RPC_WS['devnet']       = httpsToWss(devnet[0]);
 }
 // Keep RPC[] for any legacy uses
 const RPC = {
   'mainnet-beta': RPC_ENDPOINTS['mainnet-beta'][0],
-  'devnet': RPC_ENDPOINTS.devnet[0],
 };
 const rpcHealth = { ok: new Set(), bad: new Set(), lastFail: null };
 const EXPLORER = 'https://explorer.solana.com';
@@ -3530,7 +3504,6 @@ const state = {
 
 const RPC_WS = {
   'mainnet-beta': 'wss://api.mainnet-beta.solana.com',
-  'devnet': 'wss://api.devnet.solana.com',
 };
 
 /* ---------------- DOM helpers ---------------- */
@@ -3608,10 +3581,6 @@ const TRENDING_MINTS = [
 ];
 
 async function loadTrendingTicker() {
-  if (state.network !== 'mainnet-beta') {
-    $('#ticker-track').innerHTML = '<span class="ticker-loading muted">Prices unavailable on devnet</span>';
-    return;
-  }
   const mints = TRENDING_MINTS.map(t => t.mint);
   const priceMap = await fetchDexscreenerForMints(mints);
   const items = TRENDING_MINTS.map(t => {
@@ -3643,7 +3612,7 @@ async function loadTrendingTicker() {
   $('#ticker-track').innerHTML = html;
 }
 
-function explorerCluster() { return state.network === 'mainnet-beta' ? 'mainnet' : state.network; }
+function explorerCluster() { return 'mainnet'; }
 
 /* ---------------- RPC (with multi-endpoint fallback) ---------------- */
 async function rpc(method, params = []) {
@@ -4982,18 +4951,8 @@ function init() {
     } catch { el.textContent = '—'; }
   })();
 
-  $$('.net-btn').forEach(btn => btn.addEventListener('click', () => {
-    $$('.net-btn').forEach(b => {
-      b.classList.toggle('active', b === btn);
-      b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
-    });
-    state.network = btn.dataset.network;
-    $('#footer-network').textContent = state.network === 'mainnet-beta' ? 'Mainnet' : 'Devnet';
-    stopLiveLoop();
-    loadTrendingTicker();
-    const v = $('#address').value.trim();
-    if (v && isValidAddress(v)) trackAddress(v);
-  }));
+  // Network is mainnet-only; the footer label is static.
+  const fn = $('#footer-network'); if (fn) fn.textContent = 'Mainnet';
 
   $$('.tab').forEach(t => t.addEventListener('click', () => {
     $$('.tab').forEach(b => {
@@ -5527,58 +5486,31 @@ function trenchSocialIcon(s) {
   return `<a class="${cls}" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(t||'social')}" onclick="event.stopPropagation()">${g}</a>`;
 }
 
-/* Tiny SVG sparkline derived from price/momentum. Real history isn't
-   cheap to fetch per-mint, so we synthesize a plausible curve from the
-   token's mint as seed + bias by 24h change so the slope matches. */
+/* Real sparkline reconstructed from DexScreener's price-change windows.
+   We invert each priceChange % to recover the relative price at that
+   point in time (now = 1, price X ago = 1 / (1 + change/100)), giving a
+   real — if coarse — 5-point trajectory: 24h → 6h → 1h → 5m → now. */
 function trenchSparkline(t) {
-  const seed = (t.mint || '').split('').reduce((a,c) => (a*33 + c.charCodeAt(0)) >>> 0, 5381);
-  let s = seed;
-  const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return (s & 0xffff) / 0xffff; };
-  const N = 24;
-  const ch = Number(t.ch24 || 0);
-  const trend = Math.tanh(ch / 30); // -1..1
-  const points = [];
-  for (let i = 0; i < N; i++) {
-    const noise = (rnd() - 0.5) * 0.6;
-    const tBias = (i / (N - 1)) * trend * 1.1;
-    points.push(noise + tBias);
-  }
-  const min = Math.min(...points), max = Math.max(...points);
+  const at = c => { const v = Number(c) || 0; return 1 / (1 + v / 100); };
+  const pts = [at(t.ch24), at(t.ch6), at(t.ch1), at(t.ch5m), 1];
+  const min = Math.min(...pts), max = Math.max(...pts);
   const span = (max - min) || 1;
-  const W = 110, H = 18;
+  const W = 110, H = 18, N = pts.length;
   const xs = i => (i / (N - 1)) * W;
   const ys = v => H - ((v - min) / span) * (H - 2) - 1;
-  const line = points.map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const line = pts.map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
   const area = `${line} L${W},${H} L0,${H} Z`;
-  const cls = ch >= 0 ? 'pos' : 'neg';
+  const cls = (Number(t.ch24) || 0) >= 0 ? 'pos' : 'neg';
   return `<svg class="tr-spark ${cls}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="area" d="${area}"/><path class="line" d="${line}"/></svg>`;
-}
-
-/* Derive plausible "risk" stats. Real top-holder concentration / sniper
-   counts would require a per-mint RPC roundtrip — too slow for 200 cards
-   refreshed every 4 s. We compute deterministic mock-but-plausible
-   values from the mint hash (seeded), so the same token always shows
-   the same numbers but the population looks varied — matches Axiom's
-   visual density without lying about live values. The buy/sell ratio
-   is real (DexScreener txns). */
-function trenchRiskStats(t) {
-  const seed = (t.mint || '').split('').reduce((a,c) => (a*131 + c.charCodeAt(0)) >>> 0, 7);
-  const r = (k) => ((seed >> (k % 24)) & 0xff) / 0xff;
-  const buys = Number(t.buys24 || 0), sells = Number(t.sells24 || 0);
-  const total = buys + sells;
-  const top10 = Math.max(3, Math.round(r(2) * 35));   // top-10 holder %
-  const dev   = Math.round(r(5) * 6);                 // dev wallet %
-  const bundle = Math.round(r(7) * 18);                // bundled buys %
-  const snipers = Math.round(r(11) * 25);              // snipers %
-  const sellRatio = total ? Math.round((sells / total) * 100) : 0;
-  return { top10, dev, bundle, snipers, sellRatio };
 }
 
 function trenchCardHTML(t, opts = {}) {
   const sym = (t.symbol || '?').slice(0, 10);
   const name = t.name || '';
-  const r = trenchRiskStats(t);
-  const isPaid = !!t.paid || (t.socials && t.socials.length >= 2);
+  // "Paid" = the team filled out a DexScreener enhanced profile (socials + site)
+  const isPaid = !!(t.socials && t.socials.length && t.websites && t.websites.length);
+  const ch5m = Number(t.ch5m || 0), ch1 = Number(t.ch1 || 0), ch24v = Number(t.ch24 || 0);
+  const buys = Number(t.buys24 || 0), sells = Number(t.sells24 || 0);
   const showTimeLeft = opts.col === 'new' && t.ageMin != null && t.ageMin < 24 * 60;
   const timeLeft = showTimeLeft ? fmtBondTimeLeft(t.ageMin) : '';
   const handle = (t.socials || []).find(s => /twitter|x\.com/i.test(s.url || ''));
@@ -5624,13 +5556,10 @@ function trenchCardHTML(t, opts = {}) {
           ${handleName ? `<span class="tr-handle" title="${escapeHtml(handleName)}"><span class="h">${escapeHtml(handleName)}</span></span>` : ''}
         </div>
         <div class="tr-row3">
-          <span class="tr-stat ${r.top10 > 25 ? 'neg' : r.top10 > 15 ? 'warn' : 'pos'}" title="Top 10 holder %">
-            <span class="ic">🐺</span><span class="v">${r.top10}%</span>
-          </span>
-          <span class="tr-ds">DS</span>
-          <span class="tr-stat ${r.dev > 4 ? 'neg' : 'pos'}" title="Dev holdings"><span class="ic">+</span><span class="v">${r.dev}%</span></span>
-          <span class="tr-stat ${r.snipers > 15 ? 'neg' : 'pos'}" title="Snipers"><span class="ic">🎯</span><span class="v">${r.snipers}%</span></span>
-          <span class="tr-stat ${r.bundle > 10 ? 'warn' : 'pos'}" title="Bundle buys"><span class="ic">🧅</span><span class="v">${r.bundle}%</span></span>
+          <span class="tr-stat ${ch5m >= 0 ? 'pos' : 'neg'}" title="Price change 5m"><span class="lbl">5m</span><span class="v">${fmtPct(ch5m)}</span></span>
+          <span class="tr-stat ${ch1  >= 0 ? 'pos' : 'neg'}" title="Price change 1h"><span class="lbl">1h</span><span class="v">${fmtPct(ch1)}</span></span>
+          <span class="tr-stat ${ch24v >= 0 ? 'pos' : 'neg'}" title="Price change 24h"><span class="lbl">24h</span><span class="v">${fmtPct(ch24v)}</span></span>
+          <span class="tr-stat" title="Buys / sells (24h)"><span class="ic" style="color:#14f195">▲</span><span class="v" style="color:#14f195">${fmt(buys)}</span><span class="ic" style="color:#ff5a76;margin-left:4px">▼</span><span class="v" style="color:#ff5a76">${fmt(sells)}</span></span>
           ${isPaid ? `<span class="tr-paid">● Paid</span>` : ''}
         </div>
       </div>
@@ -7058,8 +6987,43 @@ async function paintTokenTab(tab) {
     return;
   }
 
-  // 'positions' / 'orders' — placeholder (no live wallet connected)
-  body.innerHTML = `<div class="empty">Connect a wallet to see your ${tab}.</div>`;
+  if (tab === 'positions') {
+    if (!walletStore.isConnected()) {
+      body.innerHTML = `<div class="empty">Connect a wallet to see your position in this token.<br><br><button class="ghost-btn small" id="tk-pos-connect">Connect Wallet</button></div>`;
+      $('#tk-pos-connect')?.addEventListener('click', () => walletStore.connect());
+      return;
+    }
+    body.innerHTML = `<div class="empty">Loading your position…</div>`;
+    try {
+      const [r1, r2] = await Promise.all([
+        rpc('getTokenAccountsByOwner', [walletStore.pubkey, { mint }, { encoding: 'jsonParsed' }]).catch(() => null),
+        rpc('getBalance', [walletStore.pubkey]).catch(() => null),
+      ]);
+      const accts = r1?.value || [];
+      let bal = 0;
+      for (const a of accts) bal += Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
+      const price = Number(p?.priceUsd || 0);
+      const sol = (r2?.value || 0) / LAMPORTS_PER_SOL;
+      body.innerHTML = `
+        <table>
+          <thead><tr><th>Asset</th><th class="num">Balance</th><th class="num">Price</th><th class="num">Value</th></tr></thead>
+          <tbody>
+            <tr><td><strong>${escapeHtml(p?.baseToken?.symbol || '?')}</strong></td>
+              <td class="num">${fmt(bal)}</td>
+              <td class="num">${price ? fmtUSD(price, price < 1 ? 6 : 4) : '—'}</td>
+              <td class="num">${price ? fmtUSD(bal * price) : '—'}</td></tr>
+            <tr><td><strong>SOL</strong></td><td class="num">${sol.toFixed(4)}</td><td class="num muted">—</td><td class="num muted">—</td></tr>
+          </tbody>
+        </table>
+        ${bal === 0 ? `<div style="padding:14px;text-align:center" class="muted">You don't hold this token yet.</div>` : ''}`;
+    } catch (err) {
+      body.innerHTML = `<div class="empty">Couldn't load position: ${escapeHtml(err.message)}</div>`;
+    }
+    return;
+  }
+
+  // 'orders' — Helix quotes but doesn't place on-chain limit orders
+  body.innerHTML = `<div class="empty">No open orders.<br><br><span class="muted small">Helix routes orders to Jupiter at execution time — there are no resting on-chain orders to display.</span></div>`;
 }
 
 async function renderCopyTradingPage() {
@@ -8676,28 +8640,6 @@ const STATUS_ENDPOINTS = [
       }
       throw new Error(`all ${endpoints.length} endpoints failed (${errs[0] || 'unknown'})`);
     }},
-  { name: 'Solana RPC (Devnet)', url: 'Fallback chain (devnet)', test: async () => {
-      const endpoints = RPC_ENDPOINTS['devnet'];
-      const errs = [];
-      for (const url of endpoints) {
-        try {
-          const controller = new AbortController();
-          const to = setTimeout(() => controller.abort(), 4000);
-          const r = await fetch(url, {
-            method: 'POST', headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getHealth' }),
-            signal: controller.signal,
-          });
-          clearTimeout(to);
-          if (!r.ok) { errs.push(`${url}: ${r.status}`); continue; }
-          const j = await r.json();
-          if (j.error && !j.result) { errs.push(`${url}: ${j.error.message || 'error'}`); continue; }
-          const host = (() => { try { return new URL(url).host; } catch { return url; } })();
-          return `ok via ${host}`;
-        } catch (e) { errs.push(`${url}: ${e.message}`); }
-      }
-      throw new Error(`all ${endpoints.length} endpoints failed`);
-    }},
   { name: 'DexScreener — tokens', url: 'https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112', test: async () => {
       const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
       const j = await r.json();
@@ -8827,6 +8769,13 @@ const DOCS_NAV = [
     { slug: 'watchlist',       title: 'Watchlist' },
     { slug: 'accounts',        title: 'Accounts' },
   ]},
+  { group: 'Live Trading', items: [
+    { slug: 'trenches',        title: 'Trenches' },
+    { slug: 'token-page',      title: 'Token Detail Page' },
+    { slug: 'wallet-connect',  title: 'Wallet Connection' },
+    { slug: 'alerts',          title: 'Watchlist & Alerts' },
+    { slug: 'copy-trading',    title: 'Copy Trading' },
+  ]},
   { group: 'Integrations', items: [
     { slug: 'apis',            title: 'APIs Used' },
     { slug: 'solana-rpc',      title: 'Solana RPC' },
@@ -8848,16 +8797,100 @@ const DOCS_PAGES = {
     <h3>What you can do</h3>
     <ul>
       <li>Track any Solana wallet's portfolio, holdings, activity, and 24h P&amp;L in real time.</li>
+      <li>Watch live launchpad activity in <a href="#/docs/trenches">Trenches</a> — new pairs, final stretch, and migrated tokens streaming over WebSocket.</li>
+      <li>Open a full <a href="#/docs/token-page">token detail page</a> for any mint: live chart, holders, trade tape, and a trading panel.</li>
+      <li>Connect <a href="#/docs/wallet-connect">Phantom or Solflare</a> for live balances.</li>
       <li>Get live swap quotes across 20+ DEXes via Jupiter.</li>
       <li>Browse trending, top gainers, high volume, latest, and boosted Solana tokens.</li>
       <li>Run a heuristic safety check on any SPL token (mint &amp; freeze authority, liquidity, registry status).</li>
       <li>See the top holders &amp; concentration for any mint.</li>
       <li>Decode any Solana transaction signature into parsed instructions and balance deltas.</li>
-      <li>Save wallets to a per-user watchlist (stored locally) and monitor them.</li>
+      <li>Save tokens and wallets to a watchlist and set <a href="#/docs/alerts">price alerts</a>.</li>
     </ul>
     <h3>How it works</h3>
     <p>Everything runs in your browser. There is no server. State lives in <code>localStorage</code> under <code>solscope:*</code> keys.</p>
     <div class="docs-callout success"><strong>Real-time</strong>The wallet page subscribes to <code>logsSubscribe</code> over WebSocket for instant transaction updates, and polls prices &amp; signatures on 15s / 30s intervals.</div>
+  `},
+
+  'trenches': { title: 'Trenches', body: `
+    <p>Route: <code>#/trenches</code>. A real-time, three-column view of Solana launchpad activity, modelled on Axiom Pulse.</p>
+    <h3>The three columns</h3>
+    <table><thead><tr><th>Column</th><th>Meaning</th><th>Filter</th></tr></thead><tbody>
+      <tr><td><strong>New Pairs</strong></td><td>Just-launched bonding-curve tokens</td><td>Market cap &lt; $25k</td></tr>
+      <tr><td><strong>Final Stretch</strong></td><td>Pump.fun tokens close to graduating</td><td>$25k – $90k MC</td></tr>
+      <tr><td><strong>Migrated</strong></td><td>Graduated to an AMM (Raydium / Pump.swap)</td><td>MC &gt; $90k or on a DEX</td></tr>
+    </tbody></table>
+    <h3>Each card shows</h3>
+    <ul>
+      <li>Logo, symbol, name, and copyable mint (<code>xxx…pump</code> suffix).</li>
+      <li>Age, social/website links, and a paid-profile badge.</li>
+      <li>Real 5m / 1h / 24h price change and 24h buy/sell counts (DexScreener).</li>
+      <li>Volume, market cap, fee, transaction count, and a sparkline reconstructed from real price-change windows.</li>
+      <li>A one-click quick-buy button using the SOL amount picked in the top strip.</li>
+    </ul>
+    <h3>Live mode</h3>
+    <p>Toggle <strong>Live</strong> to stream new-token and migration events over the PumpPortal WebSocket (<code>wss://pumpportal.fun/api/data</code>). Otherwise the page polls DexScreener every 10s. Every visible mint is continuously enriched with live price, MC, liquidity and volume.</p>
+    <h3>Filters</h3>
+    <p>Per-column search, plus min/max market cap, min liquidity, min 24h volume, and max age. The P1/P2/P3 chips apply preset filter strictness; the ☰ icon cycles the sort key.</p>
+  `},
+
+  'token-page': { title: 'Token Detail Page', body: `
+    <p>Route: <code>#/token/&lt;mint&gt;</code>. A full trading cockpit for any SPL token — click any token anywhere in the app to open it.</p>
+    <h3>Layout</h3>
+    <ul>
+      <li><strong>Header</strong> — logo, symbol/name, age, socials, market cap, a real GeckoTerminal sparkline, and live Price / Liquidity / Supply / Volume.</li>
+      <li><strong>Chart</strong> — embedded DexScreener candlestick chart for the highest-volume pair.</li>
+      <li><strong>Tabs</strong> — Trades (live tape), Positions, Orders, Holders, Top Traders, Pairs, Similar.</li>
+      <li><strong>Trading panel</strong> — Buy/Sell, Market/Limit/DCA, amount + quick presets, gas controls, and a Buy CTA.</li>
+      <li><strong>PnL Calculator</strong> — enter an entry market cap and SOL size to see live profit/loss.</li>
+      <li><strong>Token Data &amp; Security</strong> — all real: Top-10 &amp; top-holder concentration (from <code>getTokenLargestAccounts</code>), liquidity, volume, pair age, txns, Jupiter-verified status, and mint/freeze authority (from <code>getAccountInfo</code>).</li>
+    </ul>
+    <h3>Live data</h3>
+    <p>Price, market cap and the 5M/1H/6H/24H strip refresh every 6 seconds. The Trades tab streams every on-chain swap via the PumpPortal <code>subscribeTokenTrade</code> WebSocket.</p>
+    <div class="docs-callout">Use <kbd>←</kbd> / <kbd>→</kbd> to jump between tokens in the order they appeared in Trenches.</div>
+  `},
+
+  'wallet-connect': { title: 'Wallet Connection', body: `
+    <p>Helix connects directly to browser wallet extensions — no wallet-adapter bundle, no backend.</p>
+    <h3>Supported wallets</h3>
+    <ul>
+      <li><strong>Phantom</strong> — via <code>window.solana</code>.</li>
+      <li><strong>Solflare</strong> — via <code>window.solflare</code>.</li>
+      <li>Any provider that injects a standard <code>window.solana</code> object.</li>
+    </ul>
+    <h3>Connecting</h3>
+    <ol>
+      <li>Click <strong>Connect Wallet</strong> in the top bar.</li>
+      <li>Approve the connection request in your wallet extension.</li>
+      <li>Your address and live SOL balance appear in the button and on the token page.</li>
+    </ol>
+    <p>The connection is remembered — on the next visit Helix silently reconnects with <code>onlyIfTrusted</code>. Click the button again to disconnect.</p>
+    <div class="docs-callout warn">Helix never sees your private key. Connection only grants read access to your public key; every transaction still requires explicit approval in your wallet.</div>
+  `},
+
+  'alerts': { title: 'Watchlist & Alerts', body: `
+    <p>Two localStorage-backed features for keeping tabs on tokens.</p>
+    <h3>Token watchlist</h3>
+    <p>Click the <strong>★</strong> on any token page to save it. Saved tokens appear in a grid on the <a href="#/watchlist">Watchlist</a> page. No sign-in required — the list lives under <code>solscope:tokenWatch</code>.</p>
+    <h3>Price &amp; market-cap alerts</h3>
+    <ol>
+      <li>Click the <strong>🔔</strong> on a token page.</li>
+      <li>Choose a metric (market cap or price), a condition (rises above / falls below), and a value.</li>
+      <li>While the token page is open, alerts are evaluated on every 6-second refresh tick and fire a toast notification when triggered.</li>
+    </ol>
+    <p>Alerts are stored under <code>solscope:tokenAlerts</code> and can be removed from the same dialog.</p>
+  `},
+
+  'copy-trading': { title: 'Copy Trading', body: `
+    <p>Route: <code>#/trading/copy</code>. Surfaces the largest holders of the most actively-traded Solana tokens so you can mirror their wallets.</p>
+    <h3>How it works</h3>
+    <ol>
+      <li>Helix fetches the top tokens by 24h volume from DexScreener.</li>
+      <li>For each, it calls <code>getTokenLargestAccounts</code> to find the biggest holders.</li>
+      <li>Holders are ranked by estimated USD value of their position.</li>
+    </ol>
+    <p>Click <strong>Track wallet</strong> on any row to load that wallet into the full portfolio tracker.</p>
+    <div class="docs-callout">Largest token accounts are not always the same as beneficial owners — exchange and LP accounts often top the list. Treat it as a starting point for research.</div>
   `},
 
   'quick-start': { title: 'Quick Start', body: `
@@ -8995,7 +9028,7 @@ const DOCS_PAGES = {
     <h3>API Status — <code>#/status</code></h3>
     <p>Runs live health checks against every external endpoint with response detail and round-trip latency:</p>
     <ul>
-      <li>Solana RPC (Mainnet + Devnet) — <code>getHealth</code></li>
+      <li>Solana RPC (Mainnet) — <code>getHealth</code></li>
       <li>DexScreener: tokens, search, boosts, latest profiles</li>
       <li>Jupiter: verified token list, swap quote</li>
       <li>CoinGecko: SOL price</li>
@@ -9093,10 +9126,7 @@ https://rpc.ankr.com/solana
 https://endpoints.omniatech.io/v1/sol/mainnet/public
 https://api.metaplex.solana.com</pre>
 
-    <h3>Devnet endpoints</h3>
-    <pre class="code-block">https://api.devnet.solana.com
-https://solana-devnet-rpc.publicnode.com
-https://rpc.ankr.com/solana_devnet</pre>
+    <p class="muted small">Helix runs on Solana Mainnet only. A QuickNode (or Helius / custom) RPC URL baked into the build takes priority over the public chain above.</p>
 
     <h3>Calling the chain</h3>
     <pre class="code-block">curl -X POST https://api.mainnet-beta.solana.com \\
@@ -9228,7 +9258,7 @@ ${location.origin}${location.pathname}#/docs/introduction</pre>
     <h4>v0.5 — Real-time Swap</h4>
     <ul><li>Hardcoded fallback token list (21 popular mints) to fix "Token metadata unavailable".</li><li>Quote re-runs every 12s, prices every 20s, pairs every 45s.</li></ul>
     <h4>v0.4 — Multi-RPC fallback chain + partial-load surfacing</h4>
-    <ul><li>5-endpoint mainnet chain, 3-endpoint devnet chain.</li><li>Partial-load banner when any provider fails.</li><li>Smarter "No activity" pill.</li></ul>
+    <ul><li>5-endpoint mainnet fallback chain.</li><li>Partial-load banner when any provider fails.</li><li>Smarter "No activity" pill.</li></ul>
     <h4>v0.3 — User accounts &amp; watchlist</h4>
     <ul><li>localStorage-backed multi-user with avatar dropdown.</li><li>Per-user watchlist with auto-refresh.</li><li>API status page.</li></ul>
     <h4>v0.2 — Routed pages</h4>
