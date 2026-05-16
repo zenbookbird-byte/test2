@@ -7020,6 +7020,8 @@ function tokenPageHTML(mint, loading) {
   const xUrl = socials.find(s => /twitter|x\.com/i.test(s.url || ''))?.url;
   const tgUrl = socials.find(s => /t\.me|telegram/i.test(s.url || ''))?.url;
   const wwwUrl = websites[0]?.url;
+  // "DexPaid" = the team paid for DexScreener Enhanced Token Info (verified socials + site).
+  const isPaid = !!(socials.length && websites.length);
   const pairAddr = p?.pairAddress || mint;
   const chartUrl = `https://dexscreener.com/solana/${pairAddr}?embed=1&info=0&theme=dark&trades=0&chart=1`;
   const mintShort = shorten(mint, 6, 4);
@@ -7041,6 +7043,7 @@ function tokenPageHTML(mint, loading) {
               <div class="tk-name">
                 ${escapeHtml(sym)}<span class="pair">/${escapeHtml(quote)}</span>
                 ${name && name !== sym ? `<span class="name-sub" style="margin-left:6px;color:var(--muted);font-weight:500;font-size:13px" title="${escapeHtml(name)}">${escapeHtml(name)}</span>` : ''}
+                ${isPaid ? `<span class="tr-paid" style="margin-left:6px;vertical-align:middle" title="DexScreener Enhanced Token Info — the team paid to verify the project's socials and website">● DexPaid</span>` : ''}
               </div>
               <div class="tk-meta">
                 <span class="age">${ageMin != null ? fmtAgeCompact(ageMin) : '—'}</span>
