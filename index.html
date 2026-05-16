@@ -2365,6 +2365,27 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .imp-steps { font-size: 12px; color: var(--muted); line-height: 1.7; margin: 0; padding-left: 18px; }
 .imp-steps a { color: #88aafc; }
 
+/* Top-holder buy/sell flow tracker (token page → Holders tab) */
+.hf-head {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px; margin-bottom: 10px; font-size: 12.5px;
+}
+.hf-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hf-stat {
+  font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.hf-stat.buy  { color: #14f195; background: rgba(20,241,149,.13); }
+.hf-stat.sell { color: #ff5a76; background: rgba(255,90,118,.13); }
+.hf-stat.new  { color: #88aafc; background: rgba(136,170,252,.13); }
+.hflow { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hflow em { font-style: normal; opacity: .65; font-weight: 500; }
+.hflow.buy  { color: #14f195; }
+.hflow.sell { color: #ff5a76; }
+.hflow.new  { color: #88aafc; background: rgba(136,170,252,.13); padding: 2px 7px; border-radius: 5px; font-size: 11px; }
+.hflow.flat { color: var(--muted-2); }
+tr.hf-moved td { background: rgba(255,255,255,.022); }
+
 .watchlist-grid {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -5249,6 +5270,7 @@ function router() {
   }
   if (!hash.startsWith('/token/')) {
     if (tokenPageState?.refreshTimer) { clearInterval(tokenPageState.refreshTimer); tokenPageState.refreshTimer = null; }
+    if (tokenPageState?.holderTimer) { clearInterval(tokenPageState.holderTimer); tokenPageState.holderTimer = null; }
     if (typeof closeTokenTradeWS === 'function') closeTokenTradeWS();
   }
   // Dynamic route: /token/<mint>
@@ -6295,6 +6317,7 @@ const tokenPageState = {
   exitStrat: false,
   gas: { priority: 0.003, mev: 0.004, slippage: 20, on: true },
   refreshTimer: null,
+  holderTimer: null,
   holderStats: null,
   navList: [],     // mints for keyboard prev/next
   navIndex: -1,
@@ -6442,6 +6465,28 @@ const tokenAlerts = {
       }
     }
     if (changed) this.save(v);
+  },
+};
+
+/* ============================================================
+ *  Top-holder flow tracker — snapshots each token's largest
+ *  holders so we can show who bought/sold more between visits.
+ * ============================================================ */
+const holderSnaps = {
+  KEY: 'solscope:holderSnaps',
+  all() { try { return JSON.parse(localStorage.getItem(this.KEY) || '{}'); } catch { return {}; } },
+  save(v) { try { localStorage.setItem(this.KEY, JSON.stringify(v)); } catch {} },
+  get(mint) { return this.all()[mint] || null; },
+  put(mint, holders) {
+    const v = this.all();
+    v[mint] = { ts: Date.now(), holders };
+    // Cap stored mints so localStorage can't grow unbounded.
+    const keys = Object.keys(v);
+    if (keys.length > 40) {
+      keys.map(k => [k, v[k].ts]).sort((a, b) => a[1] - b[1])
+        .slice(0, keys.length - 40).forEach(([k]) => delete v[k]);
+    }
+    this.save(v);
   },
 };
 
@@ -7040,11 +7085,99 @@ function openAlertDialog(mint) {
   }));
 }
 
+/* Render the Holders tab with buy/sell flow vs the last snapshot. */
+async function paintHoldersTab() {
+  const body = $('#tk-bottom-body'); if (!body) return;
+  const mint = tokenPageState.mint;
+  const supply = (tokenPageState.meta || {}).supply;
+  const firstPaint = !body.querySelector('.holder-flow');
+  if (firstPaint) body.innerHTML = `<div class="empty">Loading holders…</div>`;
+
+  let list;
+  try {
+    const r = await rpc('getTokenLargestAccounts', [mint]);
+    list = (r?.value || []).slice(0, 30);
+  } catch (err) {
+    if (firstPaint) body.innerHTML = `<div class="empty">Couldn't load holders: ${escapeHtml(err.message)}</div>`;
+    return;
+  }
+  if (location.hash !== '#/token/' + mint || tokenPageState.tab !== 'holders') return;
+  if (!list.length) { body.innerHTML = `<div class="empty">No holder data returned by RPC.</div>`; return; }
+  const ct = $('#tk-holder-ct'); if (ct) ct.textContent = '(' + list.length + ')';
+
+  const prev = holderSnaps.get(mint);
+  const prevMap = prev ? prev.holders : {};
+  const curMap = {};
+  list.forEach(a => { curMap[a.address] = Number(a.uiAmount || 0); });
+
+  let bought = 0, sold = 0, fresh = 0;
+  const rows = list.map((a, i) => {
+    const amt = Number(a.uiAmount || 0);
+    const pct = supply ? (amt / supply) * 100 : null;
+    const before = prevMap[a.address];
+    let flow, moved = false;
+    if (!prev) {
+      flow = `<span class="hflow flat">—</span>`;
+    } else if (before == null) {
+      flow = `<span class="hflow new">NEW</span>`; fresh++; moved = true;
+    } else {
+      const d = amt - before;
+      const rel = before > 0 ? d / before : (d !== 0 ? 1 : 0);
+      if (Math.abs(rel) < 0.0001) {
+        flow = `<span class="hflow flat">—</span>`;
+      } else if (d > 0) {
+        bought++; moved = true;
+        flow = `<span class="hflow buy">▲ +${fmt(d)} <em>(+${(rel * 100).toFixed(rel < 0.1 ? 2 : 1)}%)</em></span>`;
+      } else {
+        sold++; moved = true;
+        flow = `<span class="hflow sell">▼ ${fmt(d)} <em>(${(rel * 100).toFixed(Math.abs(rel) < 0.1 ? 2 : 1)}%)</em></span>`;
+      }
+    }
+    return `<tr class="${moved ? 'hf-moved' : ''}">
+      <td class="muted">#${i + 1}</td>
+      <td class="mono">${shorten(a.address, 8, 8)}</td>
+      <td class="num">${fmt(amt)}</td>
+      <td class="num">${pct != null ? pct.toFixed(2) + '%' : '—'}</td>
+      <td>${flow}</td>
+      <td class="num"><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${a.address}" style="color:#88aafc;text-decoration:none">↗</a></td>
+    </tr>`;
+  });
+
+  const summary = prev
+    ? `<span class="hf-stat buy">${bought} bought</span><span class="hf-stat sell">${sold} sold</span>` +
+      (fresh ? `<span class="hf-stat new">${fresh} new</span>` : '')
+    : `<span class="muted">Baseline saved — revisit to see buys &amp; sells.</span>`;
+  const ageStr = prev ? 'change since ' + timeAgo(Math.floor(prev.ts / 1000)) : 'first snapshot';
+
+  body.innerHTML = `
+    <div class="holder-flow">
+      <div class="hf-head">
+        <div><strong>Top ${list.length} holders</strong> <span class="muted">· ${escapeHtml(ageStr)}</span></div>
+        <div class="hf-right">${summary}<button class="ghost-btn small" id="hf-refresh">Refresh</button></div>
+      </div>
+      <table>
+        <thead><tr><th>Rank</th><th>Token Account</th><th class="num">Amount</th><th class="num">% Supply</th><th>Change</th><th></th></tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>
+    </div>`;
+  $('#hf-refresh')?.addEventListener('click', paintHoldersTab);
+
+  // Advance the baseline only when the last one is old enough, so rapid
+  // re-renders compare against a stable point rather than wiping it.
+  if (!prev || Date.now() - prev.ts > 60000) holderSnaps.put(mint, curMap);
+}
+
 async function paintTokenTab(tab) {
   const body = $('#tk-bottom-body'); if (!body) return;
   const mint = tokenPageState.mint;
   const p = tokenPageState.pair;
   const m = tokenPageState.meta || {};
+
+  // Leaving the Holders tab stops its background poll.
+  if (tab !== 'holders' && tokenPageState.holderTimer) {
+    clearInterval(tokenPageState.holderTimer);
+    tokenPageState.holderTimer = null;
+  }
 
   if (tab === 'pairs') {
     const pairs = m.pairs || [];
@@ -7069,31 +7202,17 @@ async function paintTokenTab(tab) {
   }
 
   if (tab === 'holders') {
-    body.innerHTML = `<div class="empty">Loading holders…</div>`;
-    try {
-      const r = await rpc('getTokenLargestAccounts', [mint]);
-      const list = (r?.value || []).slice(0, 30);
-      const supply = m.supply;
-      if (!list.length) { body.innerHTML = `<div class="empty">No holder data returned by RPC.</div>`; return; }
-      const ct = $('#tk-holder-ct'); if (ct) ct.textContent = '(' + list.length + ')';
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Rank</th><th>Token Account</th><th class="num">Amount</th><th class="num">% Supply</th><th></th></tr></thead>
-          <tbody>${list.map((a, i) => {
-            const amt = Number(a.uiAmount || 0);
-            const pct = supply ? (amt / supply) * 100 : null;
-            return `<tr>
-              <td class="muted">#${i + 1}</td>
-              <td class="mono">${shorten(a.address, 8, 8)}</td>
-              <td class="num">${fmt(amt)}</td>
-              <td class="num">${pct != null ? pct.toFixed(2) + '%' : '—'}</td>
-              <td class="num"><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${a.address}" style="color:#88aafc;text-decoration:none">↗</a></td>
-            </tr>`;
-          }).join('')}</tbody>
-        </table>`;
-    } catch (err) {
-      body.innerHTML = `<div class="empty">Couldn't load holders: ${escapeHtml(err.message)}</div>`;
-    }
+    paintHoldersTab();
+    // Poll while the tab stays open so buys/sells surface live.
+    if (tokenPageState.holderTimer) clearInterval(tokenPageState.holderTimer);
+    tokenPageState.holderTimer = setInterval(() => {
+      if (tokenPageState.tab === 'holders' && location.hash.startsWith('#/token/')) {
+        paintHoldersTab();
+      } else {
+        clearInterval(tokenPageState.holderTimer);
+        tokenPageState.holderTimer = null;
+      }
+    }, 30000);
     return;
   }
 
