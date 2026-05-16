@@ -1,0 +1,20 @@
+# Cloudflare Pages configuration.
+#
+# Setup:
+#   1. wrangler d1 create helix-db
+#      -> copy the printed database_id into the binding below
+#   2. wrangler d1 execute helix-db --file=schema.sql --remote
+#   3. Set the session secret (any long random string):
+#      wrangler pages secret put SESSION_SECRET
+#   4. Set the RPC upstream for the proxy:
+#      wrangler pages secret put RPC_UPSTREAM
+#
+# RPC_UPSTREAM and SESSION_SECRET are secrets — never commit them.
+
+name = "helix"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "helix-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
