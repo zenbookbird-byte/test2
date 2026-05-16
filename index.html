@@ -2816,48 +2816,50 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
         <a class="nav-link" href="#/swap" data-route="swap"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l-4 4l4 4v-3h8v-2H7zm10-6l-4 4v3H5v2h8v3z"/></svg>Swap</a>
 
         <div class="nav-item">
-          <button class="nav-link" aria-haspopup="true" aria-expanded="false">Trading <span class="caret">▾</span></button>
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">Discover <span class="caret">▾</span></button>
           <div class="dropdown">
             <div class="dropdown-section">
-              <h4>Market Analysis</h4>
-              <a class="ddi" href="#/trading/latest" data-route="trading/latest">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m1-13h-2v5l4.25 2.52l1-1.64L13 11.25z"/></svg></span>
-                <div><div class="ddi-title">Latest Tokens</div><div class="ddi-sub">Track recently launched tokens in real-time</div></div>
-              </a>
-              <a class="ddi" href="#/trading/trending" data-route="trading/trending">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="m3.5 18.5l6-6.5l4 4L22 6.92L20.59 5.5l-7.09 8l-4-4L2 17z"/></svg></span>
-                <div><div class="ddi-title">Trending</div><div class="ddi-sub">Discover top trending tokens by volume</div></div>
-              </a>
-              <a class="ddi" href="#/trading/gainers" data-route="trading/gainers">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19z"/></svg></span>
-                <div><div class="ddi-title">Top Gainers</div><div class="ddi-sub">Top performing tokens by price gains</div></div>
-              </a>
-              <a class="ddi" href="#/trading/volume" data-route="trading/volume">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 21V11h3v10zm5.5 0V3h3v18zM16 21v-7h3v7z"/></svg></span>
-                <div><div class="ddi-title">High Volume</div><div class="ddi-sub">Analyze tokens with the highest volume</div></div>
-              </a>
-              <a class="ddi" href="#/trading/memescope" data-route="trading/memescope">
-                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27H15l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14S14 12 14 9.5S12 5 9.5 5"/></svg></span>
-                <div><div class="ddi-title">Memescope</div><div class="ddi-sub">Advanced analytics for launchpad tokens</div></div>
-              </a>
+              <h4>Live &amp; market data</h4>
               <a class="ddi" href="#/trenches" data-route="trenches">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h2v-2H3zm0-4h2V7H3zm0 8h2v-2H3zm4 4h2v-2H7zm0-8h2V9H7zm0-8h2V5H7zm4 16h2v-2h-2zm0-4h2v-2h-2zm0-4h2V9h-2zm0-4h2V5h-2zm4 16h2v-2h-2zm0-4h2v-2h-2zm0-4h2V9h-2zm0-4h2V5h-2zm4 16h2v-2h-2zm0-4h2v-2h-2zm0-8h2V7h-2zm0 4h2v-2h-2z"/></svg></span>
                 <div><div class="ddi-title">Trenches <span class="here-pill" style="background:rgba(255,179,71,.2);color:#ffce91;border-color:rgba(255,179,71,.4)">LIVE</span></div><div class="ddi-sub">3-column real-time launchpad feed</div></div>
               </a>
+              <a class="ddi" href="#/trading/trending" data-route="trading/trending">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="m3.5 18.5l6-6.5l4 4L22 6.92L20.59 5.5l-7.09 8l-4-4L2 17z"/></svg></span>
+                <div><div class="ddi-title">Trending</div><div class="ddi-sub">Top trending tokens by 24h volume</div></div>
+              </a>
+              <a class="ddi" href="#/trading/gainers" data-route="trading/gainers">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19z"/></svg></span>
+                <div><div class="ddi-title">Top Gainers</div><div class="ddi-sub">Best price performance right now</div></div>
+              </a>
+              <a class="ddi" href="#/trading/latest" data-route="trading/latest">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m1-13h-2v5l4.25 2.52l1-1.64L13 11.25z"/></svg></span>
+                <div><div class="ddi-title">New Pairs</div><div class="ddi-sub">Recently launched tokens, updated live</div></div>
+              </a>
+              <a class="ddi" href="#/trading/volume" data-route="trading/volume">
+                <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 21V11h3v10zm5.5 0V3h3v18zM16 21v-7h3v7z"/></svg></span>
+                <div><div class="ddi-title">High Volume</div><div class="ddi-sub">Highest trading volume across DEXes</div></div>
+              </a>
             </div>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">Portfolio <span class="caret">▾</span></button>
+          <div class="dropdown">
             <div class="dropdown-section">
-              <h4>Wallets</h4>
+              <h4>Your wallets &amp; tokens</h4>
               <a class="ddi active-link" href="#/wallet" data-route="wallet">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2zm-9-2h10V8H12zm4-2.5a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5"/></svg></span>
                 <div><div class="ddi-title">Wallet Tracker <span class="here-pill">you are here</span></div><div class="ddi-sub">Portfolio &amp; PnL for any wallet</div></div>
               </a>
               <a class="ddi" href="#/watchlist" data-route="watchlist">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21z"/></svg></span>
-                <div><div class="ddi-title">My Watchlist</div><div class="ddi-sub">Wallets you've saved</div></div>
+                <div><div class="ddi-title">My Watchlist</div><div class="ddi-sub">Saved tokens &amp; wallets</div></div>
               </a>
               <a class="ddi" href="#/trading/copy" data-route="trading/copy">
                 <span class="ddi-ico"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m-3-4H4a2 2 0 0 0-2 2v14h2V3h12z"/></svg></span>
-                <div><div class="ddi-title">Copy Trading</div><div class="ddi-sub">Mirror top wallets automatically</div></div>
+                <div><div class="ddi-title">Copy Trading</div><div class="ddi-sub">Mirror the largest token holders</div></div>
               </a>
             </div>
           </div>
@@ -4294,13 +4296,12 @@ async function loadMoreTx() {
   }
 }
 
-/* ---------------- Trading modals (Latest / Trending / Gainers / Volume / Memescope) ---------------- */
+/* ---------------- Trading modals (New Pairs / Trending / Gainers / Volume) ---------------- */
 const TRADING_VIEWS = {
-  latest:    { title: 'Latest Tokens',  sub: 'Recently launched Solana tokens, ranked by listing time' },
+  latest:    { title: 'New Pairs',      sub: 'Recently launched Solana tokens, ranked by listing time' },
   trending:  { title: 'Trending',       sub: 'Top trending Solana tokens by 24h volume' },
   gainers:   { title: 'Top Gainers',    sub: 'Best 24h price performance' },
   volume:    { title: 'High Volume',    sub: 'Highest 24h trading volume' },
-  memescope: { title: 'Memescope',      sub: 'Boosted launchpad tokens & memecoins' },
   copy:      { title: 'Copy Trading',   sub: 'Mirror top wallets automatically' },
 };
 
@@ -4478,26 +4479,6 @@ async function loadTradingView(view) {
         };
       });
       body.innerHTML = renderPairsTable(rows, 'No new Solana tokens reported.');
-      return;
-    }
-
-    if (view === 'memescope') {
-      const boosts = await fetchBoostedTokens();
-      if (!boosts.length) { body.innerHTML = `<div class="empty">No boosted tokens right now.</div>`; return; }
-      const mints = boosts.slice(0, 30).map(b => b.tokenAddress);
-      const prices = await fetchDexscreenerForMints(mints);
-      const rows = boosts.slice(0, 30).map(b => {
-        const px = prices.get(b.tokenAddress);
-        return {
-          baseToken: { address: b.tokenAddress, symbol: px?.symbol || '?', name: px?.name || (b.description?.slice(0, 40) || '') },
-          priceUsd: px?.price,
-          priceChange: { h24: px?.change24h ?? null },
-          volume: { h24: null },
-          info: { imageUrl: b.icon || px?.logoURI },
-          url: b.url || `https://dexscreener.com/solana/${b.tokenAddress}`,
-        };
-      });
-      body.innerHTML = renderPairsTable(rows, 'No boosted tokens.');
       return;
     }
 
@@ -4996,7 +4977,7 @@ const ROUTES = {
   '/trading/trending':  () => renderTradingPage('trending'),
   '/trading/gainers':   () => renderTradingPage('gainers'),
   '/trading/volume':    () => renderTradingPage('volume'),
-  '/trading/memescope': () => renderTradingPage('memescope'),
+  '/trading/memescope': () => { location.hash = '#/trenches'; },
   '/trading/copy':      () => renderCopyTradingPage(),
   '/trenches':          () => renderTrenchesPage(),
   '/tool/checker':    () => renderToolPage('checker'),
@@ -5035,13 +5016,12 @@ function router() {
   else showWalletView();
 }
 
-/* ----- Trading pages (Latest / Trending / Gainers / Volume / Memescope) ----- */
+/* ----- Discover pages (New Pairs / Trending / Gainers / Volume) ----- */
 const TRADING_PAGE_META = {
-  latest:    { title: 'Latest Tokens', sub: 'Recently launched Solana tokens, tracked in real time.', crumb: 'Trading' },
-  trending:  { title: 'Trending',      sub: 'Top Solana tokens by 24-hour trading volume.',           crumb: 'Trading' },
-  gainers:   { title: 'Top Gainers',   sub: 'Best price performance over the selected timeframe.',    crumb: 'Trading' },
-  volume:    { title: 'High Volume',   sub: 'Highest trading volume across Solana DEXes.',            crumb: 'Trading' },
-  memescope: { title: 'Memescope',     sub: 'Boosted launchpad tokens and active memecoins.',         crumb: 'Trading' },
+  latest:    { title: 'New Pairs',   sub: 'Recently launched Solana tokens, tracked in real time.', crumb: 'Discover' },
+  trending:  { title: 'Trending',    sub: 'Top Solana tokens by 24-hour trading volume.',           crumb: 'Discover' },
+  gainers:   { title: 'Top Gainers', sub: 'Best price performance over the selected timeframe.',    crumb: 'Discover' },
+  volume:    { title: 'High Volume', sub: 'Highest trading volume across Solana DEXes.',            crumb: 'Discover' },
 };
 
 const RANGE_TABS = [
@@ -5105,11 +5085,6 @@ async function loadTradingRows() {
       const mints = profiles.slice(0, 40).map(p => p.tokenAddress);
       const prices = await fetchDexscreenerForMints(mints);
       rows = profiles.slice(0, 40).map(p => buildRow(p.tokenAddress, prices.get(p.tokenAddress), p));
-    } else if (view === 'memescope') {
-      const boosts = await fetchBoostedTokens();
-      const mints = boosts.slice(0, 40).map(b => b.tokenAddress);
-      const prices = await fetchDexscreenerForMints(mints);
-      rows = boosts.slice(0, 40).map(b => buildRow(b.tokenAddress, prices.get(b.tokenAddress), b));
     } else {
       const pairs = await fetchSolanaPairs();
       rows = pairs.map(p => ({
@@ -5898,7 +5873,7 @@ async function renderTrenchesPage() {
 
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Trenches</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Discover</span><span class="sep">/</span><span>Trenches</span>`,
       title: 'Trenches',
       sub: 'Real-time stream of Solana launchpad activity. New pairs · Final stretch (almost-bonded) · Migrated (graduated to AMM).',
       actions: `
@@ -6938,7 +6913,7 @@ async function paintTokenTab(tab) {
 async function renderCopyTradingPage() {
   showPageView(`
     ${pageHeader({
-      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Trading</span><span class="sep">/</span><span>Copy Trading</span>`,
+      crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Portfolio</span><span class="sep">/</span><span>Copy Trading</span>`,
       title: 'Copy Trading',
       sub: 'Top holders of the most-traded Solana tokens. Click any wallet to track it.',
       actions: `<button class="ghost-btn small" id="refresh-page">Refresh</button>`,
@@ -8695,7 +8670,8 @@ const DOCS_PAGES = {
       <thead><tr><th>Item</th><th>Route</th><th>What it does</th></tr></thead>
       <tbody>
         <tr><td>Swap</td><td><code>#/swap</code></td><td>Live Jupiter quote between any two tokens.</td></tr>
-        <tr><td>Trading ▾</td><td><code>#/trading/...</code></td><td>Latest, Trending, Top Gainers, High Volume, Memescope, Trenches, Wallet Tracker, Watchlist, Copy Trading.</td></tr>
+        <tr><td>Discover ▾</td><td><code>#/trenches</code>, <code>#/trading/...</code></td><td>Trenches, Trending, Top Gainers, New Pairs, High Volume.</td></tr>
+        <tr><td>Portfolio ▾</td><td><code>#/wallet</code>, <code>#/watchlist</code>, <code>#/trading/copy</code></td><td>Wallet Tracker, My Watchlist, Copy Trading.</td></tr>
         <tr><td>Tools ▾</td><td><code>#/tool/...</code></td><td>Token Checker, Holder Insights, Transaction Decoder, API Status.</td></tr>
         <tr><td>Pro ▾</td><td><code>#/pricing</code></td><td>Plans and the 24-hour Pro trial.</td></tr>
         <tr><td>Docs</td><td><code>#/docs/...</code></td><td>This documentation.</td></tr>
@@ -8766,21 +8742,19 @@ const DOCS_PAGES = {
     <div class="docs-callout warn">The Swap UI is <em>read-only</em>: it returns quotes but doesn't sign or send transactions. Plug in a wallet adapter (Phantom, Solflare, Backpack) to enable execution.</div>
   `},
 
-  'trading': { title: 'Trading Pages', body: `
-    <p>Six routes under <code>#/trading/...</code> each render a different slice of Solana market data.</p>
+  'trading': { title: 'Discover Pages', body: `
+    <p>Four routes under <code>#/trading/...</code>, reached from the <strong>Discover</strong> menu, each render a different slice of Solana market data.</p>
     <table>
-      <thead><tr><th>Route</th><th>Source</th><th>Sort</th></tr></thead>
+      <thead><tr><th>Route</th><th>Menu name</th><th>Source</th><th>Sort</th></tr></thead>
       <tbody>
-        <tr><td><code>/trading/latest</code></td><td>DexScreener <em>token-profiles/latest</em></td><td>Listing time</td></tr>
-        <tr><td><code>/trading/trending</code></td><td>DexScreener <em>search</em> (Solana pairs)</td><td>24h volume</td></tr>
-        <tr><td><code>/trading/gainers</code></td><td>Solana pairs</td><td>Price change (selectable: 5m / 1h / 6h / 24h)</td></tr>
-        <tr><td><code>/trading/volume</code></td><td>Solana pairs</td><td>Volume (5m / 1h / 6h / 24h)</td></tr>
-        <tr><td><code>/trading/memescope</code></td><td>DexScreener <em>token-boosts/top</em></td><td>Boost rank</td></tr>
-        <tr><td><code>/trading/copy</code></td><td>Top holders of high-volume tokens</td><td>Estimated holding USD</td></tr>
+        <tr><td><code>/trading/latest</code></td><td>New Pairs</td><td>DexScreener <em>token-profiles/latest</em></td><td>Listing time</td></tr>
+        <tr><td><code>/trading/trending</code></td><td>Trending</td><td>DexScreener <em>search</em> (Solana pairs)</td><td>24h volume</td></tr>
+        <tr><td><code>/trading/gainers</code></td><td>Top Gainers</td><td>Solana pairs</td><td>Price change (5m / 1h / 6h / 24h)</td></tr>
+        <tr><td><code>/trading/volume</code></td><td>High Volume</td><td>Solana pairs</td><td>Volume (5m / 1h / 6h / 24h)</td></tr>
       </tbody>
     </table>
-    <p>Every table row is clickable and opens the <strong>Token Detail</strong> modal: price, 24h change, DexScreener / Birdeye / Solscan links, and the top 8 pairs by volume.</p>
-    <p>The <strong>Copy Trading</strong> page lets you one-click <em>Track wallet</em> on any returned candidate, which routes you to <code>#/wallet</code> with that address pre-loaded.</p>
+    <p>The Discover menu also links to <a href="#/docs/trenches">Trenches</a>, the real-time launchpad feed.</p>
+    <p>Every table row is clickable and opens the full <a href="#/docs/token-page">token detail page</a>: live chart, holders, trade tape, and a trading panel.</p>
   `},
 
   'tools': { title: 'Tools', body: `
@@ -8960,9 +8934,9 @@ wss://api.mainnet-beta.solana.com
     <pre class="code-block">GET https://api.dexscreener.com/latest/dex/tokens/&lt;MINT1&gt;,&lt;MINT2&gt;,...</pre>
     <h3>Search</h3>
     <pre class="code-block">GET https://api.dexscreener.com/latest/dex/search?q=SOL</pre>
-    <h3>Latest token profiles (used by Trading → Latest Tokens)</h3>
+    <h3>Latest token profiles (used by Discover → New Pairs)</h3>
     <pre class="code-block">GET https://api.dexscreener.com/token-profiles/latest/v1</pre>
-    <h3>Boosted tokens (used by Memescope)</h3>
+    <h3>Boosted tokens (used by Trenches)</h3>
     <pre class="code-block">GET https://api.dexscreener.com/token-boosts/top/v1</pre>
     <p>Helix picks the pair with the highest 24h volume for each mint when multiple pairs exist.</p>
   `},
@@ -9383,12 +9357,11 @@ trackAddress = function (addr) {
 const PALETTE_PAGES = [
   { title: 'Wallet Tracker',   sub: '#/wallet',         icon: '◎', route: '#/wallet',         keys: ['wallet','portfolio','holdings','track'] },
   { title: 'Swap',             sub: '#/swap',           icon: '↔', route: '#/swap',           keys: ['swap','trade','exchange','jupiter'] },
-  { title: 'Latest Tokens',    sub: '#/trading/latest', icon: '🕐', route: '#/trading/latest', keys: ['latest','new','launch'] },
+  { title: 'Trenches',         sub: '#/trenches',          icon: '⛏', route: '#/trenches',          keys: ['trench','trenches','pumpfun','bonding','live','meme','launchpad'] },
+  { title: 'New Pairs',        sub: '#/trading/latest', icon: '🕐', route: '#/trading/latest', keys: ['new','pairs','latest','launch'] },
   { title: 'Trending',         sub: '#/trading/trending', icon: '📈', route: '#/trading/trending', keys: ['trending','volume','popular'] },
   { title: 'Top Gainers',      sub: '#/trading/gainers', icon: '🚀', route: '#/trading/gainers', keys: ['gainers','rise','up','top','perf'] },
   { title: 'High Volume',      sub: '#/trading/volume', icon: '📊', route: '#/trading/volume', keys: ['volume','liquid','top'] },
-  { title: 'Memescope',        sub: '#/trading/memescope', icon: '🐸', route: '#/trading/memescope', keys: ['meme','memescope','boost','launchpad'] },
-  { title: 'Trenches',         sub: '#/trenches',          icon: '⛏', route: '#/trenches',          keys: ['trench','trenches','pumpfun','bonding','live'] },
   { title: 'Copy Trading',     sub: '#/trading/copy', icon: '👥', route: '#/trading/copy', keys: ['copy','mirror','whale'] },
   { title: 'My Watchlist',     sub: '#/watchlist',      icon: '★', route: '#/watchlist',      keys: ['watch','saved','favorites','starred'] },
   { title: 'Token Checker',    sub: '#/tool/checker',   icon: '🛡', route: '#/tool/checker',   keys: ['checker','safety','rug','score'] },
@@ -9596,7 +9569,7 @@ const TIERS = [
       'Up to 3 saved wallets',
       '60-second refresh',
       '5-endpoint public RPC fallback',
-      'All trading pages (Trending, Latest, Memescope)',
+      'All Discover pages (Trenches, Trending, New Pairs, High Volume)',
       'Basic Token Checker (heuristic score)',
     ],
     missing: ['Real-time data', 'Alerts', 'API access'],
