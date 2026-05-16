@@ -2385,6 +2385,16 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .hflow.new  { color: #88aafc; background: rgba(136,170,252,.13); padding: 2px 7px; border-radius: 5px; font-size: 11px; }
 .hflow.flat { color: var(--muted-2); }
 tr.hf-moved td { background: rgba(255,255,255,.022); }
+.hf-toggle { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
+.hf-top-btn {
+  font: inherit; font-size: 11px; font-weight: 600; cursor: pointer;
+  padding: 2px 8px; border-radius: 999px;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--stroke);
+}
+.hf-top-btn:hover:not(.active):not(:disabled) { color: var(--text); border-color: var(--muted-2); }
+.hf-top-btn.active { color: #0a0e1a; background: #14f195; border-color: #14f195; }
+.hf-top-btn:disabled { opacity: .35; cursor: not-allowed; }
 
 .watchlist-grid {
   display: grid; gap: 12px;
@@ -6318,6 +6328,7 @@ const tokenPageState = {
   gas: { priority: 0.003, mev: 0.004, slippage: 20, on: true },
   refreshTimer: null,
   holderTimer: null,
+  holderTop: 20,   // Holders tab view size: 10 or 20
   holderStats: null,
   navList: [],     // mints for keyboard prev/next
   navIndex: -1,
@@ -7110,8 +7121,13 @@ async function paintHoldersTab() {
   const curMap = {};
   list.forEach(a => { curMap[a.address] = Number(a.uiAmount || 0); });
 
+  // The snapshot above keeps every fetched holder; the view can be
+  // narrowed to the top 10 or top 20 without losing delta accuracy.
+  const top = tokenPageState.holderTop || 20;
+  const shown = list.slice(0, top);
+
   let bought = 0, sold = 0, fresh = 0;
-  const rows = list.map((a, i) => {
+  const rows = shown.map((a, i) => {
     const amt = Number(a.uiAmount || 0);
     const pct = supply ? (amt / supply) * 100 : null;
     const before = prevMap[a.address];
@@ -7148,11 +7164,15 @@ async function paintHoldersTab() {
       (fresh ? `<span class="hf-stat new">${fresh} new</span>` : '')
     : `<span class="muted">Baseline saved — revisit to see buys &amp; sells.</span>`;
   const ageStr = prev ? 'change since ' + timeAgo(Math.floor(prev.ts / 1000)) : 'first snapshot';
+  const toggle = [10, 20].map(n =>
+    `<button class="hf-top-btn ${top === n ? 'active' : ''}" data-top="${n}"${n > list.length ? ' disabled' : ''}>Top ${n}</button>`
+  ).join('');
 
   body.innerHTML = `
     <div class="holder-flow">
       <div class="hf-head">
-        <div><strong>Top ${list.length} holders</strong> <span class="muted">· ${escapeHtml(ageStr)}</span></div>
+        <div><strong>Top ${shown.length} holders</strong> <span class="muted">· ${escapeHtml(ageStr)}</span>
+          <span class="hf-toggle">${toggle}</span></div>
         <div class="hf-right">${summary}<button class="ghost-btn small" id="hf-refresh">Refresh</button></div>
       </div>
       <table>
@@ -7161,6 +7181,10 @@ async function paintHoldersTab() {
       </table>
     </div>`;
   $('#hf-refresh')?.addEventListener('click', paintHoldersTab);
+  body.querySelectorAll('.hf-top-btn').forEach(b => b.addEventListener('click', () => {
+    tokenPageState.holderTop = Number(b.dataset.top);
+    paintHoldersTab();
+  }));
 
   // Advance the baseline only when the last one is old enough, so rapid
   // re-renders compare against a stable point rather than wiping it.
