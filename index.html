@@ -3678,6 +3678,30 @@ const BAKED_PROVIDER_KEYS = {
   customRpc:  '',
 };
 
+/* ================================================================
+ *  PLATFORM FEE — how the app earns on swaps.
+ *
+ *  Jupiter routes a cut of every swap to `feeAccount`. To turn this
+ *  on:
+ *    1. Go to referral.jup.ag, connect your wallet, create a
+ *       referral account.
+ *    2. Create a referral token account for wSOL
+ *       (So11111111111111111111111111111111111111112) — this catches
+ *       the SOL side of nearly every swap.
+ *    3. Paste that token account address into `feeAccount` below.
+ *    4. Claim earnings any time from the referral dashboard.
+ *
+ *  While `feeAccount` is blank, swaps execute normally with NO fee
+ *  (and no fee line is shown to users).
+ * ================================================================ */
+const PLATFORM_FEE = {
+  bps: 25,          // 25 bps = 0.25%
+  feeAccount: '',   // <-- paste your Jupiter referral token account here
+};
+function platformFeeActive() {
+  return PLATFORM_FEE.bps > 0 && !!PLATFORM_FEE.feeAccount;
+}
+
 function applyProviderKeys() {
   // Hardcoded keys take priority; the localStorage Settings page can override
   // them per-user but those are dev-only — end users never see that page.
@@ -7450,6 +7474,7 @@ const swapState = {
   to: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
   amount: '1', slippageBps: 50,
   quote: null, fromMeta: null, toMeta: null,
+  _executing: false,       // true while a swap is being signed/sent
   // Limit mode
   limitPrice: null,        // user override (in quote per base)
   limitPctOffset: -10,     // -10% from market by default
@@ -7579,6 +7604,7 @@ function renderMarketBody() {
         <div class="row"><span class="label">Price impact</span><span class="value" id="q-impact">—</span></div>
         <div class="row"><span class="label">Min received</span><span class="value" id="q-min">—</span></div>
         <div class="row"><span class="label">Slippage</span><span class="value" id="q-slip">${(swapState.slippageBps/100).toFixed(2)}%</span></div>
+        ${platformFeeActive() ? `<div class="row"><span class="label">Platform fee</span><span class="value">${(PLATFORM_FEE.bps/100).toFixed(2)}%</span></div>` : ''}
         <div class="row"><span class="label">Route</span><span class="swap-route" id="q-route">—</span></div>
       </div>
     </div>
@@ -7891,7 +7917,7 @@ async function renderSwapPage() {
 
   // CTA — for now all CTAs are demo; market gets a real quote
   $('#swap-cta').addEventListener('click', () => {
-    if (m === 'market') return getSwapQuote();
+    if (m === 'market') return onMarketCta();
     const u = userStore.current();
     if (!u?.linkedWallet) {
       toast({ title: 'Connect a wallet', sub: 'Sign in with Phantom / Solflare / Backpack first.', icon: '⚠', onClick: () => location.hash = '#/account' });
@@ -8117,7 +8143,7 @@ function pingSwapTick() {
 // Silent re-quote: refresh without flicker if user isn't typing
 async function silentRequote() {
   const cta = $('#swap-cta');
-  if (!cta || cta.textContent === 'Quoting…') return;
+  if (!cta || cta.textContent === 'Quoting…' || swapState._executing) return;
   await getSwapQuote();
   pingSwapTick();
 }
@@ -8159,6 +8185,7 @@ async function refreshSwapMeta() {
 
 async function getSwapQuote() {
   const cta = $('#swap-cta'); if (!cta) return;
+  if (swapState._executing) return;   // don't disturb an in-flight swap
   cta.textContent = 'Quoting…'; cta.disabled = true;
   try {
     // Lazy-load metadata if it's missing — common when a token list fetch was slow.
@@ -8171,7 +8198,8 @@ async function getSwapQuote() {
     swapState.amount = String(amt);
     if (!(amt > 0)) { cta.textContent = 'Enter an amount'; cta.disabled = true; $('#swap-out').value = ''; return; }
     const lamports = BigInt(Math.round(amt * 10 ** fm.decimals)).toString();
-    const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${swapState.from}&outputMint=${swapState.to}&amount=${lamports}&slippageBps=${swapState.slippageBps}&restrictIntermediateTokens=true`;
+    const feeParam = platformFeeActive() ? `&platformFeeBps=${PLATFORM_FEE.bps}` : '';
+    const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${swapState.from}&outputMint=${swapState.to}&amount=${lamports}&slippageBps=${swapState.slippageBps}&restrictIntermediateTokens=true${feeParam}`;
     const r = await fetch(url);
     if (!r.ok) throw new Error(`Quote failed: ${r.status}`);
     const q = await r.json();
@@ -8188,7 +8216,7 @@ async function getSwapQuote() {
     $('#q-route').innerHTML = hops.length ? hops.join('<span class="arrow">›</span>') : '<span class="hop">direct</span>';
     if (swapState._fp) $('#from-usd').textContent = fmtUSD(amt * swapState._fp);
     if (swapState._tp) $('#to-usd').textContent   = fmtUSD(outAmt * swapState._tp);
-    cta.textContent = 'Quote ready ✓';
+    cta.textContent = walletStore.isConnected() ? 'Swap' : 'Connect wallet to swap';
     cta.disabled = false;
   } catch (err) {
     cta.textContent = 'Retry quote';
@@ -8196,6 +8224,131 @@ async function getSwapQuote() {
     if ($('#q-rate')) $('#q-rate').textContent = `Error · ${err.message}`;
     if ($('#swap-out')) $('#swap-out').value = '';
   }
+}
+
+/* Lazy-load @solana/web3.js only when a swap is actually executed. */
+let _web3Lib = null;
+async function loadWeb3() {
+  if (_web3Lib) return _web3Lib;
+  _web3Lib = await import('https://esm.sh/@solana/web3.js@1.98.0');
+  return _web3Lib;
+}
+
+/* Poll signature status until the swap is confirmed (or times out). */
+async function confirmSignature(sig, tries = 24) {
+  for (let i = 0; i < tries; i++) {
+    const r = await rpc('getSignatureStatuses', [[sig]]).catch(() => null);
+    const st = r?.value?.[0];
+    if (st) {
+      if (st.err) throw new Error('Transaction failed on-chain');
+      if (st.confirmationStatus === 'confirmed' || st.confirmationStatus === 'finalized') return true;
+    }
+    await new Promise(res => setTimeout(res, 1500));
+  }
+  return false;
+}
+
+/* Build the Jupiter swap transaction, have the connected wallet sign
+   it, broadcast it, and confirm. The platform fee (if configured)
+   rides inside the same transaction. */
+async function executeSwap() {
+  const cta = $('#swap-cta'); if (!cta) return;
+  if (swapState._executing) return;
+
+  if (!walletStore.isConnected()) {
+    const ok = await walletStore.connect();
+    if (!ok) return;
+  }
+  if (!swapState.quote) {
+    await getSwapQuote();
+    if (!swapState.quote) return;
+  }
+
+  swapState._executing = true;
+  cta.disabled = true;
+  const prevLabel = 'Swap';
+  try {
+    cta.textContent = 'Building transaction…';
+    const body = {
+      quoteResponse: swapState.quote,
+      userPublicKey: walletStore.pubkey,
+      wrapAndUnwrapSol: true,
+      dynamicComputeUnitLimit: true,
+      prioritizationFeeLamports: 'auto',
+    };
+    if (platformFeeActive()) body.feeAccount = PLATFORM_FEE.feeAccount;
+
+    let res = await fetch('https://lite-api.jup.ag/swap/v1/swap', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    // If the fee account doesn't fit this route, retry fee-less so the
+    // user's trade still goes through rather than failing outright.
+    if (!res.ok && body.feeAccount) {
+      console.warn('Swap build failed with feeAccount — retrying without platform fee.');
+      delete body.feeAccount;
+      res = await fetch('https://lite-api.jup.ag/swap/v1/swap', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    }
+    if (!res.ok) throw new Error(`Swap build failed (${res.status})`);
+    const { swapTransaction } = await res.json();
+    if (!swapTransaction) throw new Error('No transaction returned by Jupiter');
+
+    const web3 = await loadWeb3();
+    const bytes = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
+    const tx = web3.VersionedTransaction.deserialize(bytes);
+
+    cta.textContent = 'Confirm in your wallet…';
+    const provider = walletStore.provider;
+    let signature;
+    if (provider?.signAndSendTransaction) {
+      const out = await provider.signAndSendTransaction(tx);
+      signature = out?.signature || out;
+    } else if (provider?.signTransaction) {
+      const signed = await provider.signTransaction(tx);
+      const raw = signed.serialize();
+      let bin = '';
+      for (const b of raw) bin += String.fromCharCode(b);
+      signature = await rpc('sendTransaction', [btoa(bin), { encoding: 'base64', maxRetries: 3 }]);
+    } else {
+      throw new Error('Wallet cannot sign transactions');
+    }
+
+    cta.textContent = 'Confirming…';
+    const solscan = `${SOLSCAN}/tx/${signature}`;
+    toast({ title: 'Swap submitted', sub: shorten(String(signature), 8, 8), icon: '⏳',
+      onClick: () => window.open(solscan, '_blank', 'noopener'), timeout: 7000 });
+
+    await confirmSignature(String(signature));
+    toast({
+      title: 'Swap complete ✓',
+      sub: `${swapState.fromMeta?.symbol || ''} → ${swapState.toMeta?.symbol || ''} · view on Solscan`,
+      icon: '✓', onClick: () => window.open(solscan, '_blank', 'noopener'), timeout: 9000,
+    });
+    walletStore.refreshBalance().then(paintWalletBtn);
+  } catch (err) {
+    const msg = /reject|cancel|denied|user/i.test(err.message || '') ? 'Cancelled in wallet' : (err.message || 'Swap failed');
+    toast({ title: 'Swap failed', sub: msg, icon: '✕', timeout: 6000 });
+  } finally {
+    swapState._executing = false;
+    swapState.quote = null;
+    cta.disabled = false;
+    cta.textContent = prevLabel;
+    if (location.hash === '#/swap' && swapState.mode === 'market') getSwapQuote();
+  }
+}
+
+/* Market-mode CTA: connect → quote → execute, in that order. */
+function onMarketCta() {
+  if (swapState._executing) return;
+  if (!walletStore.isConnected()) {
+    walletStore.connect().then(ok => { if (ok && $('#swap-cta')) getSwapQuote(); });
+    return;
+  }
+  if (swapState.quote && $('#swap-out')?.value) return executeSwap();
+  return getSwapQuote();
 }
 
 async function loadTopPairs() {
