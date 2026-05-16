@@ -3658,21 +3658,31 @@ const RPC_PUBLIC = {
     'https://api.metaplex.solana.com',
   ],
 };
+// Same-origin backend proxy — holds the real paid RPC credential
+// server-side (see functions/api/rpc.js). Tried first; public RPCs
+// below act as fallback if the proxy isn't deployed.
+const RPC_PROXY = '/api/rpc';
 const RPC_ENDPOINTS = {
-  'mainnet-beta': [...RPC_PUBLIC['mainnet-beta']],
+  'mainnet-beta': [RPC_PROXY, ...RPC_PUBLIC['mainnet-beta']],
 };
 /* ================================================================
- *  PROVIDER KEYS — paste your own keys here once and every visitor
- *  uses them automatically. Nothing else to configure.
+ *  PROVIDER KEYS
  *
- *  Leave blank to fall back to the public RPC fallback chain.
+ *  SECURITY: anything pasted below ships inside the public static
+ *  file — every visitor (and anyone reading source) can see it. NEVER
+ *  put a paid/secret RPC credential here. Use the backend proxy
+ *  (functions/api/rpc.js) for shared paid RPC, or let end users enter
+ *  their own key via the in-app Settings page (stored only in their
+ *  own browser).
+ *
+ *  Leave blank to use the proxy + public RPC fallback chain.
  * ================================================================ */
 const BAKED_PROVIDER_KEYS = {
   // From dashboard.helius.dev → free tier 1M credits/mo
   helius:     '',
-  // From quicknode.com → Endpoints → your endpoint → HTTPS URL (full URL incl. token)
-  // The WSS URL is auto-derived from this by swapping the protocol.
-  quicknode:  'https://weathered-fittest-research.solana-mainnet.quiknode.pro/97fbbca9f18084b46e309680fed0131446c0e3b5/',
+  // Do NOT paste a QuickNode/Helius URL here — it would be public.
+  // Configure RPC_UPSTREAM on the backend proxy instead.
+  quicknode:  '',
   // From pumpportal.fun (optional — leave blank for the public stream)
   pumpportal: '',
   // Any other Solana RPC URL (Triton, Shyft, Ankr, Chainstack, Alchemy …)
@@ -3717,7 +3727,7 @@ function applyProviderKeys() {
   if (custom)    mainnet.unshift(custom);
   if (quicknode) mainnet.unshift(quicknode);
   if (helius)    mainnet.unshift(`https://mainnet.helius-rpc.com/?api-key=${helius}`);
-  RPC_ENDPOINTS['mainnet-beta'] = [...new Set([...mainnet, ...RPC_PUBLIC['mainnet-beta']])];
+  RPC_ENDPOINTS['mainnet-beta'] = [...new Set([...mainnet, RPC_PROXY, ...RPC_PUBLIC['mainnet-beta']])];
   if (typeof rpcHealth !== 'undefined') { rpcHealth.ok.clear(); rpcHealth.bad.clear(); }
 
   // Auto-derive the WebSocket endpoint from the highest-priority HTTPS URL,
