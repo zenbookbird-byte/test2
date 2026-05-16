@@ -3091,6 +3091,9 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .tk-track-row.buy .s { color: #14f195; }
 .tk-track-row.sell .s { color: #ff5d6c; }
 .tk-track-row .w { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-dev-tag { display: inline-block; padding: 0 4px; border-radius: 3px; font-size: 8.5px;
+  font-weight: 800; letter-spacing: .06em; background: rgba(255,176,32,.18);
+  color: #ffc251; border: 1px solid rgba(255,176,32,.4); vertical-align: 1px; }
 .tk-track-row .mc { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
 .tk-track-row .a { font-variant-numeric: tabular-nums; color: var(--muted); }
 .tk-track-row .t { color: var(--muted); font-size: 11px; white-space: nowrap; }
@@ -6863,29 +6866,67 @@ function paintTapeStatus() {
     tokenTape.status === 'error' ? 'Stream unavailable' : 'Idle'}`;
 }
 
+/* Identify a token's creator (dev) wallet = the fee payer of the mint's
+   oldest transaction. Bounded to ~3 pages of signatures, so it resolves
+   for young tokens (the common case) and gives up quietly for old ones. */
+const _creatorCache = new Map();
+async function fetchTokenCreator(mint) {
+  if (_creatorCache.has(mint)) return _creatorCache.get(mint);
+  let creator = null;
+  try {
+    let before, oldest;
+    for (let page = 0; page < 3; page++) {
+      const opts = before ? { limit: 1000, before } : { limit: 1000 };
+      const sigs = await rpc('getSignaturesForAddress', [mint, opts]);
+      if (!Array.isArray(sigs) || !sigs.length) break;
+      oldest = sigs[sigs.length - 1];
+      if (sigs.length < 1000) { before = null; break; }
+      before = oldest.signature;
+    }
+    // Only trust the result if we actually reached the first transaction.
+    if (oldest && before === null) {
+      const tx = await rpc('getTransaction', [oldest.signature,
+        { maxSupportedTransactionVersion: 0, encoding: 'jsonParsed' }]);
+      const keys = tx?.transaction?.message?.accountKeys;
+      if (Array.isArray(keys) && keys.length) {
+        const fp = keys[0];
+        creator = typeof fp === 'string' ? fp : (fp?.pubkey || null);
+      }
+    }
+  } catch {}
+  _creatorCache.set(mint, creator);
+  return creator;
+}
+
 /* Live strip under the chart: buys/sells on THIS token by the user's
-   tracked wallets, tagged with the market cap at the time of trade. */
+   tracked wallets (and the token's dev), tagged with the market cap. */
 function paintTrackedActivity() {
   const el = document.getElementById('tk-track-strip');
   if (!el) return;
   const wl = userStore.current()?.watchlist || [];
   const tracked = new Map(wl.map(w => [w.address, w.label]));
-  if (!tracked.size) {
+  const dev = tokenPageState.creator || null;
+  if (!tracked.size && !dev) {
     el.innerHTML = `<div class="tk-track-empty">Add wallets to your watchlist to see their buys &amp; sells on this token, with the market cap at each trade.</div>`;
     return;
   }
-  const hits = tokenTape.trades.filter(t => tracked.has(t.trader)).slice(0, 14);
+  const isHit = (t) => tracked.has(t.trader) || (dev && t.trader === dev);
+  const hits = tokenTape.trades.filter(isHit).slice(0, 14);
   if (!hits.length) {
-    el.innerHTML = `<div class="tk-track-empty"><strong>Tracked-wallet activity</strong> · watching ${tracked.size} wallet${tracked.size === 1 ? '' : 's'} — no trades on this token yet.</div>`;
+    const scope = tracked.size
+      ? `watching ${tracked.size} wallet${tracked.size === 1 ? '' : 's'}${dev ? ' + dev' : ''}`
+      : 'dev wallet identified';
+    el.innerHTML = `<div class="tk-track-empty"><strong>Tracked-wallet activity</strong> · ${scope} — no trades on this token yet.</div>`;
     return;
   }
   el.innerHTML = `<div class="tk-track-title">Tracked-wallet activity <span class="muted">· live</span></div>
     <div class="tk-track-rows">${hits.map(t => {
       const buy = t.type === 'buy';
-      const label = tracked.get(t.trader) || shorten(t.trader, 4, 4);
+      const isDev = dev && t.trader === dev;
+      const label = tracked.get(t.trader) || (isDev ? 'Dev' : shorten(t.trader, 4, 4));
       return `<div class="tk-track-row ${buy ? 'buy' : 'sell'}" title="${escapeHtml(t.trader)}">
         <span class="s">${buy ? 'BUY' : 'SELL'}</span>
-        <span class="w">${escapeHtml(label)}</span>
+        <span class="w">${escapeHtml(label)}${isDev ? ` <span class="tk-dev-tag">DEV</span>` : ''}</span>
         <span class="mc">${t.mc ? '@ ' + fmtUSD(t.mc) + ' MC' : ''}</span>
         <span class="a">${t.sol ? t.sol.toFixed(2) + ' SOL' : ''}</span>
         <span class="t">${timeAgo(Math.floor(t.ts / 1000))}</span>
@@ -6898,6 +6939,7 @@ async function renderTokenPage(mint) {
   closeTokenTradeWS();
   tokenPageState.mint = mint;
   tokenPageState.holderStats = null;
+  tokenPageState.creator = null;
   tokenPageState.tab = 'trades';
   // Keyboard nav index (navList may be set by the Trenches click handler)
   tokenPageState.navIndex = tokenPageState.navList.indexOf(mint);
@@ -6934,6 +6976,11 @@ async function renderTokenPage(mint) {
     // Feature 3 — open the live trade tape stream
     openTokenTradeWS(mint);
     paintTrackedActivity();
+
+    // Identify the token's creator so dev trades can be flagged in the strip.
+    fetchTokenCreator(mint).then(dev => {
+      if (dev && tokenPageState.mint === mint) { tokenPageState.creator = dev; paintTrackedActivity(); }
+    });
 
     // Feature 2 — real holder/concentration stats (async, repaints grid)
     fetchHolderStats(mint, supply).then(stats => {
