@@ -3072,6 +3072,10 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .ww-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
 .ww-time { color: var(--muted); font-size: 11px; white-space: nowrap; }
 
+.tier-cta.trial { background: transparent; border: 1px solid var(--stroke-strong);
+  color: var(--muted); margin-top: 8px; font-weight: 600; }
+.tier-cta.trial:hover { color: var(--text); border-color: var(--text); transform: none; }
+
 </style>
 </head>
 <body>
@@ -11225,20 +11229,36 @@ function fmtTrialLeft(ms) {
   if (m >= 1) return `${m}m`;
   return `${Math.max(1, Math.ceil(ms / 1000))}s`;
 }
-function setTier(tierId) {
+// Apply tier fields to the current user, in whichever mode is active.
+function _applyTier(fields) {
   const u = userStore.current();
   if (!u) return false;
-  const users = userStore.list().map(x => x.id === u.id ? {
-    ...x,
+  if (serverApi.available && userStore._serverUser) {
+    Object.assign(userStore._serverUser, fields);
+  } else {
+    const users = userStore.list().map(x => x.id === u.id ? { ...x, ...fields } : x);
+    userStore.save(users);
+  }
+  paintUserMenu();
+  return true;
+}
+function setTier(tierId) {
+  return _applyTier({
     tier: tierId,
     tierBilling: tierId === 'free' ? null : pricingState.billing,
     tierSince: Date.now(),
     // Manually choosing any plan ends the trial flag — even Free.
     trialUntil: null,
-  } : x);
-  userStore.save(users);
-  paintUserMenu();
-  return true;
+  });
+}
+// Start a time-limited free trial of any paid plan.
+function startTrial(tierId, days = 7) {
+  return _applyTier({
+    tier: tierId,
+    tierBilling: 'trial',
+    tierSince: Date.now(),
+    trialUntil: Date.now() + days * 24 * 3600 * 1000,
+  });
 }
 
 /* Auto-downgrade expired trials. Runs on init + every 60s. */
@@ -11314,7 +11334,7 @@ function renderPricingPage() {
             </ul>
             ${isCurrent
               ? `<button class="tier-cta current" disabled>✓ Current plan</button>`
-              : `<button class="tier-cta ${t.featured ? 'primary' : 'secondary'}" data-upgrade="${t.id}">${escapeHtml(t.cta)}</button>`}
+              : `<button class="tier-cta ${t.featured ? 'primary' : 'secondary'}" data-upgrade="${t.id}">${escapeHtml(t.cta)}</button>${(t.monthly > 0 && !t.custom) ? `<button class="tier-cta trial" data-trial="${t.id}">Start 7-day free trial</button>` : ''}`}
           </div>
         `;
       }).join('')}
@@ -11378,6 +11398,21 @@ function renderPricingPage() {
       title: `You're on ${t.name}`,
       sub: tid === 'free' ? 'Switched back to the Starter plan.' : `Billed $${(pricingState.billing === 'yearly' ? t.yearly : t.monthly)} / ${period}. Welcome!`,
       icon: '🎉',
+    });
+    renderPricingPage();
+  }));
+  $$('[data-trial]').forEach(b => b.addEventListener('click', () => {
+    const tid = b.dataset.trial;
+    if (!userStore.current()) {
+      toast({ title: 'Sign in to start a trial', sub: 'Create a local user from the top right.', icon: '⚠', onClick: () => location.hash = '#/account' });
+      return;
+    }
+    startTrial(tid, 7);
+    const t = TIERS.find(x => x.id === tid);
+    toast({
+      title: `${t.name} trial started`,
+      sub: '7 days free — every feature unlocked, no card required.',
+      icon: '🎉', timeout: 5000,
     });
     renderPricingPage();
   }));
