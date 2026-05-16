@@ -2345,6 +2345,26 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   font-size: 12.5px; color: var(--text);
 }
 
+/* Bulk wallet import modal */
+.imp-area {
+  width: 100%; min-height: 150px; resize: vertical;
+  background: var(--bg-0); border: 1px solid var(--stroke); border-radius: 10px;
+  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  padding: 12px; line-height: 1.5;
+}
+.imp-area:focus { outline: none; border-color: var(--accent); }
+.imp-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.imp-url {
+  flex: 1; min-width: 200px;
+  background: var(--bg-0); border: 1px solid var(--stroke); border-radius: 9px;
+  color: var(--text); font-size: 12.5px; padding: 9px 11px;
+}
+.imp-url:focus { outline: none; border-color: var(--accent); }
+.imp-count { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.imp-count strong { color: #14f195; }
+.imp-steps { font-size: 12px; color: var(--muted); line-height: 1.7; margin: 0; padding-left: 18px; }
+.imp-steps a { color: #88aafc; }
+
 .watchlist-grid {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -8200,6 +8220,20 @@ const userStore = {
     this.save(users);
     return true;
   },
+  /* Bulk-add many wallets in a single save (used by the KOL importer). */
+  addWalletsBulk(list) {
+    const u = this.current(); if (!u) throw new Error('Sign in to save wallets.');
+    const have = new Set(u.watchlist.map(w => w.address));
+    let added = 0;
+    for (const { address, label } of list) {
+      if (!address || have.has(address)) continue;
+      u.watchlist.unshift({ address, label: label || shorten(address, 4, 4), addedAt: Date.now() });
+      have.add(address); added++;
+    }
+    const users = this.list().map(x => x.id === u.id ? u : x);
+    this.save(users);
+    return added;
+  },
   removeWallet(address) {
     const u = this.current(); if (!u) return;
     u.watchlist = u.watchlist.filter(w => w.address !== address);
@@ -8702,6 +8736,126 @@ function bindTokenWatchSection() {
   }));
 }
 
+/* ================================================================
+ *  Bulk wallet importer — paste a KOL list (e.g. from Kolscan) and
+ *  add up to 250 wallets to the watchlist in one click.
+ * ================================================================ */
+const WALLET_IMPORT_CAP = 250;
+
+/* Extract { address, label } pairs from arbitrary pasted text.
+   Handles messy copy-paste: one wallet per line, names/PnL alongside. */
+function parseWalletImport(text) {
+  const re = /[1-9A-HJ-NP-Za-km-z]{32,44}/g;
+  const seen = new Set();
+  const out = [];
+  for (const rawLine of String(text || '').split(/[\n\r]+/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const matches = line.match(re) || [];
+    for (const addr of matches) {
+      if (!isValidAddress(addr) || seen.has(addr)) continue;
+      seen.add(addr);
+      // Derive a label from the rest of the line (strip the address,
+      // URLs, numbers and any punctuation — keep just words).
+      let label = line
+        .replace(addr, ' ')
+        .replace(/https?:\/\/\S+/g, ' ')
+        .replace(/[^A-Za-z0-9 ]+/g, ' ')
+        .replace(/\b\d[\d.]*\s*[KMB]?\b/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 28)
+        .trim();
+      out.push({ address: addr, label: label || shorten(addr, 4, 4) });
+      if (out.length >= WALLET_IMPORT_CAP) return out;
+    }
+  }
+  return out;
+}
+
+function openWalletImportModal() {
+  openModal('Import wallets', 'Bulk-add up to ' + WALLET_IMPORT_CAP + ' KOL / trader wallets');
+  const body = $('#modal-body');
+  body.innerHTML = `
+    <div style="display:grid;gap:14px">
+      <ol class="imp-steps">
+        <li>Open <a href="https://kolscan.io" target="_blank" rel="noopener">kolscan.io</a> (or any KOL leaderboard / Dune dashboard).</li>
+        <li>Select the wallet list and copy it — names, PnL and ranks can be included, they're parsed out.</li>
+        <li>Paste below and click Import. Up to ${WALLET_IMPORT_CAP} wallets are added to your watchlist.</li>
+      </ol>
+
+      <div>
+        <div class="imp-row" style="margin-bottom:6px">
+          <input class="imp-url" id="imp-url" placeholder="…or fetch from a URL (raw JSON / text list)" spellcheck="false">
+          <button class="ghost-btn small" id="imp-fetch">Fetch</button>
+        </div>
+        <textarea class="imp-area" id="imp-text" placeholder="Paste wallet addresses here — one per line. Labels are optional:&#10;&#10;5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j   Ansem&#10;7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU   Cupsey&#10;…"></textarea>
+      </div>
+
+      <div class="imp-row" style="justify-content:space-between">
+        <span class="imp-count" id="imp-count">No wallets detected yet.</span>
+        <div style="display:flex;gap:8px">
+          <button class="ghost-btn small" data-close>Cancel</button>
+          <button class="primary-btn small" id="imp-go" disabled>Import</button>
+        </div>
+      </div>
+    </div>`;
+
+  const textEl = $('#imp-text');
+  const countEl = $('#imp-count');
+  const goBtn = $('#imp-go');
+  let parsed = [];
+
+  const recount = () => {
+    parsed = parseWalletImport(textEl.value);
+    if (parsed.length) {
+      countEl.innerHTML = `<strong>${parsed.length}</strong> valid wallet${parsed.length === 1 ? '' : 's'} detected${parsed.length >= WALLET_IMPORT_CAP ? ` (capped at ${WALLET_IMPORT_CAP})` : ''}.`;
+      goBtn.disabled = false;
+      goBtn.textContent = `Import ${parsed.length} wallet${parsed.length === 1 ? '' : 's'}`;
+    } else {
+      countEl.textContent = 'No valid Solana addresses detected yet.';
+      goBtn.disabled = true;
+      goBtn.textContent = 'Import';
+    }
+  };
+  textEl.addEventListener('input', recount);
+
+  $('#imp-fetch').addEventListener('click', async () => {
+    const url = $('#imp-url').value.trim();
+    if (!url) return;
+    const btn = $('#imp-fetch'); btn.textContent = 'Fetching…'; btn.disabled = true;
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      textEl.value = await r.text();
+      recount();
+      if (!parsed.length) toast({ title: 'No wallets found at that URL', icon: '!', timeout: 3500 });
+    } catch (e) {
+      toast({ title: 'Fetch failed', sub: 'CORS-blocked or unreachable — paste the list instead.', icon: '✕', timeout: 5000 });
+    } finally { btn.textContent = 'Fetch'; btn.disabled = false; }
+  });
+
+  $('#imp-go').addEventListener('click', () => {
+    if (!parsed.length) return;
+    if (!userStore.current()) {
+      try { userStore.create('My wallets', null); }
+      catch { userStore.create('My wallets · ' + Math.floor(Math.random() * 1000), null); }
+    }
+    const added = userStore.addWalletsBulk(parsed);
+    closeModal();
+    paintUserMenu();
+    toast({
+      title: `Imported ${added} wallet${added === 1 ? '' : 's'}`,
+      sub: added < parsed.length ? `${parsed.length - added} already in your watchlist` : 'Added to your watchlist',
+      icon: '✓', timeout: 5000,
+    });
+    if (location.hash === '#/watchlist') renderWatchlistPage();
+    else location.hash = '#/watchlist';
+  });
+
+  $$('#modal [data-close]').forEach(el => el.addEventListener('click', closeModal));
+}
+
 async function renderWatchlistPage() {
   const u = userStore.current();
   if (!u) {
@@ -8715,9 +8869,13 @@ async function renderWatchlistPage() {
       <div class="page-empty">
         <h3>Not signed in</h3>
         <p>Create a local user to keep a wallet watchlist on this device. Saved tokens don't require sign-in.</p>
-        <p style="margin-top:12px"><a class="primary-btn small" href="#/account">Sign in or create user</a></p>
+        <p style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+          <a class="primary-btn small" href="#/account">Sign in or create user</a>
+          <button class="ghost-btn small" id="wl-import">Import wallets</button>
+        </p>
       </div>`);
     bindTokenWatchSection();
+    $('#wl-import')?.addEventListener('click', openWalletImportModal);
     return;
   }
   if (!u.watchlist.length) {
@@ -8726,14 +8884,20 @@ async function renderWatchlistPage() {
         crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Watchlist</span>`,
         title: 'My Watchlist',
         sub: `Saved wallets for ${escapeHtml(u.name)}.`,
+        actions: `<button class="ghost-btn small" id="wl-import">Import wallets</button>`,
       })}
       ${tokenWatchSectionHTML()}
       <div class="page-empty">
         <h3>No saved wallets yet</h3>
-        <p>Track any wallet, then click "Save to watchlist" to add it here.</p>
-        <p style="margin-top:12px"><a class="primary-btn small" href="#/wallet">Go to wallet tracker</a></p>
+        <p>Track a wallet and click "Save to watchlist", or bulk-import a KOL list.</p>
+        <p style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+          <a class="primary-btn small" href="#/wallet">Go to wallet tracker</a>
+          <button class="ghost-btn small" id="wl-import-2">Import KOL wallets</button>
+        </p>
       </div>`);
     bindTokenWatchSection();
+    $('#wl-import')?.addEventListener('click', openWalletImportModal);
+    $('#wl-import-2')?.addEventListener('click', openWalletImportModal);
     return;
   }
   showPageView(`
@@ -8741,7 +8905,7 @@ async function renderWatchlistPage() {
       crumb: `<a href="#/wallet">Helix</a><span class="sep">/</span><span>Watchlist</span>`,
       title: 'My Watchlist',
       sub: `${u.watchlist.length} saved wallet${u.watchlist.length === 1 ? '' : 's'} for ${escapeHtml(u.name)}.`,
-      actions: `<button class="ghost-btn small" id="refresh-page">Refresh values</button>`,
+      actions: `<button class="ghost-btn small" id="wl-import">Import wallets</button><button class="ghost-btn small" id="refresh-page">Refresh values</button>`,
     })}
     ${tokenWatchSectionHTML()}
     ${tokenWatch.list().length ? '<h3 style="margin:6px 0 0;font-size:15px;font-weight:700">Saved wallets</h3>' : ''}
@@ -8787,6 +8951,7 @@ async function renderWatchlistPage() {
   });
 
   bindTokenWatchSection();
+  $('#wl-import')?.addEventListener('click', openWalletImportModal);
   $('#refresh-page').addEventListener('click', loadWatchlistStats);
   loadWatchlistStats();
   startWatchlistAutoRefresh();
