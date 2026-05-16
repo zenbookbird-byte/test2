@@ -37,7 +37,8 @@ export async function onRequestPost({ request, env }) {
     if (!ADDR_RE.test(addr)) continue;
     const label = String(it?.label || '').slice(0, 80);
     stmts.push(env.DB.prepare(
-      'INSERT OR IGNORE INTO watchlist (wallet, address, label, added_at) VALUES (?,?,?,?)',
+      'INSERT INTO watchlist (wallet, address, label, added_at) VALUES (?,?,?,?) ' +
+      'ON CONFLICT(wallet, address) DO UPDATE SET label = excluded.label',
     ).bind(sess.wallet, addr, label, now));
   }
   if (!stmts.length) return json({ error: 'No valid addresses' }, 400);

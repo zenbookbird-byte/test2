@@ -5257,6 +5257,7 @@ function init() {
     else openWalletPicker();
   });
   walletStore.restore();
+  detectBackend();
 
   // Feature 5 — keyboard nav between tokens on the token page
   document.addEventListener('keydown', (e) => {
@@ -6532,6 +6533,11 @@ const walletStore = {
     if (!silent) toast({ title: `${this.providerName} connected`, sub: shorten(this.pubkey, 6, 6), icon: '✓', timeout: 3500 });
     if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
     if (location.hash === '#/swap') { try { getSwapQuote(); } catch {} }
+    // With the backend live, connecting a fresh wallet also signs in.
+    if (serverApi.available && !silent &&
+        (!userStore._serverUser || userStore._serverUser.wallet !== this.pubkey)) {
+      signIn().catch(e => toast({ title: 'Sign-in failed', sub: e.message || '', icon: '✕', timeout: 4000 }));
+    }
   },
 
   async disconnect() {
@@ -6548,6 +6554,7 @@ const walletStore = {
     localStorage.removeItem(this.KEY);
     paintWalletBtn();
     if (location.hash.startsWith('#/token/')) paintTokenWalletRow();
+    if (serverApi.available && userStore._serverUser) signOut();
   },
 
   async refreshBalance() {
@@ -6595,6 +6602,24 @@ const walletStore = {
       const tx = web3.VersionedTransaction.deserialize(bytes);
       const res = await this._w3aWallet.signAndSendTransaction(tx);
       return res?.signature || res;
+    }
+    throw new Error('No wallet connected');
+  },
+
+  // Sign an arbitrary message (used for Sign-In-With-Solana).
+  // Returns the base64-encoded signature.
+  async signMessageB64(message) {
+    const bytes = new TextEncoder().encode(message);
+    if (this.kind === 'standard') {
+      const f = this._wallet.features['solana:signMessage'];
+      if (!f) throw new Error('This wallet cannot sign messages');
+      const out = await f.signMessage({ account: this._account, message: bytes });
+      const sig = Array.isArray(out) ? out[0]?.signature : out?.signature;
+      return bytesToB64(sig);
+    }
+    if (this.kind === 'web3auth') {
+      const sig = await this._w3aWallet.signMessage(bytes);
+      return bytesToB64(sig instanceof Uint8Array ? sig : new Uint8Array(sig));
     }
     throw new Error('No wallet connected');
   },
@@ -8704,12 +8729,15 @@ GET https://lite-api.jup.ag/swap/v1/quote?inputMint=&lt;A&gt;&outputMint=&lt;B&g
 const userStore = {
   KEY_USERS: 'solscope:users',
   KEY_CURRENT: 'solscope:currentUser',
+  _serverUser: null,         // populated when the backend is live
   list() {
+    if (serverApi.available) return this._serverUser ? [this._serverUser] : [];
     try { return JSON.parse(localStorage.getItem(this.KEY_USERS) || '[]'); }
     catch { return []; }
   },
   save(users) { localStorage.setItem(this.KEY_USERS, JSON.stringify(users)); },
   current() {
+    if (serverApi.available) return this._serverUser || null;
     const id = localStorage.getItem(this.KEY_CURRENT);
     return this.list().find(u => u.id === id) || null;
   },
@@ -8749,6 +8777,7 @@ const userStore = {
     if (localStorage.getItem(this.KEY_CURRENT) === id) this.setCurrent(null);
   },
   addWallet(address, label) {
+    if (serverApi.available) return this._serverAddWallets([{ address, label }]) > 0;
     const u = this.current(); if (!u) throw new Error('Sign in to save wallets.');
     if (u.watchlist.some(w => w.address === address)) return false;
     u.watchlist.unshift({ address, label: label || shorten(address, 4, 4), addedAt: Date.now() });
@@ -8758,6 +8787,7 @@ const userStore = {
   },
   /* Bulk-add many wallets in a single save (used by the KOL importer). */
   addWalletsBulk(list) {
+    if (serverApi.available) return this._serverAddWallets(list);
     const u = this.current(); if (!u) throw new Error('Sign in to save wallets.');
     const have = new Set(u.watchlist.map(w => w.address));
     let added = 0;
@@ -8771,17 +8801,124 @@ const userStore = {
     return added;
   },
   removeWallet(address) {
+    if (serverApi.available) {
+      const su = this._serverUser; if (!su) return;
+      su.watchlist = su.watchlist.filter(w => w.address !== address);
+      fetch('/api/watchlist?address=' + encodeURIComponent(address),
+        { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
+      return;
+    }
     const u = this.current(); if (!u) return;
     u.watchlist = u.watchlist.filter(w => w.address !== address);
     const users = this.list().map(x => x.id === u.id ? u : x);
     this.save(users);
   },
   renameWallet(address, label) {
+    if (serverApi.available) {
+      const su = this._serverUser; if (!su) return;
+      const w = su.watchlist.find(x => x.address === address);
+      if (w) { w.label = label; this._wlPush([{ address, label }]); }
+      return;
+    }
     const u = this.current(); if (!u) return;
     const w = u.watchlist.find(x => x.address === address);
     if (w) { w.label = label; const users = this.list().map(x => x.id === u.id ? u : x); this.save(users); }
   },
+
+  /* ---- server-mode helpers ---- */
+  _serverAddWallets(list) {
+    const su = this._serverUser;
+    if (!su) { toast({ title: 'Connect a wallet to save', icon: '🔒', timeout: 3000 }); return 0; }
+    const have = new Set(su.watchlist.map(w => w.address));
+    const fresh = [];
+    for (const it of (list || [])) {
+      const address = it && it.address;
+      if (!address || have.has(address)) continue;
+      const label = (it.label || '').trim();
+      su.watchlist.unshift({ address, label: label || shorten(address, 4, 4), addedAt: Date.now() });
+      have.add(address);
+      fresh.push({ address, label });
+    }
+    if (fresh.length) this._wlPush(fresh);
+    return fresh.length;
+  },
+  async _wlPush(items) {
+    try {
+      const r = await fetch('/api/watchlist', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ wallets: items }),
+      });
+      if (!r.ok) throw new Error('sync failed');
+    } catch {
+      toast({ title: 'Could not sync watchlist', sub: 'Reloading from server.', icon: '⚠️', timeout: 3500 });
+      this.refreshFromServer();
+    }
+  },
+  _mapServerUser(u) {
+    return {
+      id: u.wallet, wallet: u.wallet, linkedWallet: u.wallet,
+      name: u.name || shorten(u.wallet, 4, 4),
+      email: u.email || null,
+      avatarHue: 265,
+      createdAt: u.createdAt || Date.now(),
+      tier: u.tier || 'free', tierBilling: u.tierBilling || null, trialUntil: u.trialUntil || null,
+      watchlist: (u.watchlist || []).map(w => ({
+        address: w.address, label: w.label || shorten(w.address, 4, 4), addedAt: w.addedAt,
+      })),
+    };
+  },
+  async refreshFromServer() {
+    try {
+      const r = await fetch('/api/me', { credentials: 'same-origin' });
+      const j = await r.json();
+      this._serverUser = j.user ? this._mapServerUser(j.user) : null;
+    } catch { this._serverUser = null; }
+    paintUserMenu();
+    if (location.hash.startsWith('#/watchlist') && typeof renderWatchlistPage === 'function') renderWatchlistPage();
+  },
 };
+
+/* ---- Server-backed accounts (Sign-In-With-Solana) ----
+   When the backend (functions/) is deployed, accounts and watchlists
+   sync to it. When it isn't, the app silently stays on localStorage. */
+const serverApi = { available: false };
+async function detectBackend() {
+  try {
+    const r = await fetch('/api/me', { credentials: 'same-origin' });
+    const j = await r.json();
+    if (!j || !('user' in j)) return;
+    serverApi.available = true;
+    userStore._serverUser = j.user ? userStore._mapServerUser(j.user) : null;
+  } catch { /* no backend — stay in localStorage mode */ }
+  paintUserMenu();
+}
+async function signIn() {
+  if (!walletStore.isConnected()) { walletStore.connect(); return false; }
+  const wallet = walletStore.pubkey;
+  const chRes = await fetch('/api/auth/challenge?wallet=' + encodeURIComponent(wallet),
+    { credentials: 'same-origin' });
+  if (!chRes.ok) throw new Error('Could not start sign-in');
+  const { nonce, message } = await chRes.json();
+  const signature = await walletStore.signMessageB64(message);
+  const vRes = await fetch('/api/auth/verify', {
+    method: 'POST', credentials: 'same-origin',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nonce, signature }),
+  });
+  if (!vRes.ok) {
+    const e = await vRes.json().catch(() => ({}));
+    throw new Error(e.error || 'Sign-in failed');
+  }
+  await userStore.refreshFromServer();
+  toast({ title: 'Signed in', sub: shorten(wallet, 6, 6), icon: '✓', timeout: 3000 });
+  return true;
+}
+function signOut() {
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+  userStore._serverUser = null;
+  paintUserMenu();
+}
 
 function avatarFor(user) {
   if (!user) return { initials: '?', hue: 280 };
