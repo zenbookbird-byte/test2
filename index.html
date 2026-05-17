@@ -7700,18 +7700,23 @@ async function paintTokenTab(tab) {
       const list = (r?.value || []).slice(0, 10);
       const supply = m.supply;
       if (!list.length) { body.innerHTML = `<div class="empty">No top traders found.</div>`; return; }
+      const wl = new Set((userStore.current()?.watchlist || []).map(w => w.address));
       body.innerHTML = `
         <table>
           <thead><tr><th>Rank</th><th>Wallet</th><th class="num">Holdings</th><th class="num">% Supply</th><th></th></tr></thead>
           <tbody>${list.map((a, i) => {
             const amt = Number(a.uiAmount || 0);
             const pct = supply ? (amt / supply) * 100 : null;
+            const on = wl.has(a.address);
             return `<tr>
               <td class="muted">#${i + 1}</td>
               <td class="mono">${shorten(a.address, 8, 8)}</td>
               <td class="num">${fmt(amt)}</td>
               <td class="num">${pct != null ? pct.toFixed(2) + '%' : '—'}</td>
-              <td class="num"><button class="ghost-btn small" data-track="${escapeHtml(a.address)}">Track →</button></td>
+              <td class="num" style="white-space:nowrap">
+                <button class="ghost-btn small" data-watch="${escapeHtml(a.address)}"${on ? ' disabled' : ''}>${on ? '✓ Watching' : '+ Watch'}</button>
+                <button class="ghost-btn small" data-track="${escapeHtml(a.address)}">Open →</button>
+              </td>
             </tr>`;
           }).join('')}</tbody>
         </table>`;
@@ -7720,6 +7725,21 @@ async function paintTokenTab(tab) {
         $('#address').value = addr;
         location.hash = '#/wallet';
         setTimeout(() => trackAddress?.(addr), 100);
+      }));
+      body.querySelectorAll('[data-watch]').forEach(b => b.addEventListener('click', () => {
+        const addr = b.dataset.watch;
+        if (!userStore.current()) {
+          toast({ title: 'Sign in to use a watchlist', sub: 'Create a local user first.', icon: '⚠', onClick: () => location.hash = '#/account' });
+          return;
+        }
+        if (userStore.addWallet(addr)) {
+          b.disabled = true; b.textContent = '✓ Watching';
+          paintUserMenu();
+          walletWatch.sync();
+          toast({ title: 'Added to watchlist', sub: shorten(addr, 6, 6), icon: '★', timeout: 2500 });
+        } else {
+          toast({ title: 'Already on your watchlist', icon: '★', timeout: 2000 });
+        }
       }));
     } catch (err) {
       body.innerHTML = `<div class="empty">Couldn't load: ${escapeHtml(err.message)}</div>`;
