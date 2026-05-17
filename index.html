@@ -3059,7 +3059,7 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .ww-status.error { color: #ffb454; background: rgba(255,180,84,.12); }
 .ww-list { display: flex; flex-direction: column; gap: 4px; max-height: 380px; overflow-y: auto; }
 .ww-empty { color: var(--muted); font-size: 13px; padding: 14px 4px; }
-.ww-row { display: grid; grid-template-columns: 54px 1fr auto auto auto; gap: 10px;
+.ww-row { display: grid; grid-template-columns: 54px 1fr auto auto auto auto auto; gap: 10px;
   align-items: center; padding: 8px 10px; border-radius: 9px; background: var(--surface);
   cursor: pointer; font-size: 12.5px; }
 .ww-row:hover { background: var(--surface-2); }
@@ -3069,8 +3069,13 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .ww-row.sell .ww-side { color: #ff5d6c; background: rgba(255,93,108,.14); }
 .ww-wallet { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ww-mint { font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+.ww-mc { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 11.5px; white-space: nowrap; }
 .ww-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
 .ww-time { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.ww-copybuy { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; padding: 4px 8px;
+  border-radius: 6px; border: 1px solid rgba(20,241,149,.4); background: rgba(20,241,149,.12);
+  color: #14f195; cursor: pointer; white-space: nowrap; }
+.ww-copybuy:hover { background: rgba(20,241,149,.24); }
 
 .tier-cta.trial { background: transparent; border: 1px solid var(--stroke-strong);
   color: var(--muted); margin-top: 8px; font-weight: 600; }
@@ -9741,6 +9746,7 @@ const walletWatch = {
       txType: m.txType === 'sell' ? 'sell' : 'buy',
       sol: Number(m.solAmount || 0),
       tokens: Number(m.tokenAmount || 0),
+      mc: Number(m.marketCapSol ? m.marketCapSol * (swapState._fp || 150) : 0),
       ts: Date.now(),
       signature: m.signature || '',
     };
@@ -9796,12 +9802,24 @@ function paintWalletWatchFeed() {
       <span class="ww-side">${buy ? 'BUY' : 'SELL'}</span>
       <span class="ww-wallet" title="${escapeHtml(a.wallet)}">${escapeHtml(a.label)}</span>
       <span class="ww-mint">${escapeHtml(shorten(a.mint, 4, 4))}</span>
+      <span class="ww-mc">${a.mc ? fmtUSD(a.mc) + ' MC' : '—'}</span>
       <span class="ww-amt">${a.sol ? a.sol.toFixed(3) + ' SOL' : '—'}</span>
       <span class="ww-time">${timeAgo(Math.floor(a.ts / 1000))}</span>
+      ${a.mint ? `<button class="ww-copybuy" data-buy="${escapeHtml(a.mint)}" title="Quick-buy this token">⚡ Buy</button>` : '<span></span>'}
     </div>`;
   }).join('');
   list.querySelectorAll('.ww-row[data-mint]').forEach(r =>
     r.addEventListener('click', () => { location.hash = '#/token/' + r.dataset.mint; }));
+  list.querySelectorAll('.ww-copybuy[data-buy]').forEach(b =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      swapState.from = 'So11111111111111111111111111111111111111112';
+      swapState.to = b.dataset.buy;
+      swapState.amount = trenchesState.buyAmount || 0.1;
+      swapState.mode = 'market';
+      location.hash = '#/swap';
+      toast({ title: 'Copy buy loaded', sub: swapState.amount + ' SOL → review on Swap', icon: '⚡', timeout: 3000 });
+    }));
 }
 
 async function renderWatchlistPage() {
