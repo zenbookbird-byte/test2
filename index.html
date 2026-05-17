@@ -3086,6 +3086,11 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .wl-perf.empty { font-size: 10.5px; }
 .wl-perf .pos { color: #14f195; font-weight: 700; }
 .wl-perf .neg { color: #ff5d6c; font-weight: 700; }
+.wl-cluster:empty { display: none; }
+.wl-cluster { display: inline-block; margin-top: 4px; margin-left: 6px; padding: 1px 6px;
+  border-radius: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: .03em;
+  background: hsl(var(--ch, 270) 70% 60% / .16); color: hsl(var(--ch, 270) 85% 75%);
+  border: 1px solid hsl(var(--ch, 270) 70% 60% / .4); }
 
 .tier-cta.trial { background: transparent; border: 1px solid var(--stroke-strong);
   color: var(--muted); margin-top: 8px; font-weight: 600; }
@@ -9919,6 +9924,7 @@ async function renderWatchlistPage() {
               <div class="label">${escapeHtml(w.label)}</div>
               <div class="addr">${shorten(w.address, 8, 8)}</div>
               <div class="wl-flag" data-flag></div>
+              <div class="wl-cluster" data-cluster></div>
             </div>
           </div>
           <div class="stats">
@@ -9967,6 +9973,7 @@ async function renderWatchlistPage() {
 let watchlistTimer = null;
 async function loadWatchlistStats() {
   const u = userStore.current(); if (!u) return;
+  const funders = {};   // wallet address -> the wallet that funded it
   await Promise.all(u.watchlist.map(async w => {
     try {
       const [bal, splV1, splV2, sigs] = await Promise.all([
@@ -9988,11 +9995,11 @@ async function loadWatchlistStats() {
       }
       const nonzero = [...splV1, ...splV2].filter(a => Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0) > 0).length;
       $('[data-tokens]', card).textContent = nonzero;
-      // Fresh-wallet flag — only certain if the full history fits in one page.
-      const flag = $('[data-flag]', card);
-      if (flag && Array.isArray(sigs) && sigs.length && sigs.length < 1000) {
+      // Fresh-wallet flag + cluster funder — only certain if the full history fits one page.
+      if (Array.isArray(sigs) && sigs.length && sigs.length < 1000) {
         const oldest = sigs[sigs.length - 1];
-        if (oldest?.blockTime) {
+        const flag = $('[data-flag]', card);
+        if (flag && oldest?.blockTime) {
           const ageMs = Date.now() - oldest.blockTime * 1000;
           if (ageMs < 7 * 86400000) {
             flag.className = 'wl-flag fresh';
@@ -10000,11 +10007,47 @@ async function loadWatchlistStats() {
             flag.title = "This wallet's first on-chain activity was recent — possible fresh / sniper / insider wallet.";
           }
         }
+        if (oldest?.signature) {
+          const tx = await rpc('getTransaction', [oldest.signature,
+            { maxSupportedTransactionVersion: 0, encoding: 'jsonParsed' }]).catch(() => null);
+          const keys = tx?.transaction?.message?.accountKeys;
+          if (Array.isArray(keys) && keys.length) {
+            const fp = keys[0];
+            const funder = typeof fp === 'string' ? fp : (fp?.pubkey || null);
+            if (funder && funder !== w.address) funders[w.address] = funder;
+          }
+        }
       }
       // Light pulse so it's clear the values just refreshed
       card.animate?.([{ borderColor: 'rgba(20,241,149,.5)' }, { borderColor: 'var(--stroke)' }], { duration: 700 });
     } catch {}
   }));
+  paintWalletClusters(funders);
+}
+
+/* Group watchlist wallets that share a funding source — likely the same
+   operator (bundle / insider cluster). */
+function paintWalletClusters(funders) {
+  const byFunder = {};
+  for (const [addr, funder] of Object.entries(funders)) {
+    (byFunder[funder] = byFunder[funder] || []).push(addr);
+  }
+  let idx = 0;
+  for (const [funder, addrs] of Object.entries(byFunder)) {
+    if (addrs.length < 2) continue;            // a cluster needs 2+ wallets
+    idx++;
+    const hue = (idx * 97) % 360;
+    for (const addr of addrs) {
+      const card = document.querySelector(`.wl-card[data-addr="${CSS.escape(addr)}"]`);
+      const el = card && card.querySelector('[data-cluster]');
+      if (!el) continue;
+      el.className = 'wl-cluster';
+      el.style.setProperty('--ch', hue);
+      el.textContent = `⚇ Cluster ${idx} · ${addrs.length} linked wallets`;
+      el.title = `Shares a funding source with ${addrs.length - 1} other tracked wallet(s).\n`
+        + `Funder: ${shorten(funder, 6, 6)}`;
+    }
+  }
 }
 function startWatchlistAutoRefresh() {
   stopWatchlistAutoRefresh();
