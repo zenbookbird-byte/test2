@@ -3086,6 +3086,11 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .wl-perf.empty { font-size: 10.5px; }
 .wl-perf .pos { color: #14f195; font-weight: 700; }
 .wl-perf .neg { color: #ff5d6c; font-weight: 700; }
+.hold-sum { display: flex; gap: 10px; margin-bottom: 12px; }
+.hold-sum > div { flex: 1; background: var(--surface); border: 1px solid var(--stroke);
+  border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.hold-sum .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.hold-sum .v { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .wl-cluster:empty { display: none; }
 .wl-cluster { display: inline-block; margin-top: 4px; margin-left: 6px; padding: 1px 6px;
   border-radius: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: .03em;
@@ -9862,6 +9867,62 @@ function walletPerfHTML(addr) {
   </div>`;
 }
 
+/* Holdings modal — current SPL tokens held by a tracked wallet, with
+   live market value. PnL column is approximate (observed buys only). */
+async function openWalletHoldingsModal(addr, label) {
+  openModal('Holdings · ' + (label || shorten(addr, 4, 4)), shorten(addr, 8, 8));
+  const body = $('#modal-body');
+  body.innerHTML = `<div class="modal-loading">Loading holdings…</div>`;
+  try {
+    const [bal, v1, v2] = await Promise.all([
+      rpc('getBalance', [addr]).then(r => r?.value ?? 0).catch(() => 0),
+      rpc('getTokenAccountsByOwner', [addr, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }])
+        .then(r => r?.value ?? []).catch(() => []),
+      rpc('getTokenAccountsByOwner', [addr, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: 'jsonParsed' }])
+        .then(r => r?.value ?? []).catch(() => []),
+    ]);
+    const tokens = [...v1, ...v2].map(a => {
+      const info = a.account?.data?.parsed?.info;
+      return { mint: info?.mint, amount: Number(info?.tokenAmount?.uiAmount || 0) };
+    }).filter(t => t.mint && t.amount > 0);
+    const prices = tokens.length ? await fetchDexscreenerForMints(tokens.map(t => t.mint)) : new Map();
+    const obsCost = {};
+    for (const al of walletWatch.alerts) {
+      if (al.wallet === addr && al.txType === 'buy') obsCost[al.mint] = (obsCost[al.mint] || 0) + (al.sol || 0);
+    }
+    const solPrice = swapState._fp || 150;
+    const rows = tokens.map(t => {
+      const px = prices.get(t.mint);
+      const value = px?.price ? t.amount * px.price : null;
+      const costUsd = (obsCost[t.mint] || 0) * solPrice;
+      return { ...t, sym: px?.symbol, price: px?.price, value,
+        pnl: (costUsd > 0 && value != null) ? value - costUsd : null };
+    }).sort((a, b) => (b.value || 0) - (a.value || 0));
+    const tokenVal = rows.reduce((s, r) => s + (r.value || 0), 0);
+    const solVal = bal / LAMPORTS_PER_SOL;
+    body.innerHTML = `
+      <div class="hold-sum">
+        <div><span class="lbl">SOL</span><span class="v">${solVal.toFixed(3)}</span></div>
+        <div><span class="lbl">Token value</span><span class="v">${fmtUSD(tokenVal)}</span></div>
+        <div><span class="lbl">Total</span><span class="v">${fmtUSD(tokenVal + solVal * solPrice)}</span></div>
+      </div>
+      ${rows.length ? `<table class="modal-table">
+        <thead><tr><th>Token</th><th class="num">Amount</th><th class="num">Value</th><th class="num">PnL (obs.)</th></tr></thead>
+        <tbody>${rows.map(r => `<tr>
+          <td><a class="ext" href="#/token/${escapeHtml(r.mint)}">${escapeHtml(r.sym || shorten(r.mint, 4, 4))}</a></td>
+          <td class="num">${fmt(r.amount)}</td>
+          <td class="num">${r.value != null ? fmtUSD(r.value) : '—'}</td>
+          <td class="num" style="${r.pnl == null ? '' : `color:${r.pnl >= 0 ? '#14f195' : '#ff5d6c'}`}">${r.pnl == null ? '—' : (r.pnl >= 0 ? '+' : '') + fmtUSD(r.pnl)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <p class="muted small" style="margin:10px 2px 0">PnL (obs.) is approximate — cost basis from buys observed live since tracking. Full cost-basis PnL needs a backend indexer or paid data API.</p>`
+      : `<div class="empty">No SPL tokens held.</div>`}`;
+    body.querySelectorAll('a.ext').forEach(a => a.addEventListener('click', closeModal));
+  } catch {
+    body.innerHTML = `<div class="empty">Couldn't load holdings — RPC unreachable.</div>`;
+  }
+}
+
 async function renderWatchlistPage() {
   const u = userStore.current();
   if (!u) {
@@ -9935,6 +9996,7 @@ async function renderWatchlistPage() {
           ${walletPerfHTML(w.address)}
           <div class="acts">
             <button class="primary-btn small" data-open>Open ↗</button>
+            <button class="ghost-btn small" data-holdings>Holdings</button>
             <button class="ghost-btn small" data-rename>Rename</button>
             <button class="ghost-btn small" data-remove>Remove</button>
           </div>
@@ -9951,6 +10013,8 @@ async function renderWatchlistPage() {
       location.hash = '#/wallet';
       trackAddress(addr);
     });
+    $('[data-holdings]', card).addEventListener('click', () =>
+      openWalletHoldingsModal(addr, card.querySelector('.label').textContent));
     $('[data-rename]', card).addEventListener('click', () => {
       const label = prompt('Label for this wallet:', card.querySelector('.label').textContent);
       if (label && label.trim()) { userStore.renameWallet(addr, label.trim()); renderWatchlistPage(); paintUserMenu(); }
