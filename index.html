@@ -899,6 +899,16 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
 .trend-buy::before { content: '⚡'; font-size: 10px; }
 .trend-buy:hover { filter: brightness(1.1); }
 
+.trend-acts { display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+.trend-sell, .trend-star {
+  appearance: none; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700;
+  padding: 5px 9px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--stroke-strong); color: var(--muted);
+}
+.trend-sell:hover { color: #ff5d6c; border-color: #ff5d6c; }
+.trend-star:hover { color: #ffd25d; border-color: #ffd25d; }
+.trend-star.active { color: #ffd25d; border-color: #ffd25d; }
+
 .trend-toolbar {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   margin-bottom: 8px;
@@ -5745,7 +5755,13 @@ function paintTradingRows() {
               <td><span class="trend-txns"><span class="b">${fmt(tx.buys)}</span><span class="s">${fmt(tx.sells)}</span></span></td>
               ${tfCols.map(([k]) => `<td class="${k === r ? 'tcol-active' : ''}">${delta(row.change[k])}</td>`).join('')}
               <td>${tradingSparkline(row.change)}</td>
-              <td><button class="trend-buy" data-buy="${escapeHtml(row.mint)}" onclick="event.stopPropagation()">${trenchesState.buyAmount ?? 0.1}</button></td>
+              <td>
+                <div class="trend-acts">
+                  <button class="trend-buy" data-buy="${escapeHtml(row.mint)}" onclick="event.stopPropagation()" title="Quick-buy ${escapeHtml(row.symbol || 'token')}">${trenchesState.buyAmount ?? 0.1}</button>
+                  <button class="trend-sell" data-sell="${escapeHtml(row.mint)}" onclick="event.stopPropagation()" title="Sell ${escapeHtml(row.symbol || 'token')}">Sell</button>
+                  <button class="trend-star ${tokenWatch.has(row.mint) ? 'active' : ''}" data-star="${escapeHtml(row.mint)}" data-sym="${escapeHtml(row.symbol || '?')}" data-logo="${escapeHtml(row.logo || '')}" onclick="event.stopPropagation()" title="Watch token">★</button>
+                </div>
+              </td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -5763,6 +5779,23 @@ function paintTradingRows() {
     swapState.mode = 'market';
     location.hash = '#/swap';
     toast({ title: 'Quick buy loaded', sub: (swapState.amount) + ' SOL → review on Swap', icon: '⚡', timeout: 3000 });
+  }));
+  $$('#trading-rows .trend-sell').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    swapState.from = b.dataset.sell;
+    swapState.to = 'So11111111111111111111111111111111111111112';
+    swapState.mode = 'market';
+    location.hash = '#/swap';
+    toast({ title: 'Sell loaded', sub: 'Token → SOL — review on Swap', icon: '↘', timeout: 3000 });
+  }));
+  $$('#trading-rows .trend-star').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const on = tokenWatch.toggle(b.dataset.star, b.dataset.sym, b.dataset.logo || null);
+    b.classList.toggle('active', on);
+    toast({
+      title: on ? 'Token added to watchlist' : 'Token removed',
+      sub: b.dataset.sym, icon: on ? '★' : '☆', timeout: 2500,
+    });
   }));
   const cnt = $('#trend-count');
   if (cnt) cnt.textContent = `${rows.length} tokens`;
