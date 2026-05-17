@@ -3076,6 +3076,10 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
   border-radius: 6px; border: 1px solid rgba(20,241,149,.4); background: rgba(20,241,149,.12);
   color: #14f195; cursor: pointer; white-space: nowrap; }
 .ww-copybuy:hover { background: rgba(20,241,149,.24); }
+.wl-flag:empty { display: none; }
+.wl-flag.fresh { display: inline-block; margin-top: 4px; padding: 1px 6px; border-radius: 4px;
+  font-size: 9.5px; font-weight: 800; letter-spacing: .03em; background: rgba(255,176,32,.16);
+  color: #ffc251; border: 1px solid rgba(255,176,32,.38); }
 
 .tier-cta.trial { background: transparent; border: 1px solid var(--stroke-strong);
   color: var(--muted); margin-top: 8px; font-weight: 600; }
@@ -9883,6 +9887,7 @@ async function renderWatchlistPage() {
             <div style="flex:1;min-width:0">
               <div class="label">${escapeHtml(w.label)}</div>
               <div class="addr">${shorten(w.address, 8, 8)}</div>
+              <div class="wl-flag" data-flag></div>
             </div>
           </div>
           <div class="stats">
@@ -9932,12 +9937,13 @@ async function loadWatchlistStats() {
   const u = userStore.current(); if (!u) return;
   await Promise.all(u.watchlist.map(async w => {
     try {
-      const [bal, splV1, splV2] = await Promise.all([
+      const [bal, splV1, splV2, sigs] = await Promise.all([
         rpc('getBalance', [w.address]).then(r => r?.value ?? 0).catch(() => null),
         rpc('getTokenAccountsByOwner', [w.address, { programId: TOKEN_PROGRAM_ID }, { encoding: 'jsonParsed' }])
           .then(r => r?.value ?? []).catch(() => []),
         rpc('getTokenAccountsByOwner', [w.address, { programId: TOKEN_2022_PROGRAM_ID }, { encoding: 'jsonParsed' }])
           .then(r => r?.value ?? []).catch(() => []),
+        rpc('getSignaturesForAddress', [w.address, { limit: 1000 }]).then(r => r || []).catch(() => null),
       ]);
       const card = document.querySelector(`.wl-card[data-addr="${CSS.escape(w.address)}"]`);
       if (!card) return;
@@ -9950,6 +9956,19 @@ async function loadWatchlistStats() {
       }
       const nonzero = [...splV1, ...splV2].filter(a => Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0) > 0).length;
       $('[data-tokens]', card).textContent = nonzero;
+      // Fresh-wallet flag — only certain if the full history fits in one page.
+      const flag = $('[data-flag]', card);
+      if (flag && Array.isArray(sigs) && sigs.length && sigs.length < 1000) {
+        const oldest = sigs[sigs.length - 1];
+        if (oldest?.blockTime) {
+          const ageMs = Date.now() - oldest.blockTime * 1000;
+          if (ageMs < 7 * 86400000) {
+            flag.className = 'wl-flag fresh';
+            flag.textContent = `⚡ Fresh wallet · ${fmtAgeCompact(ageMs / 60000)} old`;
+            flag.title = "This wallet's first on-chain activity was recent — possible fresh / sniper / insider wallet.";
+          }
+        }
+      }
       // Light pulse so it's clear the values just refreshed
       card.animate?.([{ borderColor: 'rgba(20,241,149,.5)' }, { borderColor: 'var(--stroke)' }], { duration: 700 });
     } catch {}
