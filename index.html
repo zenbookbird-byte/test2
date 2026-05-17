@@ -5118,25 +5118,77 @@ async function toolHolderInsights(mint, out) {
   const list = (largestR?.value || []).slice(0, 20);
   if (!list.length) { out.innerHTML = `<div class="empty">No holder data returned.</div>`; return; }
 
+  // getTokenLargestAccounts returns token accounts (ATAs) — resolve the
+  // owner wallet behind each so Watch / Open / track act on a real wallet.
+  let owners = [];
+  try {
+    const accR = await rpc('getMultipleAccounts', [list.map(a => a.address), { encoding: 'jsonParsed' }]);
+    owners = (accR?.value || []).map(v => v?.data?.parsed?.info?.owner || null);
+  } catch (_) {}
+
   const top10 = list.slice(0, 10).reduce((s, a) => s + Number(a.uiAmount || 0), 0);
   const concentration = supply ? (top10 / supply) * 100 : null;
+  const sym = meta.symbol || shorten(mint, 6, 6);
+  const wl = new Set((userStore.current()?.watchlist || []).map(w => w.address));
 
   out.innerHTML = `
     <div class="kv" style="margin-bottom:14px">
-      <div><dt>Token</dt><dd>${escapeHtml(meta.symbol || shorten(mint, 8, 8))}</dd></div>
+      <div><dt>Token</dt><dd>${escapeHtml(sym)}</dd></div>
       <div><dt>Supply</dt><dd>${supply != null ? fmt(supply) : '—'}</dd></div>
       <div><dt>Top 10 concentration</dt><dd>${concentration != null ? concentration.toFixed(2) + '%' : '—'}</dd></div>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="primary-btn small" id="hi-buy">⚡ Buy ${escapeHtml(sym)}</button>
+      <button class="ghost-btn small" id="hi-sell">Sell ${escapeHtml(sym)}</button>
+    </div>
     <table class="modal-table">
-      <thead><tr><th>#</th><th>Token account</th><th class="num">Amount</th><th class="num">% supply</th></tr></thead>
-      <tbody>${list.map((a, i) => `
+      <thead><tr><th>#</th><th>Holder wallet</th><th class="num">Amount</th><th class="num">% supply</th><th></th></tr></thead>
+      <tbody>${list.map((a, i) => {
+        const owner = owners[i] || a.address;
+        const on = wl.has(owner);
+        return `
         <tr>
           <td class="rank-cell">${i + 1}</td>
-          <td><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${escapeHtml(a.address)}">${shorten(a.address, 8, 8)} ↗</a></td>
+          <td><a class="ext" target="_blank" rel="noopener" href="${SOLSCAN}/account/${escapeHtml(owner)}">${shorten(owner, 8, 8)} ↗</a></td>
           <td class="num">${fmt(Number(a.uiAmount || 0))}</td>
           <td class="num">${supply ? ((Number(a.uiAmount || 0) / supply) * 100).toFixed(2) + '%' : '—'}</td>
-        </tr>`).join('')}</tbody>
+          <td class="num" style="white-space:nowrap">
+            <button class="ghost-btn small" data-hi-watch="${escapeHtml(owner)}"${on ? ' disabled' : ''}>${on ? '✓ Watching' : '+ Watch'}</button>
+            <button class="ghost-btn small" data-hi-open="${escapeHtml(owner)}">Open →</button>
+            <button class="ghost-btn small" data-hi-buy>⚡ Buy</button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
     </table>`;
+
+  const SOL_MINT = 'So11111111111111111111111111111111111111112';
+  const goSwap = (from, to) => { swapState.from = from; swapState.to = to; swapState.mode = 'market'; location.hash = '#/swap'; };
+  const buyToken  = () => { goSwap(SOL_MINT, mint); toast({ title: 'Buy loaded', sub: sym + ' — review on Swap', icon: '⚡', timeout: 3000 }); };
+  const sellToken = () => { goSwap(mint, SOL_MINT); toast({ title: 'Sell loaded', sub: sym + ' → SOL — review on Swap', icon: '↘', timeout: 3000 }); };
+
+  out.querySelector('#hi-buy')?.addEventListener('click', buyToken);
+  out.querySelector('#hi-sell')?.addEventListener('click', sellToken);
+  out.querySelectorAll('[data-hi-buy]').forEach(b => b.addEventListener('click', buyToken));
+  out.querySelectorAll('[data-hi-open]').forEach(b => b.addEventListener('click', () => {
+    const addr = b.dataset.hiOpen;
+    $('#address').value = addr;
+    location.hash = '#/wallet';
+    setTimeout(() => trackAddress?.(addr), 100);
+  }));
+  out.querySelectorAll('[data-hi-watch]').forEach(b => b.addEventListener('click', () => {
+    const addr = b.dataset.hiWatch;
+    if (!userStore.current()) {
+      toast({ title: 'Sign in to use a watchlist', sub: 'Create a local user first.', icon: '⚠', onClick: () => location.hash = '#/account' });
+      return;
+    }
+    if (userStore.addWallet(addr)) {
+      b.disabled = true; b.textContent = '✓ Watching';
+      paintUserMenu(); walletWatch.sync();
+      toast({ title: 'Added to watchlist', sub: shorten(addr, 6, 6), icon: '★', timeout: 2500 });
+    } else {
+      toast({ title: 'Already on your watchlist', icon: '★', timeout: 2000 });
+    }
+  }));
 }
 
 async function toolDecoder(sig, out) {
