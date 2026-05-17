@@ -3086,6 +3086,10 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .wl-perf.empty { font-size: 10.5px; }
 .wl-perf .pos { color: #14f195; font-weight: 700; }
 .wl-perf .neg { color: #ff5d6c; font-weight: 700; }
+.wl-pnl-btn { margin-left: auto; font-size: 9.5px; font-weight: 700; padding: 2px 7px;
+  border-radius: 5px; border: 1px solid var(--stroke-strong); background: transparent;
+  color: var(--muted); cursor: pointer; }
+.wl-pnl-btn:hover { color: var(--text); border-color: var(--text); }
 .hold-sum { display: flex; gap: 10px; margin-bottom: 12px; }
 .hold-sum > div { flex: 1; background: var(--surface); border: 1px solid var(--stroke);
   border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
@@ -9866,9 +9870,10 @@ function paintWalletWatchFeed() {
    live since tracking began (pump.fun / PumpSwap via PumpPortal).
    Not full-history PnL — that needs a backend indexer or paid API. */
 function walletPerfHTML(addr) {
+  const btn = `<button class="wl-pnl-btn" data-fullpnl="${escapeHtml(addr)}" title="Fetch full realized PnL from on-chain swap history (Helius)">⟳ Full PnL</button>`;
   const trades = walletWatch.alerts.filter(a => a.wallet === addr);
   if (!trades.length)
-    return `<div class="wl-perf empty">No trades observed yet — stats build live as this wallet trades.</div>`;
+    return `<div class="wl-perf empty"><span>No trades observed yet — stats build live as this wallet trades.</span>${btn}</div>`;
   let solBought = 0, solSold = 0;
   const byMint = {};
   for (const t of trades) {
@@ -9884,7 +9889,66 @@ function walletPerfHTML(addr) {
     <span>${trades.length} trade${trades.length === 1 ? '' : 's'} seen</span>
     <span class="${net >= 0 ? 'pos' : 'neg'}">${net >= 0 ? '+' : ''}${net.toFixed(2)} SOL net</span>
     ${rt.length ? `<span>${Math.round(wins / rt.length * 100)}% win · ${rt.length} round-trip${rt.length === 1 ? '' : 's'}</span>` : ''}
+    ${btn}
   </div>`;
+}
+
+/* Full realized PnL from on-chain swap history via the Helius enriched
+   transactions API. Uses the Helius key from the Settings page. */
+async function fetchWalletPnL(address, key) {
+  let txs = [], before = '';
+  for (let page = 0; page < 5; page++) {
+    const url = `https://api.helius.xyz/v0/addresses/${encodeURIComponent(address)}/transactions`
+      + `?api-key=${encodeURIComponent(key)}&type=SWAP&limit=100${before ? '&before=' + before : ''}`;
+    let r;
+    try { r = await fetch(url); } catch { return { error: 'http' }; }
+    if (r.status === 401 || r.status === 403) return { error: 'badkey' };
+    if (!r.ok) return { error: 'http' };
+    let batch;
+    try { batch = await r.json(); } catch { return { error: 'http' }; }
+    if (!Array.isArray(batch) || !batch.length) break;
+    txs = txs.concat(batch);
+    before = batch[batch.length - 1]?.signature || '';
+    if (batch.length < 100 || !before) break;
+  }
+  let solPnl = 0, swaps = 0;
+  const perToken = {};
+  for (const tx of txs) {
+    const ad = (tx.accountData || []).find(a => a.account === address);
+    if (!ad) continue;
+    const delta = (ad.nativeBalanceChange || 0) / LAMPORTS_PER_SOL;
+    solPnl += delta; swaps++;
+    const sw = tx.events?.swap;
+    const mint = sw && ((sw.tokenOutputs || [])[0]?.mint || (sw.tokenInputs || [])[0]?.mint);
+    if (mint) perToken[mint] = (perToken[mint] || 0) + delta;
+  }
+  const deltas = Object.values(perToken);
+  const wins = deltas.filter(d => d > 0).length;
+  return { solPnl, swaps, tokens: deltas.length, winRate: deltas.length ? wins / deltas.length : null };
+}
+
+async function loadFullPnL(addr, card) {
+  const perf = card.querySelector('.wl-perf');
+  if (!perf) return;
+  const key = (localStorage.getItem('solscope:heliusKey')
+    || (typeof BAKED_PROVIDER_KEYS !== 'undefined' && BAKED_PROVIDER_KEYS.helius) || '').trim();
+  if (!key) {
+    toast({ title: 'Helius key needed', sub: 'Add one on the Settings page to load full PnL.', icon: '🔑', onClick: () => location.hash = '#/settings' });
+    return;
+  }
+  perf.className = 'wl-perf';
+  perf.innerHTML = `<span class="muted">Loading full PnL via Helius…</span>`;
+  const res = await fetchWalletPnL(addr, key).catch(() => ({ error: 'http' }));
+  if (res.error) {
+    perf.innerHTML = `<span class="neg">Full PnL unavailable — ${res.error === 'badkey' ? 'invalid Helius key' : 'request failed'}</span>`;
+    return;
+  }
+  const sign = res.solPnl >= 0 ? '+' : '';
+  perf.innerHTML = `
+    <span class="${res.solPnl >= 0 ? 'pos' : 'neg'}">${sign}${res.solPnl.toFixed(2)} SOL realized</span>
+    <span>${res.swaps} swap${res.swaps === 1 ? '' : 's'} · ${res.tokens} token${res.tokens === 1 ? '' : 's'}</span>
+    ${res.winRate != null ? `<span>${Math.round(res.winRate * 100)}% net-positive</span>` : ''}
+    <span class="muted" style="flex-basis:100%;font-size:10px">via Helius — realized SOL across the last ${res.swaps} swap${res.swaps === 1 ? '' : 's'}</span>`;
 }
 
 /* Holdings modal — current SPL tokens held by a tracked wallet, with
@@ -10035,6 +10099,7 @@ async function renderWatchlistPage() {
     });
     $('[data-holdings]', card).addEventListener('click', () =>
       openWalletHoldingsModal(addr, card.querySelector('.label').textContent));
+    $('[data-fullpnl]', card)?.addEventListener('click', () => loadFullPnL(addr, card));
     $('[data-rename]', card).addEventListener('click', () => {
       const label = prompt('Label for this wallet:', card.querySelector('.label').textContent);
       if (label && label.trim()) { userStore.renameWallet(addr, label.trim()); renderWatchlistPage(); paintUserMenu(); }
