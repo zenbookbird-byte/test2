@@ -3143,6 +3143,97 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
 .tk-track-row .a { font-variant-numeric: tabular-nums; color: var(--muted); }
 .tk-track-row .t { color: var(--muted); font-size: 11px; white-space: nowrap; }
 
+/* ================================================================
+ *  Meteora-inspired flat theme — gold + Sui-blue accent variation.
+ *  Flat near-black canvas, dense line-separated tables, pill buttons.
+ * ================================================================ */
+:root {
+  --bg-0: #08090b; --bg-1: #08090b;
+  --surface: rgba(255,255,255,.04);
+  --surface-2: rgba(255,255,255,.07);
+  --surface-3: rgba(255,255,255,.10);
+  --stroke: rgba(255,255,255,.07);
+  --stroke-strong: rgba(255,255,255,.15);
+  --text: #f3f4f6;
+  --muted: #8b8f9c;
+  --muted-2: #5e636f;
+  --accent: #f3a52b;
+  --accent-2: #4da2ff;
+  --accent-3: #ffc869;
+  --pos: #36d07d;
+  --neg: #ff5d5d;
+  --shadow: 0 24px 60px -30px rgba(0,0,0,.85);
+}
+body { background: #08090b; }
+.aurora { display: none !important; }
+
+.topbar {
+  background: rgba(8,9,11,.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--stroke);
+}
+.brand h1 { background: none; -webkit-text-fill-color: #fff; color: #fff; }
+.nav-link.active-link,
+.nav-link.active-link svg { color: var(--accent); }
+
+.page-title {
+  background: none; -webkit-text-fill-color: #fff; color: #fff;
+  font-size: clamp(28px, 4vw, 40px); letter-spacing: -.03em;
+}
+.page-sub { color: var(--muted); font-size: 14.5px; }
+
+.primary-btn {
+  background: linear-gradient(180deg, #ffce6b, #ef9a12);
+  color: #2a1c02; border-radius: 9px; font-weight: 700;
+  box-shadow: 0 6px 18px -9px rgba(243,165,43,.75);
+}
+.primary-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.ghost-btn {
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--stroke-strong);
+  border-radius: 9px; color: var(--text);
+}
+.ghost-btn:hover { background: rgba(255,255,255,.09); }
+
+.glass {
+  background: #0e1014;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  backdrop-filter: none;
+}
+.card { border-radius: 14px; }
+
+.filter-input, .search-nav {
+  background: #101216; border: 1px solid var(--stroke); border-radius: 9px;
+}
+.filter-input:focus { border-color: var(--accent); outline: none; }
+
+.modal-table { border-spacing: 0; }
+.modal-table thead th {
+  background: transparent; color: var(--muted);
+  font-size: 11px; font-weight: 600; text-transform: none;
+  padding: 10px 14px; border-bottom: 1px solid var(--stroke);
+}
+.modal-table tbody td {
+  background: transparent !important; padding: 14px;
+  border: 0; border-bottom: 1px solid var(--stroke);
+  border-radius: 0 !important;
+}
+.modal-table tbody tr:hover td { background: rgba(255,255,255,.025) !important; }
+.modal-table a.ext { color: var(--accent-2); }
+
+.wl-card {
+  background: #0e1014; border: 1px solid var(--stroke);
+}
+.wl-card:hover { border-color: rgba(243,165,43,.45); transform: translateY(-2px); }
+.wl-card .av {
+  background: conic-gradient(from 150deg, #f3a52b, #4da2ff, #ffc869, #f3a52b);
+}
+.wl-card .stats .v { color: #fff; }
+
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+.status { border-radius: 11px; }
 </style>
 </head>
 <body>
