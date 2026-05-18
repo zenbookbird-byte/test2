@@ -5705,17 +5705,28 @@ async function fetchTokenImagesHelius(mints) {
   return out;
 }
 
-/* Fill in row.logo for any rows missing one: Jupiter verified list first
-   (blue-chips), then Helius DAS for everything else. Mutates rows. */
+/* Fill in row.logo for any rows missing one. Keyless sources first so
+   images resolve even without a Helius key configured. Mutates rows. */
 async function enrichRowLogos(rows) {
+  const missingMints = () => rows.filter(r => !r.logo && r.mint).map(r => r.mint);
   try {
-    const jup = await loadJupTokenMap();
-    for (const row of rows) {
-      if (!row.logo) { const j = jup.get(row.mint); if (j?.logoURI) row.logo = j.logoURI; }
+    // 1. DexScreener token endpoint — keyless; includes info.imageUrl that
+    //    the search endpoint (fetchSolanaPairs) frequently leaves out.
+    let miss = missingMints();
+    if (miss.length) {
+      const dx = await fetchDexscreenerForMints(miss);
+      for (const row of rows) if (!row.logo) { const d = dx.get(row.mint); if (d?.logoURI) row.logo = d.logoURI; }
     }
-    const missing = rows.filter(r => !r.logo && r.mint).map(r => r.mint);
-    if (missing.length) {
-      const imgs = await fetchTokenImagesHelius(missing);
+    // 2. Jupiter verified token list — keyless; covers blue-chips.
+    miss = missingMints();
+    if (miss.length) {
+      const jup = await loadJupTokenMap();
+      for (const row of rows) if (!row.logo) { const j = jup.get(row.mint); if (j?.logoURI) row.logo = j.logoURI; }
+    }
+    // 3. Helius DAS — needs a key; best-effort for fresh off-list memecoins.
+    miss = missingMints();
+    if (miss.length) {
+      const imgs = await fetchTokenImagesHelius(miss);
       for (const row of rows) if (!row.logo && imgs.has(row.mint)) row.logo = imgs.get(row.mint);
     }
   } catch (_) {}
