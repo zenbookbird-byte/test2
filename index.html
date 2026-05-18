@@ -5632,6 +5632,7 @@ async function loadTradingRows() {
         };
       }).filter(r => r.mint);
     }
+    await enrichRowLogos(rows);
     tradingState.rows = rows;
     paintTradingRows();
   } catch (err) {
@@ -5669,18 +5670,55 @@ function tradingSparkline(change) {
   return `<svg class="tr-spark trend-spark ${cls}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="line" d="${line}"/></svg>`;
 }
 
-/* Token logo with a CDN fallback — DexScreener's search API often omits
-   info.imageUrl, so fall back to its token-image CDN, then to initials. */
+/* Token logo — render the resolved image, or initials if none/failed.
+   Logos are resolved upstream in loadTradingRows (Jupiter + Helius DAS). */
 function tokenLogoHtml(mint, logo, symbol, cls = 'trend-logo') {
-  const cdn = mint ? `https://dd.dexscreener.com/ds-data/tokens/solana/${encodeURIComponent(mint)}.png` : '';
-  const primary = logo || cdn;
   const initials = escapeHtml((symbol || '?').slice(0, 2).toUpperCase());
-  const letter = `<span class=&quot;${cls} fallback&quot;>${initials}</span>`;
-  if (!primary) return `<span class="${cls} fallback">${initials}</span>`;
-  // If a real logo failed, try the CDN once before giving up to initials.
-  const next = (logo && cdn) ? cdn : '';
-  return `<img class="${cls}" src="${safeUrl(primary)}" alt="" loading="lazy" data-fb="${safeUrl(next)}" `
-    + `onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.outerHTML='${letter}';}">`;
+  const src = safeUrl(logo);
+  if (!src) return `<span class="${cls} fallback">${initials}</span>`;
+  return `<img class="${cls}" src="${src}" alt="" loading="lazy" `
+    + `onerror="this.outerHTML='<span class=&quot;${cls} fallback&quot;>${initials}</span>'">`;
+}
+
+/* Resolve token images by mint via the Helius DAS getAssetBatch endpoint.
+   Covers fresh memecoins that aren't on any token list. Needs a Helius key. */
+async function fetchTokenImagesHelius(mints) {
+  const out = new Map();
+  const key = (localStorage.getItem('solscope:heliusKey')
+    || (typeof BAKED_PROVIDER_KEYS !== 'undefined' && BAKED_PROVIDER_KEYS.helius) || '').trim();
+  if (!key || !mints.length) return out;
+  try {
+    const r = await fetch(`https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 'img', method: 'getAssetBatch', params: { ids: mints.slice(0, 1000) } }),
+    });
+    if (!r.ok) return out;
+    const j = await r.json();
+    for (const a of (j?.result || [])) {
+      if (!a?.id) continue;
+      const files = a.content?.files || [];
+      const img = files.find(f => f?.cdn_uri)?.cdn_uri || a.content?.links?.image || files[0]?.uri;
+      if (img) out.set(a.id, img);
+    }
+  } catch (_) {}
+  return out;
+}
+
+/* Fill in row.logo for any rows missing one: Jupiter verified list first
+   (blue-chips), then Helius DAS for everything else. Mutates rows. */
+async function enrichRowLogos(rows) {
+  try {
+    const jup = await loadJupTokenMap();
+    for (const row of rows) {
+      if (!row.logo) { const j = jup.get(row.mint); if (j?.logoURI) row.logo = j.logoURI; }
+    }
+    const missing = rows.filter(r => !r.logo && r.mint).map(r => r.mint);
+    if (missing.length) {
+      const imgs = await fetchTokenImagesHelius(missing);
+      for (const row of rows) if (!row.logo && imgs.has(row.mint)) row.logo = imgs.get(row.mint);
+    }
+  } catch (_) {}
 }
 
 function paintTradingRows() {
