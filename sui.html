@@ -7,7 +7,7 @@
   <title>Suion — Sui Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
 :root {
   --bg-0: #07060f;
@@ -74,10 +74,15 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   display: flex; align-items: center; gap: 10px;
   text-decoration: none; color: inherit; flex-shrink: 0;
 }
-.logo-mark svg { width: 32px; height: 32px; border-radius: 9px; box-shadow: var(--shadow); }
+.logo-mark svg {
+  width: 34px; height: 34px;
+  filter: drop-shadow(0 3px 10px rgba(77, 162, 255, .45));
+}
 .brand h1 {
-  margin: 0; font-size: 16px; letter-spacing: -.01em; font-weight: 700;
-  background: linear-gradient(180deg, #ffffff, #c8c1ff);
+  margin: 0; font-size: 20px; font-weight: 700;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  letter-spacing: -.018em;
+  background: linear-gradient(180deg, #ffffff, #a9d6ff);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   line-height: 1;
 }
@@ -748,8 +753,9 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   flex-wrap: wrap; gap: 16px;
 }
 .page-title {
-  margin: 0; font-size: clamp(24px, 3.2vw, 34px); font-weight: 800; letter-spacing: -.02em;
-  background: linear-gradient(180deg, #ffffff, #c8c1ff);
+  margin: 0; font-size: clamp(25px, 3.2vw, 35px); font-weight: 700; letter-spacing: -.025em;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  background: linear-gradient(180deg, #ffffff, #a9d6ff);
   -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.05;
 }
 .page-sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 70ch; }
@@ -3150,22 +3156,19 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
     <div class="topbar-main">
       <a class="brand" href="#/wallet">
         <span class="logo-mark">
-          <svg viewBox="0 0 32 32" aria-hidden="true">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
             <defs>
-              <linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0%" stop-color="#4DA2FF"/>
-                <stop offset="55%" stop-color="#3a8fe6"/>
-                <stop offset="100%" stop-color="#6fd6ff"/>
-              </linearGradient>
-              <linearGradient id="lg2" x1="1" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="#6fd6ff"/>
-                <stop offset="100%" stop-color="#4DA2FF"/>
+              <linearGradient id="lionG" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8fe2ff"/>
+                <stop offset="48%" stop-color="#4DA2FF"/>
+                <stop offset="100%" stop-color="#2f73d8"/>
               </linearGradient>
             </defs>
-            <rect x="1" y="1" width="30" height="30" rx="9" fill="#0d0b1d" stroke="url(#lg)" stroke-width="1.2"/>
-            <path d="M16 6 C 11 11, 9 15, 9 19 a7 7 0 0 0 14 0 c 0-4 -2-8 -7-13 Z"
-                  fill="url(#lg)" opacity=".92"/>
-            <circle cx="16" cy="19" r="3.4" fill="#0d0b1d" opacity=".55"/>
+            <path fill="url(#lionG)" d="M24,2 L28.6,9.7 L36.9,6.2 L36.1,15.2 L44.9,17.2 L39,24 L44.9,30.8 L36.1,32.8 L36.9,41.8 L28.6,38.3 L24,46 L19.4,38.3 L11.1,41.8 L11.9,32.8 L3.1,30.8 L9,24 L3.1,17.2 L11.9,15.2 L11.1,6.2 L19.4,9.7 Z"/>
+            <circle cx="24" cy="24" r="10.6" fill="#0b0918"/>
+            <circle cx="20.3" cy="22.6" r="1.85" fill="url(#lionG)"/>
+            <circle cx="27.7" cy="22.6" r="1.85" fill="url(#lionG)"/>
+            <path fill="url(#lionG)" d="M21.5,26 L26.5,26 L24,29.6 Z"/>
           </svg>
         </span>
         <div class="brand-text">
