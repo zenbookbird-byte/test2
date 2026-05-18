@@ -1,0 +1,2853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SuiScope — Sui Wallet Tracker &amp; Trading Terminal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0d14; --bg-2:#0d1119; --panel:#121826; --panel-2:#19202f; --panel-3:#222b3d;
+  --border:#212a3c; --border-2:#2e3950; --text:#d6dded; --text-2:#8b9ab4; --text-3:#5b6982;
+  --green:#1fd488; --green-bg:rgba(31,212,136,.12); --red:#ff5d6c; --red-bg:rgba(255,93,108,.12);
+  --accent:#4da2ff; --accent-2:#6fb6ff; --accent-bg:rgba(77,162,255,.12);
+  --yellow:#ffc24b; --purple:#b58cff; --shadow:0 8px 30px rgba(0,0,0,.55);
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+.mono{font-family:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+a.btn,a.nav-item,a.tab,a.tok,a.badge{text-decoration:none}
+a.btn:hover,a.nav-item:hover,a.tab:hover,a.tok:hover,a.badge:hover{text-decoration:none}
+button{cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea,button{font-family:inherit;font-size:inherit;outline:none}
+::selection{background:rgba(77,162,255,.32)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:7px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-2)}
+.up{color:var(--green)} .down{color:var(--red)} .muted{color:var(--text-2)} .dim{color:var(--text-3)}
+.accent{color:var(--accent)} .yellow{color:var(--yellow)}
+.nowrap{white-space:nowrap} .right{text-align:right} .center{text-align:center}
+.hide{display:none!important}
+
+/* layout */
+.app{display:flex;flex-direction:column;height:100vh}
+.ticker{height:34px;display:flex;align-items:center;background:var(--bg-2);border-bottom:1px solid var(--border);overflow:hidden;flex:0 0 auto}
+.ticker-lbl{flex:0 0 auto;padding:0 12px;height:100%;display:flex;align-items:center;gap:6px;background:var(--panel);border-right:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--accent)}
+.ticker-lbl .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green)}
+.ticker-view{flex:1;overflow:hidden;position:relative}
+.ticker-track{display:flex;gap:0;white-space:nowrap;will-change:transform;animation:tick 90s linear infinite}
+.ticker-view:hover .ticker-track{animation-play-state:paused}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick{display:inline-flex;align-items:center;gap:7px;padding:0 16px;border-right:1px solid var(--border);cursor:pointer;height:34px}
+.tick:hover{background:var(--panel)}
+.tick b{font-weight:700;font-size:11px;letter-spacing:.03em}
+.tick .px{font-size:11px}
+.tick .chg{font-size:10px;font-weight:700}
+
+.body{flex:1;display:flex;min-height:0}
+.sidebar{width:224px;flex:0 0 224px;background:var(--bg-2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.brand{padding:16px 16px 13px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border)}
+.brand .glyph{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),#2d6fd6);display:flex;align-items:center;justify-content:center;font-weight:800;color:#06101f;font-size:14px}
+.brand .name{font-weight:800;letter-spacing:.04em;font-size:15px}
+.brand .name span{color:var(--accent)}
+.brand .ver{font-size:9px;color:var(--text-3);letter-spacing:.1em;margin-top:1px}
+.nav{padding:10px 9px;flex:1}
+.nav-sec{font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--text-3);padding:13px 9px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;color:var(--text-2);font-weight:500;border-left:2px solid transparent;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:var(--panel);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent-2);border-left-color:var(--accent)}
+.nav-item .ico{width:15px;text-align:center;font-size:11px;opacity:.9}
+.nav-item .ct{margin-left:auto;font-size:10px;background:var(--panel-3);color:var(--text-2);padding:1px 6px;border-radius:8px}
+.nav-foot{padding:11px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-3)}
+
+.content{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--border);background:var(--bg-2)}
+.search{flex:1;max-width:480px;position:relative}
+.search input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 11px 8px 32px;color:var(--text)}
+.search input:focus{border-color:var(--accent)}
+.search .si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:12px}
+.search-pop{position:absolute;top:40px;left:0;right:0;background:var(--panel);border:1px solid var(--border-2);border-radius:9px;box-shadow:var(--shadow);z-index:60;overflow:hidden;max-height:360px;overflow-y:auto}
+.search-pop .sr{display:flex;align-items:center;gap:9px;padding:8px 11px;cursor:pointer;border-bottom:1px solid var(--border)}
+.search-pop .sr:hover{background:var(--panel-2)}
+.search-pop .sr:last-child{border-bottom:0}
+.topbar .net{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2)}
+.topbar .net .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green)}
+.topbar .net .dot.bad{background:var(--red);box-shadow:0 0 7px var(--red)}
+
+.main{flex:1;overflow:auto;padding:18px 20px}
+
+/* generic */
+.page-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.page-head h1{font-size:19px;font-weight:700;letter-spacing:.01em}
+.page-head .sub{color:var(--text-2);font-size:12px;margin-top:2px}
+.page-head .ph-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);padding:7px 13px;border-radius:7px;font-weight:600;white-space:nowrap;transition:.12s}
+.btn:hover{background:var(--panel-3);border-color:#3a4761}
+.btn:active{transform:translateY(1px)}
+.btn.sm{padding:4px 9px;font-size:11px;border-radius:6px}
+.btn.xs{padding:3px 7px;font-size:10px;border-radius:5px;font-weight:700}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:#06101f}
+.btn.accent:hover{background:var(--accent-2)}
+.btn.buy{background:var(--green-bg);border-color:rgba(31,212,136,.4);color:var(--green)}
+.btn.buy:hover{background:rgba(31,212,136,.22)}
+.btn.sell{background:var(--red-bg);border-color:rgba(255,93,108,.4);color:var(--red)}
+.btn.sell:hover{background:rgba(255,93,108,.22)}
+.btn.ghost{background:transparent}
+.btn.danger:hover{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:11px}
+.card-pad{padding:15px}
+.grid{display:grid;gap:13px}
+.g-wallets{grid-template-columns:repeat(auto-fill,minmax(326px,1fr))}
+.g-kpi{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+.g-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:13px 14px}
+.kpi .kl{font-size:10px;letter-spacing:.1em;color:var(--text-3);font-weight:700;text-transform:uppercase}
+.kpi .kv{font-size:21px;font-weight:700;margin-top:5px}
+.kpi .ks{font-size:11px;color:var(--text-2);margin-top:2px}
+
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:2px 7px;border-radius:5px;text-transform:uppercase;background:var(--panel-3);color:var(--text-2)}
+.badge.green{background:var(--green-bg);color:var(--green)}
+.badge.red{background:var(--red-bg);color:var(--red)}
+.badge.accent{background:var(--accent-bg);color:var(--accent-2)}
+.badge.yellow{background:rgba(255,194,75,.13);color:var(--yellow)}
+.badge.purple{background:rgba(181,140,255,.14);color:var(--purple)}
+
+.row{display:flex;align-items:center;gap:8px}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.tag{font-size:11px;color:var(--text-2);background:var(--panel-2);border:1px solid var(--border);padding:2px 7px;border-radius:6px}
+
+.tabs{display:flex;gap:3px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:3px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:6px;color:var(--text-2);font-weight:600;cursor:pointer}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--accent-bg);color:var(--accent-2)}
+
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:5px}
+.field .hint{font-size:10.5px;color:var(--text-3);margin-top:4px}
+.input{width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:7px;padding:8px 10px;color:var(--text)}
+.input:focus{border-color:var(--accent)}
+.input::placeholder{color:var(--text-3)}
+textarea.input{resize:vertical;min-height:74px;line-height:1.5}
+select.input{cursor:pointer}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px;background:var(--panel)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12px}
+table.tbl th{text-align:left;padding:9px 12px;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);font-weight:700;border-bottom:1px solid var(--border);background:var(--bg-2);position:sticky;top:0;white-space:nowrap}
+table.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.tbl tr:last-child td{border-bottom:0}
+table.tbl tbody tr:hover{background:var(--panel-2)}
+table.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+
+.tok{display:flex;align-items:center;gap:9px}
+.tok-img{width:28px;height:28px;border-radius:50%;background:var(--panel-3);flex:0 0 auto;object-fit:cover;border:1px solid var(--border)}
+.tok-img.lg{width:44px;height:44px}
+.tok-ph{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:var(--accent-2)}
+
+.empty{text-align:center;padding:46px 20px;color:var(--text-3)}
+.empty .ei{font-size:30px;margin-bottom:10px;opacity:.6}
+.empty .et{font-size:14px;color:var(--text-2);font-weight:600;margin-bottom:4px}
+
+.spinner{width:15px;height:15px;border:2px solid var(--border-2);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px}
+.spinner.lg{width:26px;height:26px;border-width:3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{display:flex;align-items:center;justify-content:center;gap:9px;padding:38px;color:var(--text-2)}
+.skel{background:linear-gradient(90deg,var(--panel-2) 25%,var(--panel-3) 50%,var(--panel-2) 75%);background-size:400% 100%;animation:shim 1.4s infinite;border-radius:6px}
+@keyframes shim{from{background-position:100% 0}to{background-position:-100% 0}}
+
+.wcard{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:14px;display:flex;flex-direction:column;gap:11px}
+.wcard:hover{border-color:var(--border-2)}
+.wcard .wc-top{display:flex;align-items:flex-start;gap:9px}
+.wcard .wc-av{width:34px;height:34px;border-radius:9px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;color:#06101f}
+.wcard .wc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.wcard .ws{background:var(--bg-2);border:1px solid var(--border);border-radius:7px;padding:7px 8px}
+.wcard .ws .l{font-size:9px;letter-spacing:.07em;color:var(--text-3);font-weight:700;text-transform:uppercase}
+.wcard .ws .v{font-size:14px;font-weight:700;margin-top:2px}
+.wc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.score-bar{height:5px;background:var(--panel-3);border-radius:3px;overflow:hidden}
+.score-bar i{display:block;height:100%;border-radius:3px}
+
+.modal-bg{position:fixed;inset:0;background:rgba(4,7,12,.74);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+.modal{background:var(--panel);border:1px solid var(--border-2);border-radius:13px;box-shadow:var(--shadow);width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.modal.wide{max-width:780px}
+.modal-head{display:flex;align-items:center;gap:10px;padding:14px 17px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-size:15px;font-weight:700;flex:1}
+.modal-x{width:26px;height:26px;border-radius:6px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text-2)}
+.modal-x:hover{background:var(--panel-3);color:var(--text)}
+.modal-body{padding:17px;overflow-y:auto}
+.modal-foot{padding:13px 17px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+.toast-wrap{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:200}
+.toast{background:var(--panel-2);border:1px solid var(--border-2);border-left:3px solid var(--accent);border-radius:8px;padding:10px 14px;box-shadow:var(--shadow);font-size:12px;min-width:200px;animation:tin .22s ease}
+.toast.err{border-left-color:var(--red)} .toast.ok{border-left-color:var(--green)} .toast.warn{border-left-color:var(--yellow)}
+.toast.out{animation:tout .3s ease forwards}
+@keyframes tin{from{opacity:0;transform:translateX(20px)}}
+@keyframes tout{to{opacity:0;transform:translateX(20px)}}
+
+.kv-list{display:flex;flex-direction:column;gap:1px}
+.kv-row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--border)}
+.kv-row:last-child{border-bottom:0}
+.kv-row .k{color:var(--text-2)}
+.kv-row .v{text-align:right;word-break:break-all}
+
+.copy{cursor:pointer;color:var(--text-3)}
+.copy:hover{color:var(--accent)}
+.bar{height:6px;border-radius:4px;background:var(--panel-3);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.note{background:var(--accent-bg);border:1px solid rgba(77,162,255,.28);border-radius:8px;padding:10px 12px;font-size:11.5px;color:var(--accent-2)}
+.note.warn{background:rgba(255,194,75,.1);border-color:rgba(255,194,75,.28);color:var(--yellow)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.sortable{cursor:pointer;user-select:none}
+.sortable:hover{color:var(--text)}
+
+@media(max-width:900px){
+  .sidebar{width:60px;flex-basis:60px}
+  .brand .name,.brand .ver,.nav-sec,.nav-item .label,.nav-item .ct,.nav-foot{display:none}
+  .nav-item{justify-content:center}
+}
+@media(max-width:620px){
+  .topbar{flex-wrap:wrap;height:auto;padding:9px 12px}
+  .main{padding:13px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="ticker" id="ticker">
+    <div class="ticker-lbl"><span class="dot"></span>SUI · MEMES</div>
+    <div class="ticker-view"><div class="ticker-track" id="tickerTrack"></div></div>
+  </div>
+  <div class="body">
+    <nav class="sidebar">
+      <div class="brand">
+        <div class="glyph">S</div>
+        <div>
+          <div class="name">SUI<span>SCOPE</span></div>
+          <div class="ver">TRADING TERMINAL</div>
+        </div>
+      </div>
+      <div class="nav" id="nav"></div>
+      <div class="nav-foot" id="navFoot">Sui Mainnet</div>
+    </nav>
+    <div class="content">
+      <header class="topbar">
+        <div class="search">
+          <span class="si">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search wallet address, coin type, or token name…" autocomplete="off">
+          <div class="search-pop hide" id="searchPop"></div>
+        </div>
+        <div class="net" id="netStatus" title="Sui RPC"><span class="dot"></span><span>RPC</span></div>
+        <button class="btn sm" id="connectBtn" data-act="wallet-connect">Connect Wallet</button>
+      </header>
+      <main class="main" id="main"></main>
+    </div>
+  </div>
+</div>
+<div id="modalRoot"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script>
+(function(){
+"use strict";
+
+/* ============================ CONFIG ============================ */
+const CONFIG = {
+  RPC: "https://fullnode.mainnet.sui.io",
+  RPC_WSS: "wss://fullnode.mainnet.sui.io",
+  DEX: "https://api.dexscreener.com",
+  SUI_TYPE: "0x2::sui::SUI",
+  CHAIN: "sui",
+  MIST: 1e9,
+  // dexId values (lowercased) treated as Sui DEXes / memecoin launchpads
+  LAUNCHPADS: ["movepump","move-pump","hopfun","hop-fun","hop","turbos","turbosfinance",
+               "cetus","bluemove","flowx","flowxfinance","aftermath","aftermathfinance",
+               "kriya","kriyadex","suiswap","bucket","steamm","momentum","mmt"],
+  EXPLORERS: {
+    suivision: {
+      name:"SuiVision",
+      account:a=>"https://suivision.xyz/account/"+a,
+      tx:d=>"https://suivision.xyz/txblock/"+d,
+      coin:c=>"https://suivision.xyz/coin/"+encodeURIComponent(c)
+    },
+    suiscan: {
+      name:"Suiscan",
+      account:a=>"https://suiscan.xyz/mainnet/account/"+a,
+      tx:d=>"https://suiscan.xyz/mainnet/tx/"+d,
+      coin:c=>"https://suiscan.xyz/mainnet/coin/"+encodeURIComponent(c)
+    }
+  },
+  INDEXERS:{
+    blockvision:{ name:"BlockVision", base:"https://api.blockvision.org/v2/sui", site:"https://blockvision.org" },
+    insidex:{ name:"InsideX", base:"https://api-ex.insidex.trade", site:"https://insidex.trade" }
+  },
+  SWAPS:{
+    "7k":{ name:"7K Protocol", api:"https://prod-api.7k.ag", site:"https://7k.ag" },
+    cetus:{ name:"Cetus Aggregator", api:"https://api-sui.cetus.zone/router_v2", site:"https://app.cetus.zone/swap" }
+  }
+};
+
+/* ============================ STORAGE ============================ */
+const Store = (function(){
+  const P = "suiscope:";
+  function get(k,def){ try{ const v=localStorage.getItem(P+k); return v==null?def:JSON.parse(v); }catch(e){ return def; } }
+  function set(k,v){ try{ localStorage.setItem(P+k,JSON.stringify(v)); }catch(e){} }
+  function del(k){ try{ localStorage.removeItem(P+k); }catch(e){} }
+  const DEFAULT_SETTINGS = {
+    rpcUrl:"", indexerProvider:"blockvision", indexerKey:"",
+    swapProvider:"7k", swapKey:"", explorer:"suivision",
+    refreshSec:30, freshDays:7, slippage:1.0
+  };
+  return {
+    get, set, del,
+    wallets:()=>get("wallets",[]),
+    setWallets:v=>set("wallets",v),
+    tokens:()=>get("tokens",[]),
+    setTokens:v=>set("tokens",v),
+    alerts:()=>get("alerts",[]),
+    setAlerts:v=>set("alerts",v),
+    activity:()=>get("activity",[]),
+    setActivity:v=>set("activity",v),
+    scorecard:()=>get("scorecard",{}),
+    setScorecard:v=>set("scorecard",v),
+    walletMeta:()=>get("walletmeta",{}),
+    setWalletMeta:v=>set("walletmeta",v),
+    settings:()=>Object.assign({},DEFAULT_SETTINGS,get("settings",{})),
+    setSettings:v=>set("settings",Object.assign({},DEFAULT_SETTINGS,get("settings",{}),v)),
+    DEFAULT_SETTINGS
+  };
+})();
+
+/* ============================ UTILITIES ============================ */
+const U = (function(){
+  function esc(s){
+    return String(s==null?"":s).replace(/[&<>"']/g,c=>(
+      {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function $(sel,root){ return (root||document).querySelector(sel); }
+  function $$(sel,root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+
+  // ---- Sui address / type validation ----
+  function isHex(s){ return /^[0-9a-fA-F]+$/.test(s); }
+  function normAddr(a){
+    if(typeof a!=="string") return null;
+    a=a.trim().toLowerCase();
+    if(!a.startsWith("0x")) a="0x"+a;
+    const body=a.slice(2);
+    if(body.length===0||body.length>64||!isHex(body)) return null;
+    return "0x"+body.padStart(64,"0");
+  }
+  function isAddr(a){ return normAddr(a)!==null; }
+  function isFullAddr(a){ return typeof a==="string" && /^0x[0-9a-f]{64}$/.test(a.trim().toLowerCase()); }
+  function isCoinType(t){
+    if(typeof t!=="string") return false;
+    return /^0x[0-9a-fA-F]+::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$/.test(t.trim());
+  }
+  function normCoinType(t){
+    if(!isCoinType(t)) return t;
+    t=t.trim();
+    const i=t.indexOf("::");
+    const addr=normAddr(t.slice(0,i));
+    return addr ? addr+t.slice(i) : t;
+  }
+  function isDigest(d){ return typeof d==="string" && /^[1-9A-HJ-NP-Za-km-z]{40,48}$/.test(d.trim()); }
+  function coinSym(type){
+    if(!type) return "?";
+    if(type===CONFIG.SUI_TYPE) return "SUI";
+    const p=type.split("::"); return p[p.length-1]||"?";
+  }
+
+  // ---- formatting ----
+  function num(n,d){ n=Number(n); if(!isFinite(n)) return "0";
+    return n.toLocaleString("en-US",{maximumFractionDigits:d==null?2:d}); }
+  function compact(n){
+    n=Number(n)||0; const a=Math.abs(n), s=n<0?"-":"";
+    if(a>=1e12) return s+(a/1e12).toFixed(2)+"T";
+    if(a>=1e9) return s+(a/1e9).toFixed(2)+"B";
+    if(a>=1e6) return s+(a/1e6).toFixed(2)+"M";
+    if(a>=1e3) return s+(a/1e3).toFixed(2)+"K";
+    return s+a.toLocaleString("en-US",{maximumFractionDigits:2});
+  }
+  function price(n){
+    n=Number(n); if(!isFinite(n)) return "0"; const a=Math.abs(n);
+    if(a===0) return "0";
+    if(a>=1000) return n.toLocaleString("en-US",{maximumFractionDigits:2});
+    if(a>=1) return n.toLocaleString("en-US",{maximumFractionDigits:4});
+    if(a>=0.01) return n.toFixed(4);
+    if(a>=0.0001) return n.toFixed(6);
+    const dec=Math.min(15,Math.ceil(-Math.log10(a))+3);
+    return n.toFixed(dec).replace(/0+$/,"");
+  }
+  function usd(n){
+    n=Number(n); if(!isFinite(n)) return "$0.00";
+    const a=Math.abs(n);
+    if(a>=1e6) return (n<0?"-$":"$")+compact(a);
+    if(a>=1) return (n<0?"-$":"$")+a.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(a===0) return "$0.00";
+    return (n<0?"-$":"$")+price(a);
+  }
+  function pct(n){ n=Number(n); if(!isFinite(n)) return "0%"; return (n>=0?"+":"")+n.toFixed(2)+"%"; }
+  function addr(a,len){ a=String(a||""); len=len||4; if(a.length<=len*2+3) return a;
+    return a.slice(0,len+2)+"…"+a.slice(-len); }
+  function units(raw,decimals){
+    decimals=decimals==null?9:decimals;
+    try{
+      const bi=BigInt(String(raw).split(".")[0]||"0");
+      const neg=bi<0n; const abs=neg?-bi:bi;
+      const base=10n**BigInt(decimals);
+      const whole=abs/base, frac=abs%base;
+      const fracS=frac.toString().padStart(decimals,"0").replace(/0+$/,"");
+      return (neg?-1:1)*Number(whole.toString()+(fracS?"."+fracS:""));
+    }catch(e){ return Number(raw)/Math.pow(10,decimals); }
+  }
+  function timeAgo(ms){
+    ms=Number(ms); if(!ms) return "—";
+    const d=Date.now()-ms, s=Math.floor(d/1000);
+    if(s<0) return "now";
+    if(s<60) return s+"s ago";
+    const m=Math.floor(s/60); if(m<60) return m+"m ago";
+    const h=Math.floor(m/60); if(h<24) return h+"h ago";
+    const dd=Math.floor(h/24); if(dd<30) return dd+"d ago";
+    const mo=Math.floor(dd/30); if(mo<12) return mo+"mo ago";
+    return Math.floor(mo/12)+"y ago";
+  }
+  function dateStr(ms){ if(!ms) return "—"; const d=new Date(Number(ms));
+    return d.toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}); }
+
+  function debounce(fn,ms){ let t; return function(){ const a=arguments,c=this;
+    clearTimeout(t); t=setTimeout(()=>fn.apply(c,a),ms); }; }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  async function copy(t){
+    try{ await navigator.clipboard.writeText(String(t)); toast("Copied to clipboard","ok"); }
+    catch(e){
+      try{ const ta=document.createElement("textarea"); ta.value=String(t);
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+        toast("Copied to clipboard","ok"); }
+      catch(e2){ toast("Copy failed","err"); }
+    }
+  }
+  function toast(msg,type){
+    const w=document.getElementById("toastWrap"); if(!w) return;
+    const d=document.createElement("div");
+    d.className="toast "+(type||"");
+    d.textContent=msg;
+    w.appendChild(d);
+    setTimeout(()=>{ d.classList.add("out"); setTimeout(()=>d.remove(),320); }, 2800);
+  }
+
+  async function httpJSON(url,opts){
+    opts=opts||{};
+    const ctrl=new AbortController();
+    const tm=setTimeout(()=>ctrl.abort(),opts.timeout||16000);
+    try{
+      const res=await fetch(url,Object.assign({},opts,{signal:ctrl.signal}));
+      const txt=await res.text();
+      let json=null;
+      if(txt){ try{ json=JSON.parse(txt); }catch(e){ json=null; } }
+      if(!res.ok){
+        const m=(json&&json.error&&(json.error.message||json.error))||(json&&json.message)||("HTTP "+res.status);
+        const err=new Error(typeof m==="string"?m:("HTTP "+res.status));
+        err.status=res.status; err.body=json; throw err;
+      }
+      return json;
+    }catch(e){
+      if(e.name==="AbortError"){ const er=new Error("Request timed out"); er.timeout=true; throw er; }
+      throw e;
+    }finally{ clearTimeout(tm); }
+  }
+
+  function parseHash(){
+    let h=location.hash||"";
+    if(h[0]==="#") h=h.slice(1);
+    const qi=h.indexOf("?");
+    const pathPart=qi<0?h:h.slice(0,qi);
+    const queryPart=qi<0?"":h.slice(qi+1);
+    const path=pathPart.split("/").filter(Boolean);
+    const query={};
+    if(queryPart){ new URLSearchParams(queryPart).forEach((v,k)=>{query[k]=v;}); }
+    return {path,query,raw:h};
+  }
+  function buildHash(path,query){
+    let h="#/"+(Array.isArray(path)?path.join("/"):path);
+    if(query){ const s=new URLSearchParams(query).toString(); if(s) h+="?"+s; }
+    return h;
+  }
+  function go(path,query){ location.hash=buildHash(path,query); }
+
+  function colorFor(str){
+    str=String(str||"");
+    let h=0; for(let i=0;i<str.length;i++) h=(h*31+str.charCodeAt(i))>>>0;
+    const hue=h%360;
+    return "hsl("+hue+",62%,58%)";
+  }
+  function attr(s){ return esc(s); }
+
+  return { esc,attr,$,$$,isAddr,isFullAddr,normAddr,isCoinType,normCoinType,isDigest,coinSym,
+    num,compact,price,usd,pct,addr,units,timeAgo,dateStr,debounce,uid,sleep,copy,toast,
+    httpJSON,parseHash,buildHash,go,colorFor };
+})();
+
+/* runtime state */
+const state = {
+  route:null,
+  connected:null,            // {address, walletName}
+  wallets:[],
+  metaCache:{},              // coinType -> coin metadata
+  priceCache:{},             // coinType -> {price, ts}
+  pairCache:{},              // coinType -> {pairs, ts}
+  suiPrice:0,
+  rpcOk:null,
+  pollTimer:null,
+  lastSeen:{},               // wallet -> last tx digest seen
+  detectedWallets:[]
+};
+
+/* ============================ SUI JSON-RPC ============================ */
+const SUI_NORM = U.normCoinType("0x2::sui::SUI");
+function isSui(t){ return U.normCoinType(t)===SUI_NORM || t===CONFIG.SUI_TYPE; }
+
+const Sui = {
+  async call(method,params){
+    const url = Store.settings().rpcUrl || CONFIG.RPC;
+    const json = await U.httpJSON(url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({jsonrpc:"2.0",id:1,method,params:params||[]})
+    });
+    if(json && json.error) throw new Error(json.error.message||("RPC error: "+method));
+    return json ? json.result : null;
+  },
+  getBalance(owner,coinType){ return Sui.call("suix_getBalance", coinType?[owner,coinType]:[owner]); },
+  getAllBalances(owner){ return Sui.call("suix_getAllBalances",[owner]); },
+  getCoinMetadata(coinType){ return Sui.call("suix_getCoinMetadata",[coinType]); },
+  getOwnedObjects(owner,opt){
+    opt=opt||{};
+    return Sui.call("suix_getOwnedObjects",[owner,
+      {filter:opt.filter||null,options:{showType:true,showDisplay:true,showContent:!!opt.content}},
+      opt.cursor||null, opt.limit||50]);
+  },
+  getTransactionBlock(digest){
+    return Sui.call("sui_getTransactionBlock",[digest,
+      {showInput:true,showEffects:true,showEvents:true,showBalanceChanges:true,showObjectChanges:true}]);
+  },
+  queryTx(filter,opt){
+    opt=opt||{};
+    return Sui.call("suix_queryTransactionBlocks",[
+      {filter,options:{showInput:true,showEffects:true,showBalanceChanges:true,showEvents:!!opt.events}},
+      opt.cursor||null, opt.limit||20, opt.desc===false?false:true]);
+  },
+  getReferenceGasPrice(){ return Sui.call("suix_getReferenceGasPrice",[]); },
+  getLatestCheckpoint(){ return Sui.call("sui_getLatestCheckpointSequenceNumber",[]); }
+};
+
+// gas total (MIST) from effects
+function gasOf(tx){
+  try{
+    const g=tx.effects.gasUsed;
+    return Number(BigInt(g.computationCost||0)+BigInt(g.storageCost||0)-BigInt(g.storageRebate||0));
+  }catch(e){ return 0; }
+}
+
+/* coin metadata (cached) */
+async function getMeta(coinType){
+  coinType=U.normCoinType(coinType);
+  if(state.metaCache[coinType]) return state.metaCache[coinType];
+  let meta;
+  try{
+    const m=await Sui.getCoinMetadata(coinType);
+    meta=m?Object.assign({},m):{};
+  }catch(e){ meta={_fallback:true}; }
+  meta.coinType=coinType;
+  if(!meta.symbol) meta.symbol=U.coinSym(coinType);
+  if(!meta.name) meta.name=meta.symbol;
+  if(meta.decimals==null){ meta.decimals=9; meta._decGuess=true; }
+  state.metaCache[coinType]=meta;
+  return meta;
+}
+async function getMetaBatch(types){
+  const uniq=Array.from(new Set(types.map(U.normCoinType)));
+  const res=await Promise.allSettled(uniq.map(getMeta));
+  const map={};
+  res.forEach((r,i)=>{ if(r.status==="fulfilled") map[uniq[i]]=r.value; });
+  return map;
+}
+
+/* ============================ DEXSCREENER ============================ */
+const Dex = {
+  async search(q){
+    const j=await U.httpJSON(CONFIG.DEX+"/latest/dex/search?q="+encodeURIComponent(q));
+    return (j&&j.pairs)||[];
+  },
+  async tokenPairs(addr){
+    const j=await U.httpJSON(CONFIG.DEX+"/latest/dex/tokens/"+encodeURIComponent(addr));
+    return (j&&j.pairs)||[];
+  },
+  async pairsCached(coinType){
+    coinType=U.normCoinType(coinType);
+    const c=state.pairCache[coinType];
+    if(c && Date.now()-c.ts<90000) return c.pairs;
+    const pairs=suiOnly(await Dex.tokenPairs(coinType));
+    state.pairCache[coinType]={pairs,ts:Date.now()};
+    return pairs;
+  },
+  async profiles(){
+    const j=await U.httpJSON(CONFIG.DEX+"/token-profiles/latest/v1");
+    return Array.isArray(j)?j:[];
+  },
+  async boosts(){
+    const j=await U.httpJSON(CONFIG.DEX+"/token-boosts/latest/v1");
+    return Array.isArray(j)?j:[];
+  },
+  async boostsTop(){
+    const j=await U.httpJSON(CONFIG.DEX+"/token-boosts/top/v1");
+    return Array.isArray(j)?j:[];
+  }
+};
+
+function suiOnly(pairs){ return (pairs||[]).filter(p=>p && p.chainId===CONFIG.CHAIN); }
+// pick most-liquid pair where coinType is the BASE token
+function bestBasePair(pairs,coinType){
+  coinType=U.normCoinType(coinType);
+  let best=null;
+  suiOnly(pairs).forEach(p=>{
+    if(p.baseToken && U.normCoinType(p.baseToken.address)===coinType){
+      if(!best||liqOf(p)>liqOf(best)) best=p;
+    }
+  });
+  return best;
+}
+function bestPair(pairs){
+  let best=null;
+  suiOnly(pairs).forEach(p=>{ if(!best||liqOf(p)>liqOf(best)) best=p; });
+  return best;
+}
+function liqOf(p){ return (p&&p.liquidity&&Number(p.liquidity.usd))||0; }
+function volOf(p){ return (p&&p.volume&&Number(p.volume.h24))||0; }
+function pairImg(p){ return (p&&p.info&&p.info.imageUrl)||null; }
+
+/* ============================ PRICES ============================ */
+async function getSuiPrice(){
+  if(state.suiPrice && Date.now()-(state._suiPriceTs||0)<60000) return state.suiPrice;
+  try{
+    const pairs=await Dex.tokenPairs(CONFIG.SUI_TYPE);
+    const best=bestBasePair(pairs,CONFIG.SUI_TYPE);
+    if(best && best.priceUsd){ state.suiPrice=Number(best.priceUsd)||0; state._suiPriceTs=Date.now(); }
+  }catch(e){}
+  return state.suiPrice;
+}
+async function getTokenPrice(coinType){
+  coinType=U.normCoinType(coinType);
+  const c=state.priceCache[coinType];
+  if(c && Date.now()-c.ts<60000) return c;
+  let r={price:0,pair:null,ts:Date.now()};
+  try{
+    if(isSui(coinType)){ r.price=await getSuiPrice(); }
+    else{
+      const pairs=await Dex.pairsCached(coinType);
+      const best=bestBasePair(pairs,coinType);
+      if(best){ r.price=Number(best.priceUsd)||0; r.pair=best; }
+    }
+  }catch(e){ r.err=e.message; }
+  state.priceCache[coinType]=r;
+  return r;
+}
+async function resolveTokenImage(coinType){
+  try{
+    const pairs=await Dex.pairsCached(coinType);
+    for(const p of pairs){ const im=pairImg(p); if(im) return im; }
+  }catch(e){}
+  try{ const m=await getMeta(coinType); if(m&&m.iconUrl) return m.iconUrl; }catch(e){}
+  return null;
+}
+
+/* ============================ INDEXER (BlockVision / InsideX) ============================ */
+const Indexer = (function(){
+  function cfg(){
+    const s=Store.settings();
+    const def=CONFIG.INDEXERS[s.indexerProvider]||CONFIG.INDEXERS.blockvision;
+    return {provider:s.indexerProvider,key:s.indexerKey,base:def.base,name:def.name};
+  }
+  function hasKey(){ return !!(Store.settings().indexerKey||"").trim(); }
+  function noKey(){ const e=new Error("No indexer API key configured"); e.noKey=true; return e; }
+  function headers(){
+    const c=cfg(), h={};
+    if(c.key){ h["x-api-key"]=c.key; }
+    return h;
+  }
+  function pickAddr(o){ return o&&(o.address||o.holder||o.owner||o.account||o.wallet||o.holderAddress||o.holder_address)||null; }
+  function pickAmt(o){ return o&&(o.amount||o.balance||o.value||o.tokenAmount||o.holding||o.totalBalance||o.quantity)||0; }
+  function pickPct(o){ const v=o&&(o.percentage||o.percent||o.share||o.ratio||o.ownedPercentage); return v==null?null:Number(v); }
+  function unwrap(j){
+    if(Array.isArray(j)) return j;
+    if(j&&j.result){ if(Array.isArray(j.result)) return j.result;
+      if(j.result.data&&Array.isArray(j.result.data)) return j.result.data;
+      if(j.result.holders&&Array.isArray(j.result.holders)) return j.result.holders;
+      if(j.result.list&&Array.isArray(j.result.list)) return j.result.list; }
+    if(j&&j.data){ if(Array.isArray(j.data)) return j.data;
+      if(j.data.list&&Array.isArray(j.data.list)) return j.data.list;
+      if(j.data.holders&&Array.isArray(j.data.holders)) return j.data.holders; }
+    if(j&&j.holders&&Array.isArray(j.holders)) return j.holders;
+    return [];
+  }
+  async function holders(coinType){
+    if(!hasKey()) throw noKey();
+    const c=cfg();
+    const url=c.provider==="insidex"
+      ? c.base+"/coins/"+encodeURIComponent(coinType)+"/holders?limit=50"
+      : c.base+"/coin/holders?coinType="+encodeURIComponent(coinType)+"&pageIndex=1&pageSize=50";
+    const j=await U.httpJSON(url,{headers:headers()});
+    const rows=unwrap(j).map(o=>({
+      address:pickAddr(o), amount:Number(pickAmt(o))||0, pct:pickPct(o), raw:o
+    })).filter(r=>r.address);
+    if(!rows.length) throw new Error("Indexer returned no holder data");
+    return rows;
+  }
+  async function walletPnL(addr){
+    if(!hasKey()) throw noKey();
+    const c=cfg();
+    const url=c.provider==="insidex"
+      ? c.base+"/wallets/"+addr+"/pnl"
+      : c.base+"/account/coins?account="+addr;
+    const j=await U.httpJSON(url,{headers:headers()});
+    const r=(j&&j.result)||(j&&j.data)||j||{};
+    const realized=r.realizedPnl||r.realizedPnL||r.pnl||r.realized||r.totalPnl;
+    if(realized==null) throw new Error("Indexer PnL shape unrecognized");
+    return {
+      source:"indexer", provider:c.name,
+      realizedUsd:Number(realized)||0,
+      trades:Number(r.tradeCount||r.trades||r.txCount||0)||0,
+      winRate:Number(r.winRate||r.winrate||0)||0,
+      raw:r
+    };
+  }
+  return {cfg,hasKey,noKey,holders,walletPnL};
+})();
+
+/* ============================ SWAP AGGREGATOR ============================ */
+const Swap = {
+  cfg(){ const s=Store.settings(); return CONFIG.SWAPS[s.swapProvider]||CONFIG.SWAPS["7k"]; },
+  // best-effort aggregator quote; throws if unavailable
+  async quote(tokenIn,tokenOut,amountInRaw){
+    const s=Store.settings(), c=Swap.cfg(), headers={};
+    if(s.swapKey) headers["X-API-KEY"]=s.swapKey;
+    if(s.swapProvider==="7k"){
+      const url=c.api+"/quote?tokenIn="+encodeURIComponent(tokenIn)+
+        "&tokenOut="+encodeURIComponent(tokenOut)+"&amountIn="+amountInRaw;
+      const j=await U.httpJSON(url,{headers});
+      const out=j&&(j.amountOut||j.outAmount||(j.data&&(j.data.amountOut||j.data.outAmount)));
+      if(out==null) throw new Error("Aggregator quote unavailable");
+      return {amountOutRaw:String(out),route:(j&&j.routes)||(j&&j.data&&j.data.routes)||null,raw:j};
+    }
+    const url=c.api+"/find_routes";
+    const j=await U.httpJSON(url,{method:"POST",headers:Object.assign({"Content-Type":"application/json"},headers),
+      body:JSON.stringify({from:tokenIn,target:tokenOut,amount:String(amountInRaw),byAmountIn:true})});
+    const out=j&&j.data&&(j.data.amountOut||j.data.outputAmount);
+    if(out==null) throw new Error("Aggregator quote unavailable");
+    return {amountOutRaw:String(out),route:j.data.routes||null,raw:j};
+  },
+  deepLink(tokenIn,tokenOut){
+    const s=Store.settings();
+    if(s.swapProvider==="cetus") return "https://app.cetus.zone/swap?from="+encodeURIComponent(tokenIn)+"&to="+encodeURIComponent(tokenOut);
+    return "https://7k.ag/?from="+encodeURIComponent(tokenIn)+"&to="+encodeURIComponent(tokenOut);
+  }
+};
+
+/* ============================ WALLET-STANDARD CONNECT ============================ */
+const Wallet = (function(){
+  const wallets=[];
+  function register(){
+    for(let i=0;i<arguments.length;i++){
+      const w=arguments[i];
+      if(w && wallets.indexOf(w)<0) wallets.push(w);
+    }
+    state.detectedWallets=wallets.slice();
+    if(typeof App!=="undefined" && App.refreshConnectUI) App.refreshConnectUI();
+    return ()=>{};
+  }
+  function init(){
+    const api={version:"1.0.0",register,get:()=>wallets.slice(),on:()=>()=>{}};
+    try{
+      window.addEventListener("wallet-standard:register-wallet",ev=>{
+        try{ ev.detail(api); }catch(e){}
+      });
+    }catch(e){}
+    try{ window.dispatchEvent(new CustomEvent("wallet-standard:app-ready",{detail:api})); }catch(e){}
+  }
+  function suiWallets(){
+    return wallets.filter(w=>{
+      if(!w) return false;
+      const chains=w.chains||[];
+      const okChain=chains.some(c=>String(c).indexOf("sui:")===0);
+      const f=w.features||{};
+      const okFeat=f["sui:signAndExecuteTransaction"]||f["sui:signAndExecuteTransactionBlock"]||f["sui:signTransaction"];
+      return okChain||okFeat;
+    });
+  }
+  async function connect(wallet){
+    const f=wallet.features&&wallet.features["standard:connect"];
+    if(!f||typeof f.connect!=="function") throw new Error("Wallet missing standard:connect");
+    const res=await f.connect();
+    const accounts=(res&&res.accounts)||wallet.accounts||[];
+    if(!accounts.length) throw new Error("Wallet returned no accounts");
+    return {address:accounts[0].address,walletName:wallet.name||"Wallet"};
+  }
+  async function disconnect(walletName){
+    const w=wallets.find(x=>(x.name||"")===walletName);
+    const f=w&&w.features&&w.features["standard:disconnect"];
+    if(f&&typeof f.disconnect==="function"){ try{ await f.disconnect(); }catch(e){} }
+  }
+  return {init,suiWallets,connect,disconnect,list:()=>wallets.slice()};
+})();
+
+/* ============================ ANALYSIS ============================ */
+// classify a transaction relative to a tracked wallet
+function classifyTx(tx,wallet){
+  const w=U.normAddr(wallet);
+  const changes=tx.balanceChanges||[];
+  let suiDelta=0;
+  const coinDeltas={};
+  changes.forEach(ch=>{
+    const owner=ch.owner&&(ch.owner.AddressOwner||ch.owner.ObjectOwner);
+    if(!owner||U.normAddr(owner)!==w) return;
+    const amt=Number(ch.amount)||0;
+    if(isSui(ch.coinType)) suiDelta+=amt;
+    else{ const ct=U.normCoinType(ch.coinType); coinDeltas[ct]=(coinDeltas[ct]||0)+amt; }
+  });
+  let coin=null,coinDelta=0;
+  Object.keys(coinDeltas).forEach(ct=>{
+    if(Math.abs(coinDeltas[ct])>Math.abs(coinDelta)){ coin=ct; coinDelta=coinDeltas[ct]; }
+  });
+  const sender=tx.transaction&&tx.transaction.data&&tx.transaction.data.sender;
+  let type="other";
+  if(coin){
+    if(coinDelta>0 && suiDelta<0) type="buy";
+    else if(coinDelta<0 && suiDelta>0) type="sell";
+    else if(coinDelta>0) type="receive";
+    else type="send";
+  }else{
+    if(suiDelta>0) type="receive";
+    else if(suiDelta<0) type="send";
+  }
+  return {digest:tx.digest,ts:Number(tx.timestampMs)||0,type,coin,coinDelta,suiDelta,
+    sender:sender?U.normAddr(sender):null,gas:gasOf(tx)};
+}
+
+// gather a wallet's recent tx history (FromAddress)
+async function walletTxHistory(wallet,maxPages){
+  const w=U.normAddr(wallet);
+  let cursor=null,pages=0,txs=[];
+  maxPages=maxPages||6;
+  while(pages<maxPages){
+    const res=await Sui.queryTx({FromAddress:w},{limit:50,cursor,desc:true});
+    if(!res||!res.data||!res.data.length) break;
+    txs=txs.concat(res.data);
+    if(!res.hasNextPage||!res.nextCursor) break;
+    cursor=res.nextCursor; pages++;
+  }
+  return txs;
+}
+
+// RPC-based PnL estimate (no-key graceful path)
+async function estimatePnL(wallet){
+  const w=U.normAddr(wallet);
+  const txs=await walletTxHistory(w,6);
+  const positions={};
+  txs.forEach(tx=>{
+    const c=classifyTx(tx,w);
+    if(c.type!=="buy"&&c.type!=="sell"||!c.coin) return;
+    const p=positions[c.coin]||(positions[c.coin]={boughtTok:0,suiSpent:0,soldTok:0,suiRecv:0,buys:0,sells:0});
+    if(c.type==="buy"){ p.boughtTok+=Math.abs(c.coinDelta); p.suiSpent+=Math.abs(c.suiDelta); p.buys++; }
+    else{ p.soldTok+=Math.abs(c.coinDelta); p.suiRecv+=Math.abs(c.suiDelta); p.sells++; }
+  });
+  let realizedMist=0,wins=0,closed=0,trades=0;
+  Object.keys(positions).forEach(ct=>{
+    const p=positions[ct];
+    trades+=p.buys+p.sells;
+    if(p.sells>0&&p.boughtTok>0){
+      const avgCost=p.suiSpent/p.boughtTok;
+      const costOfSold=avgCost*Math.min(p.soldTok,p.boughtTok);
+      const r=p.suiRecv-costOfSold;
+      realizedMist+=r; closed++; if(r>0) wins++;
+    }
+  });
+  const suiPrice=await getSuiPrice();
+  const realizedSui=realizedMist/CONFIG.MIST;
+  return {source:"estimate",realizedSui,realizedUsd:realizedSui*suiPrice,
+    trades,winRate:closed?wins/closed*100:0,closedPositions:closed,sampled:txs.length,positions};
+}
+
+async function fetchWalletPnL(wallet){
+  if(Indexer.hasKey()){
+    try{ return await Indexer.walletPnL(U.normAddr(wallet)); }
+    catch(e){ if(!e.noKey) console.warn("Indexer PnL failed, using estimate:",e.message); }
+  }
+  return estimatePnL(wallet);
+}
+
+// funder + first-seen analysis (cached in walletMeta)
+async function analyzeWallet(wallet,force){
+  const addr=U.normAddr(wallet);
+  const all=Store.walletMeta();
+  const cached=all[addr];
+  if(cached&&!force&&cached.analyzedAt&&Date.now()-cached.analyzedAt<3600000) return cached;
+  const meta=Object.assign({},cached||{});
+  try{
+    const inc=await Sui.queryTx({ToAddress:addr},{limit:1,desc:false});
+    if(inc&&inc.data&&inc.data.length){
+      const tx=inc.data[0];
+      const s=tx.transaction&&tx.transaction.data&&tx.transaction.data.sender;
+      meta.funder=s?U.normAddr(s):null;
+      meta.funderDigest=tx.digest;
+      meta.firstInTs=Number(tx.timestampMs)||0;
+    }else{ meta.funder=null; }
+  }catch(e){ meta.funderErr=e.message; }
+  try{
+    const out=await Sui.queryTx({FromAddress:addr},{limit:1,desc:false});
+    if(out&&out.data&&out.data.length) meta.firstOutTs=Number(out.data[0].timestampMs)||0;
+  }catch(e){}
+  const fs=Math.min(meta.firstInTs||Infinity,meta.firstOutTs||Infinity);
+  meta.firstSeenTs=isFinite(fs)?fs:0;
+  meta.analyzedAt=Date.now();
+  all[addr]=meta; Store.setWalletMeta(all);
+  return meta;
+}
+function isFresh(meta){
+  if(!meta||!meta.firstSeenTs) return false;
+  return (Date.now()-meta.firstSeenTs) < Store.settings().freshDays*86400000;
+}
+function computeClusters(){
+  const wallets=Store.wallets(), meta=Store.walletMeta(), groups={};
+  wallets.forEach(w=>{
+    const a=U.normAddr(w.address);
+    const f=meta[a]&&meta[a].funder;
+    const key=f||"__none__";
+    (groups[key]=groups[key]||[]).push(w);
+  });
+  return Object.keys(groups).map(k=>({funder:k==="__none__"?null:k,wallets:groups[k]}))
+    .sort((a,b)=>b.wallets.length-a.wallets.length);
+}
+
+// observed performance scorecard from tracked activity feed
+function walletScore(addr){
+  addr=U.normAddr(addr);
+  const acts=Store.activity().filter(a=>a.wallet===addr);
+  let buys=0,sells=0,suiOut=0,suiIn=0;
+  acts.forEach(a=>{
+    if(a.type==="buy"){ buys++; suiOut+=Math.abs(a.suiDelta||0); }
+    else if(a.type==="sell"){ sells++; suiIn+=Math.abs(a.suiDelta||0); }
+  });
+  const netSui=(suiIn-suiOut)/CONFIG.MIST;
+  const meta=Store.walletMeta()[addr]||{};
+  let score=50;
+  if(buys+sells>0){
+    const denom=Math.max(0.001,suiOut/CONFIG.MIST);
+    const ratio=Math.max(-1,Math.min(1,netSui/denom));
+    score=50+ratio*42;
+  }
+  if(meta.pnl&&typeof meta.pnl.winRate==="number")
+    score=score*0.55+(meta.pnl.winRate)*0.45;
+  score=Math.max(2,Math.min(99,Math.round(score)));
+  return {buys,sells,trades:buys+sells,netSui,score,observed:acts.length,pnl:meta.pnl};
+}
+
+/* ============================ LIVE POLLING ============================ */
+async function pollActivity(){
+  const wallets=Store.wallets();
+  if(!wallets.length) return Store.activity();
+  let feed=Store.activity();
+  const seen=new Set(feed.map(f=>f.digest+"@"+f.wallet));
+  let added=0;
+  for(const wInfo of wallets){
+    const w=U.normAddr(wInfo.address);
+    try{
+      const res=await Sui.queryTx({FromAddress:w},{limit:8,desc:true});
+      const txs=(res&&res.data)||[];
+      for(const tx of txs){
+        const c=classifyTx(tx,w);
+        if(c.type!=="buy"&&c.type!=="sell") continue;
+        const key=tx.digest+"@"+w;
+        if(seen.has(key)) continue;
+        seen.add(key);
+        feed.push({digest:tx.digest,wallet:w,label:wInfo.label||"",
+          type:c.type,coin:c.coin,coinDelta:c.coinDelta,suiDelta:c.suiDelta,
+          ts:c.ts||Date.now(),seenAt:Date.now()});
+        added++;
+      }
+    }catch(e){}
+  }
+  feed.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  feed=feed.slice(0,250);
+  Store.setActivity(feed);
+  if(added) document.dispatchEvent(new CustomEvent("suiscope:activity"));
+  return feed;
+}
+async function checkAlerts(){
+  const all=Store.alerts();
+  const pending=all.filter(a=>!a.triggered);
+  if(!pending.length) return;
+  for(const a of pending){
+    try{
+      const pr=await getTokenPrice(a.coinType);
+      if(!pr.price) continue;
+      const hit=(a.dir==="above"&&pr.price>=a.price)||(a.dir==="below"&&pr.price<=a.price);
+      if(hit){
+        a.triggered=true; a.triggeredAt=Date.now(); a.hitPrice=pr.price;
+        U.toast("Alert triggered — "+a.symbol+" "+a.dir+" $"+U.price(a.price),"warn");
+      }
+    }catch(e){}
+  }
+  Store.setAlerts(all);
+}
+async function refreshTicker(){
+  const track=document.getElementById("tickerTrack");
+  if(!track) return;
+  try{
+    let pairs=suiOnly(await Dex.search("sui"));
+    let memes=pairs.filter(p=>CONFIG.LAUNCHPADS.indexOf((p.dexId||"").toLowerCase())>=0);
+    let list=(memes.length>=8?memes:pairs).filter(p=>p.baseToken&&p.priceUsd)
+      .sort((a,b)=>volOf(b)-volOf(a)).slice(0,26);
+    if(!list.length){ track.innerHTML='<div class="tick muted">No ticker data</div>'; return; }
+    const items=list.map(p=>{
+      const ch=(p.priceChange&&Number(p.priceChange.h24))||0;
+      return '<div class="tick" data-act="go" data-href="'+U.attr(U.buildHash(["token",p.baseToken.address]))+'">'+
+        '<b>'+U.esc(p.baseToken.symbol||"?")+'</b>'+
+        '<span class="px mono">'+U.usd(Number(p.priceUsd)||0)+'</span>'+
+        '<span class="chg '+(ch>=0?"up":"down")+'">'+U.pct(ch)+'</span></div>';
+    }).join("");
+    track.innerHTML=items+items;
+  }catch(e){
+    track.innerHTML='<div class="tick muted">Ticker unavailable — verify network access / RPC in Settings</div>';
+  }
+}
+
+/* ============================ HTML HELPERS ============================ */
+const H = {
+  pageHead(title,sub,actions){
+    return '<div class="page-head"><div><h1>'+U.esc(title)+'</h1>'+
+      (sub?'<div class="sub">'+sub+'</div>':'')+'</div>'+
+      (actions?'<div class="ph-actions">'+actions+'</div>':'')+'</div>';
+  },
+  loading(msg){ return '<div class="loading"><span class="spinner"></span>'+U.esc(msg||"Loading…")+'</div>'; },
+  empty(icon,title,sub,action){
+    return '<div class="empty"><div class="ei">'+icon+'</div><div class="et">'+U.esc(title)+'</div>'+
+      (sub?'<div>'+sub+'</div>':'')+(action?'<div style="margin-top:14px">'+action+'</div>':'')+'</div>';
+  },
+  errorBox(msg){ return '<div class="note warn">'+U.esc(msg)+'</div>'; },
+  kpi(label,value,sub,cls){
+    return '<div class="kpi"><div class="kl">'+U.esc(label)+'</div>'+
+      '<div class="kv '+(cls||"")+'">'+value+'</div>'+
+      (sub?'<div class="ks">'+sub+'</div>':'')+'</div>';
+  },
+  tokenImg(img,sym,cls){
+    const initials=U.esc(String(sym||"?").slice(0,3).toUpperCase());
+    const col=U.colorFor(sym);
+    const ph='<div class="tok-img tok-ph '+(cls||"")+'" style="background:'+col+'1f;color:'+col+'">'+initials+'</div>';
+    if(img&&/^https?:\/\//.test(img))
+      return '<img class="tok-img '+(cls||"")+'" src="'+U.attr(img)+'" alt="" '+
+        'onerror="this.outerHTML=this.getAttribute(\'data-ph\')" data-ph="'+U.attr(ph)+'">';
+    return ph;
+  },
+  addrChip(a,len){
+    const n=U.normAddr(a)||a;
+    return '<span class="mono">'+U.esc(U.addr(n,len||5))+'</span>'+
+      ' <span class="copy" data-act="copy" data-copy="'+U.attr(n)+'" title="Copy">⧉</span>';
+  },
+  explorerLinks(kind,id){
+    const ex=CONFIG.EXPLORERS;
+    return '<a href="'+U.attr(ex.suivision[kind](id))+'" target="_blank" rel="noopener">SuiVision ↗</a> '+
+      '<span class="dim">·</span> '+
+      '<a href="'+U.attr(ex.suiscan[kind](id))+'" target="_blank" rel="noopener">Suiscan ↗</a>';
+  }
+};
+
+/* ============================ ACTIONS REGISTRY ============================ */
+const Actions = {
+  "modal-close":()=>App.closeModal(),
+  "go":(t)=>{ const h=t.getAttribute("data-href"); if(h) location.hash=h; },
+  "copy":(t)=>U.copy(t.getAttribute("data-copy")),
+  "wallet-connect":()=>App.openConnect(),
+  "back":()=>history.back()
+};
+
+/* ============================ ROUTER ============================ */
+const Router = {
+  go(){
+    const r=U.parseHash();
+    if(!r.path.length){ location.hash="#/wallet"; return; }
+    state.route=r;
+    App.renderNav();
+    App.closeSearch();
+    const main=document.getElementById("main");
+    const k=r.path[0];
+    let view=Views.notFound;
+    if(k==="wallet"||k==="wallets") view=Views.wallets;
+    else if(k==="clusters") view=Views.clusters;
+    else if(k==="activity") view=Views.activity;
+    else if(k==="smart-money") view=Views.smartMoney;
+    else if(k==="trading") view=Views.trending;
+    else if(k==="token") view=Views.token;
+    else if(k==="tokens") view=Views.tokenWatch;
+    else if(k==="tool"&&r.path[1]==="holders") view=Views.holders;
+    else if(k==="swap") view=Views.swap;
+    else if(k==="alerts") view=Views.alerts;
+    else if(k==="decoder") view=Views.decoder;
+    else if(k==="search") view=Views.search;
+    else if(k==="settings") view=Views.settings;
+    main.scrollTop=0;
+    try{ view(main,r); }
+    catch(e){ main.innerHTML=H.empty("⚠","Render error",U.esc(e.message)); console.error(e); }
+  }
+};
+
+/* ============================ APP SHELL ============================ */
+const NAV=[
+  {sec:"WALLETS"},
+  {path:"wallet",label:"Watchlist",ico:"◎",count:()=>Store.wallets().length},
+  {path:"clusters",label:"Clusters",ico:"⧉"},
+  {path:"activity",label:"Activity Feed",ico:"≋"},
+  {path:"smart-money",label:"Smart Money",ico:"★"},
+  {sec:"TRADING"},
+  {path:"trading/trending",label:"Trending",ico:"▲"},
+  {path:"tokens",label:"Token Watchlist",ico:"☰",count:()=>Store.tokens().length},
+  {path:"swap",label:"Swap",ico:"⇄"},
+  {path:"alerts",label:"Alerts",ico:"◔",count:()=>Store.alerts().filter(a=>!a.triggered).length},
+  {sec:"TOOLS"},
+  {path:"tool/holders",label:"Holder Insights",ico:"⊞"},
+  {path:"decoder",label:"TX Decoder",ico:"⟐"},
+  {sep:true},
+  {path:"settings",label:"Settings",ico:"⚙"}
+];
+
+const App = {
+  renderNav(){
+    const nav=document.getElementById("nav");
+    const cur=(state.route&&state.route.path||[]).join("/");
+    let a0=(cur.split("/")[0])||"wallet";
+    if(a0==="wallets") a0="wallet";
+    let html="";
+    NAV.forEach(it=>{
+      if(it.sep){ html+='<div class="divider"></div>'; return; }
+      if(it.sec){ html+='<div class="nav-sec">'+U.esc(it.sec)+'</div>'; return; }
+      const active=a0===it.path.split("/")[0];
+      const cnt=it.count?it.count():null;
+      html+='<a class="nav-item'+(active?" active":"")+'" href="#/'+it.path+'">'+
+        '<span class="ico">'+it.ico+'</span><span class="label">'+U.esc(it.label)+'</span>'+
+        (cnt?'<span class="ct">'+cnt+'</span>':'')+'</a>';
+    });
+    nav.innerHTML=html;
+  },
+  refreshConnectUI(){
+    const btn=document.getElementById("connectBtn");
+    if(!btn) return;
+    if(state.connected){
+      btn.textContent=U.addr(state.connected.address,4);
+      btn.classList.add("accent");
+    }else{
+      btn.textContent="Connect Wallet";
+      btn.classList.remove("accent");
+    }
+  },
+  setNet(ok){
+    state.rpcOk=ok;
+    const el=document.getElementById("netStatus");
+    if(!el) return;
+    el.querySelector(".dot").classList.toggle("bad",!ok);
+    el.querySelector("span:last-child").textContent=ok?"RPC OK":"RPC ?";
+  },
+  modal(opts){
+    const root=document.getElementById("modalRoot");
+    root.innerHTML='<div class="modal-bg" data-modal-bg><div class="modal'+(opts.wide?" wide":"")+'">'+
+      '<div class="modal-head"><h3>'+U.esc(opts.title||"")+'</h3>'+
+      '<div class="modal-x" data-act="modal-close">✕</div></div>'+
+      '<div class="modal-body">'+(opts.body||"")+'</div>'+
+      (opts.foot?'<div class="modal-foot">'+opts.foot+'</div>':'')+'</div></div>';
+    const bg=root.firstElementChild;
+    bg.addEventListener("mousedown",e=>{ if(e.target===bg) App.closeModal(); });
+    const m=root.querySelector(".modal");
+    if(opts.onMount) opts.onMount(m);
+    return m;
+  },
+  closeModal(){ document.getElementById("modalRoot").innerHTML=""; },
+  confirm(msg,onYes){
+    App.modal({title:"Confirm",
+      body:'<div style="padding:4px 0 2px">'+U.esc(msg)+'</div>',
+      foot:'<button class="btn" data-act="modal-close">Cancel</button>'+
+        '<button class="btn danger" id="cfmYes">Confirm</button>',
+      onMount(m){ m.querySelector("#cfmYes").addEventListener("click",()=>{ App.closeModal(); onYes(); }); }});
+  },
+  closeSearch(){ const p=document.getElementById("searchPop"); if(p){ p.classList.add("hide"); p.innerHTML=""; } },
+  openConnect(){
+    const sw=Wallet.suiWallets();
+    let body;
+    if(state.connected){
+      body='<div class="kv-list"><div class="kv-row"><span class="k">Wallet</span>'+
+        '<span class="v">'+U.esc(state.connected.walletName)+'</span></div>'+
+        '<div class="kv-row"><span class="k">Address</span><span class="v mono">'+
+        U.esc(state.connected.address)+'</span></div></div>'+
+        '<div class="row" style="margin-top:14px;gap:8px">'+
+        '<button class="btn accent" id="cwTrack">Track this wallet</button>'+
+        '<button class="btn danger" id="cwDisc">Disconnect</button></div>';
+    }else if(!sw.length){
+      body='<div class="note">No Sui wallet-standard extension detected. Install '+
+        '<a href="https://suiwallet.com" target="_blank" rel="noopener">Sui Wallet</a>, '+
+        '<a href="https://suiet.app" target="_blank" rel="noopener">Suiet</a>, or '+
+        '<a href="https://ethoswallet.xyz" target="_blank" rel="noopener">Ethos</a>, then reload.</div>';
+    }else{
+      body='<div class="muted" style="margin-bottom:9px">Select a wallet to connect:</div>'+
+        sw.map((w,i)=>'<button class="btn" style="width:100%;justify-content:flex-start;margin-bottom:7px" '+
+          'data-cw="'+i+'">'+(w.icon?'<img src="'+U.attr(w.icon)+'" style="width:18px;height:18px;border-radius:4px">':'')+
+          U.esc(w.name||"Wallet")+'</button>').join("");
+    }
+    App.modal({title:"Connect Sui Wallet",body,onMount(m){
+      U.$$("[data-cw]",m).forEach(b=>b.addEventListener("click",async()=>{
+        const w=sw[+b.getAttribute("data-cw")];
+        b.disabled=true; b.textContent="Connecting…";
+        try{
+          state.connected=await Wallet.connect(w);
+          App.refreshConnectUI(); App.closeModal();
+          U.toast("Connected "+U.addr(state.connected.address,4),"ok");
+        }catch(e){ U.toast("Connect failed: "+e.message,"err"); App.openConnect(); }
+      }));
+      const tk=m.querySelector("#cwTrack");
+      if(tk) tk.addEventListener("click",()=>{ App.closeModal(); App.addWallet(state.connected.address,"My Wallet"); });
+      const dc=m.querySelector("#cwDisc");
+      if(dc) dc.addEventListener("click",async()=>{
+        await Wallet.disconnect(state.connected.walletName);
+        state.connected=null; App.refreshConnectUI(); App.closeModal();
+        U.toast("Disconnected");
+      });
+    }});
+  },
+  addWallet(address,label){
+    const norm=U.normAddr(address);
+    if(!norm){ U.toast("Invalid Sui address","err"); return false; }
+    const wallets=Store.wallets();
+    if(wallets.some(w=>U.normAddr(w.address)===norm)){ U.toast("Wallet already tracked","warn"); return false; }
+    wallets.push({address:norm,label:label||"",addedAt:Date.now()});
+    Store.setWallets(wallets);
+    App.renderNav();
+    U.toast("Wallet added to watchlist","ok");
+    return true;
+  },
+  async tick(){
+    try{ await pollActivity(); }catch(e){}
+    try{ await checkAlerts(); }catch(e){}
+    App.renderNav();
+    document.dispatchEvent(new CustomEvent("suiscope:tick"));
+  },
+  startPolling(){
+    if(state.pollTimer) clearInterval(state.pollTimer);
+    const sec=Math.max(10,Store.settings().refreshSec||30);
+    state.pollTimer=setInterval(()=>App.tick(),sec*1000);
+  },
+  init(){
+    Wallet.init();
+    App.renderNav();
+    App.refreshConnectUI();
+    document.addEventListener("click",e=>{
+      const t=e.target.closest("[data-act]");
+      if(!t) return;
+      const fn=Actions[t.getAttribute("data-act")];
+      if(fn){ e.preventDefault(); fn(t,e); }
+    });
+    document.addEventListener("keydown",e=>{
+      if(e.key==="Escape"){ App.closeModal(); App.closeSearch(); }
+    });
+    App.wireSearch();
+    window.addEventListener("hashchange",Router.go);
+    Router.go();
+    // health check + initial data
+    Sui.getReferenceGasPrice().then(()=>App.setNet(true)).catch(()=>App.setNet(false));
+    refreshTicker();
+    setInterval(refreshTicker,90000);
+    App.startPolling();
+    App.tick();
+  },
+  wireSearch(){
+    const inp=document.getElementById("globalSearch");
+    const pop=document.getElementById("searchPop");
+    const run=U.debounce(async()=>{
+      const q=inp.value.trim();
+      if(q.length<2){ App.closeSearch(); return; }
+      if(U.isAddr(q)&&U.isFullAddr(U.normAddr(q))||U.isCoinType(q)){ App.closeSearch(); return; }
+      pop.classList.remove("hide");
+      pop.innerHTML='<div class="sr"><span class="spinner"></span> Searching…</div>';
+      try{
+        const pairs=suiOnly(await Dex.search(q)).filter(p=>p.baseToken)
+          .sort((a,b)=>liqOf(b)-liqOf(a)).slice(0,8);
+        if(!pairs.length){ pop.innerHTML='<div class="sr muted">No Sui tokens found</div>'; return; }
+        pop.innerHTML=pairs.map(p=>
+          '<div class="sr" data-act="go" data-href="'+U.attr(U.buildHash(["token",p.baseToken.address]))+'">'+
+          H.tokenImg(pairImg(p),p.baseToken.symbol)+
+          '<div style="flex:1;min-width:0"><div style="font-weight:700">'+U.esc(p.baseToken.symbol||"?")+
+          ' <span class="muted" style="font-weight:400">'+U.esc(p.baseToken.name||"")+'</span></div>'+
+          '<div class="muted mono" style="font-size:10px">'+U.esc(U.addr(p.baseToken.address,6))+'</div></div>'+
+          '<div class="mono">'+U.usd(Number(p.priceUsd)||0)+'</div></div>').join("");
+      }catch(e){ pop.innerHTML='<div class="sr muted">Search failed: '+U.esc(e.message)+'</div>'; }
+    },320);
+    inp.addEventListener("input",run);
+    inp.addEventListener("keydown",e=>{
+      if(e.key!=="Enter") return;
+      const q=inp.value.trim();
+      if(!q) return;
+      App.closeSearch();
+      if(U.isCoinType(q)){ U.go(["token",U.normCoinType(q)]); }
+      else if(U.isAddr(q)&&U.isFullAddr(U.normAddr(q))){ U.go(["search"],{w:U.normAddr(q)}); }
+      else U.go(["search"],{q});
+      inp.blur();
+    });
+    document.addEventListener("click",e=>{
+      if(!e.target.closest(".search")) App.closeSearch();
+    });
+  }
+};
+
+/* ============================ VIEWS ============================ */
+const Views = {};
+
+Views.notFound=function(main){
+  main.innerHTML=H.empty("∅","Page not found",
+    'The route <span class="mono">'+U.esc(location.hash)+'</span> does not exist.',
+    '<a class="btn accent" href="#/wallet">Go to Watchlist</a>');
+};
+
+/* ---------- WALLET WATCHLIST ---------- */
+function scoreColor(s){ return s>=58?"var(--green)":s<=42?"var(--red)":"var(--yellow)"; }
+
+function walletCard(w,data){
+  const addr=U.normAddr(w.address);
+  const col=U.colorFor(addr);
+  const init=U.esc((w.label||addr.slice(2)).slice(0,1).toUpperCase());
+  const label=U.esc(w.label||U.addr(addr,4));
+  const meta=data&&data.meta;
+  const siblings=meta&&meta.funder?Store.wallets().filter(x=>{
+    const m=Store.walletMeta()[U.normAddr(x.address)];
+    return m&&m.funder===meta.funder;
+  }).length:0;
+  let badges="";
+  if(data&&data.fresh) badges+='<span class="badge yellow" title="Recently created wallet">Fresh</span>';
+  if(siblings>1) badges+='<span class="badge purple" title="Shares a funding source">Cluster ×'+siblings+'</span>';
+  if(state.connected&&U.normAddr(state.connected.address)===addr) badges+='<span class="badge accent">You</span>';
+  const sc=walletScore(addr);
+  const skel='<span class="skel" style="display:inline-block;width:54px;height:14px"></span>';
+  let v_sui=skel,v_usd=skel,v_coins=skel;
+  if(data&&data.err){ v_sui=v_usd=v_coins='<span class="down" title="'+U.attr(data.err)+'">err</span>'; }
+  else if(data){
+    v_sui=U.num(data.sui,data.sui<1?4:2);
+    v_usd=U.usd(data.usd);
+    v_coins=U.num(data.coins,0);
+  }
+  const scoreInfo=sc.observed>0
+    ? sc.buys+" buys · "+sc.sells+" sells observed · net "+(sc.netSui>=0?"+":"")+U.num(sc.netSui,2)+" SUI"
+    : "No trades observed yet — feed updates live";
+  const pnlBit=sc.pnl
+    ? '<span class="'+(sc.pnl.realizedUsd>=0?"up":"down")+'"> · PnL '+
+      (sc.pnl.source==="estimate"?U.num(sc.pnl.realizedSui,2)+" SUI":U.usd(sc.pnl.realizedUsd))+'</span>'
+    : "";
+  return `<div class="wcard" data-card="${addr}">
+    <div class="wc-top">
+      <div class="wc-av" style="background:${col}" data-act="go" data-href="${U.attr(U.buildHash(["search"],{w:addr}))}" title="Open wallet">${init}</div>
+      <div style="flex:1;min-width:0">
+        <div class="row between">
+          <div style="font-weight:700;cursor:pointer" data-act="go" data-href="${U.attr(U.buildHash(["search"],{w:addr}))}">${label}</div>
+          <div class="row" style="gap:4px;flex-wrap:wrap;justify-content:flex-end">${badges}</div>
+        </div>
+        <div class="muted mono" style="font-size:11px">${U.esc(U.addr(addr,6))}
+          <span class="copy" data-act="copy" data-copy="${U.attr(addr)}" title="Copy address">⧉</span></div>
+      </div>
+    </div>
+    <div class="wc-stats">
+      <div class="ws"><div class="l">SUI Balance</div><div class="v mono">${v_sui}</div></div>
+      <div class="ws"><div class="l">USD Value</div><div class="v mono">${v_usd}</div></div>
+      <div class="ws"><div class="l">Coins</div><div class="v mono">${v_coins}</div></div>
+    </div>
+    <div>
+      <div class="row between" style="font-size:10px;margin-bottom:4px">
+        <span class="muted" style="font-weight:700;letter-spacing:.07em">OBSERVED SCORE</span>
+        <span style="font-weight:700;color:${scoreColor(sc.score)}">${sc.score}/100</span>
+      </div>
+      <div class="score-bar"><i style="width:${sc.score}%;background:${scoreColor(sc.score)}"></i></div>
+      <div class="muted" style="font-size:10px;margin-top:5px">${U.esc(scoreInfo)}${pnlBit}</div>
+    </div>
+    <div class="wc-actions">
+      <button class="btn sm" data-act="wallet-holdings" data-addr="${addr}">Holdings</button>
+      <button class="btn sm" data-act="wallet-pnl" data-addr="${addr}">Full PnL</button>
+      <button class="btn sm" data-act="wallet-activity" data-addr="${addr}">Activity</button>
+      <button class="btn sm ghost" data-act="wallet-menu" data-addr="${addr}" title="More">⋯</button>
+    </div>
+  </div>`;
+}
+
+async function loadWalletCard(w){
+  const addr=U.normAddr(w.address);
+  const card=document.querySelector('[data-card="'+addr+'"]');
+  if(!card) return;
+  state._wd=state._wd||{};
+  try{
+    const [balances,suiPrice]=await Promise.all([Sui.getAllBalances(addr),getSuiPrice()]);
+    const suiBal=(balances||[]).find(b=>isSui(b.coinType));
+    const sui=suiBal?U.units(suiBal.totalBalance,9):0;
+    const data={sui,coins:(balances||[]).length,usd:sui*suiPrice};
+    let meta;
+    try{ meta=await analyzeWallet(addr); }catch(e){ meta=null; }
+    data.meta=meta; data.fresh=isFresh(meta);
+    state._wd[addr]=data;
+    const cur=document.querySelector('[data-card="'+addr+'"]');
+    if(cur) cur.outerHTML=walletCard(w,data);
+  }catch(e){
+    state._wd[addr]={err:e.message};
+    const cur=document.querySelector('[data-card="'+addr+'"]');
+    if(cur) cur.outerHTML=walletCard(w,{err:e.message});
+  }
+  updateWalletKpis();
+}
+function updateWalletKpis(){
+  const el=document.getElementById("wKpi");
+  if(!el) return;
+  const wallets=Store.wallets(), wd=state._wd||{};
+  let sui=0,usd=0,fresh=0,loaded=0;
+  wallets.forEach(w=>{ const d=wd[U.normAddr(w.address)];
+    if(d&&!d.err){ sui+=d.sui||0; usd+=d.usd||0; if(d.fresh) fresh++; loaded++; } });
+  const clusters=computeClusters().filter(c=>c.funder&&c.wallets.length>1).length;
+  el.innerHTML=
+    H.kpi("Wallets",U.num(wallets.length,0))+
+    H.kpi("Total SUI",U.num(sui,2),loaded<wallets.length?("loaded "+loaded+"/"+wallets.length):"all loaded")+
+    H.kpi("Total Value",U.usd(usd))+
+    H.kpi("Fresh",U.num(fresh,0),"< "+Store.settings().freshDays+"d old")+
+    H.kpi("Clusters",U.num(clusters,0));
+}
+
+Views.wallets=function(main){
+  state._wd={};
+  const wallets=Store.wallets();
+  let html=H.pageHead("Wallet Watchlist",
+    "Track Sui wallets — live SUI balances, holdings, clusters, fresh-wallet flags &amp; PnL",
+    '<button class="btn accent" data-act="add-wallet">+ Track Wallet</button>');
+  html+='<div class="grid g-kpi" id="wKpi" style="margin-bottom:14px"></div>';
+  if(!wallets.length){
+    html+=H.empty("◎","No wallets tracked",
+      "Add a Sui wallet address to monitor balances, holdings, funding clusters and trading PnL.",
+      '<button class="btn accent" data-act="add-wallet">+ Track your first wallet</button>');
+    main.innerHTML=html; return;
+  }
+  html+='<div class="grid g-wallets" id="wGrid">'+wallets.map(w=>walletCard(w,null)).join("")+'</div>';
+  main.innerHTML=html;
+  updateWalletKpis();
+  wallets.forEach(loadWalletCard);
+};
+
+/* ---------- HOLDINGS MODAL ---------- */
+async function showHoldings(addr){
+  addr=U.normAddr(addr);
+  App.modal({title:"Holdings",wide:true,body:H.loading("Fetching coin balances…"),
+    onMount(m){ loadHoldings(addr,m); }});
+}
+async function loadHoldings(addr,m){
+  const body=m.querySelector(".modal-body");
+  try{
+    const balances=await Sui.getAllBalances(addr);
+    if(!balances||!balances.length){ body.innerHTML=H.empty("∅","No coins","This wallet holds no coins."); return; }
+    const metas=await getMetaBatch(balances.map(b=>b.coinType));
+    const rows=await Promise.all(balances.map(async b=>{
+      const ct=U.normCoinType(b.coinType);
+      const meta=metas[ct]||{symbol:U.coinSym(ct),decimals:9,name:U.coinSym(ct)};
+      const amt=U.units(b.totalBalance,meta.decimals==null?9:meta.decimals);
+      let price=0;
+      try{ price=(await getTokenPrice(ct)).price; }catch(e){}
+      return {ct,meta,amt,price,usd:amt*price,objs:b.coinObjectCount};
+    }));
+    rows.sort((a,b)=>b.usd-a.usd);
+    const total=rows.reduce((s,r)=>s+r.usd,0);
+    body.innerHTML=
+      `<div class="row between" style="margin-bottom:6px"><div class="muted mono">${U.esc(U.addr(addr,8))}</div>
+        <div>${H.explorerLinks("account",addr)}</div></div>`+
+      `<div class="kpi" style="margin-bottom:13px"><div class="kl">Total Portfolio Value</div>
+        <div class="kv">${U.usd(total)}</div><div class="ks">${rows.length} coin type${rows.length===1?"":"s"}</div></div>`+
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Coin</th>'+
+      '<th class="num">Balance</th><th class="num">Price</th><th class="num">Value</th><th></th></tr></thead><tbody>'+
+      rows.map(r=>`<tr>
+        <td><div class="tok">${H.tokenImg(r.meta.iconUrl,r.meta.symbol)}
+          <div><div style="font-weight:700">${U.esc(r.meta.symbol)}</div>
+          <div class="muted" style="font-size:10px">${U.esc(r.meta.name||"")}</div></div></div></td>
+        <td class="num mono">${U.num(r.amt,r.amt<1?6:3)}</td>
+        <td class="num mono">${r.price?U.usd(r.price):'<span class="dim">—</span>'}</td>
+        <td class="num mono">${r.usd?U.usd(r.usd):'<span class="dim">—</span>'}</td>
+        <td class="num"><div class="row" style="gap:4px;justify-content:flex-end">
+          <button class="btn xs" data-act="go" data-href="${U.attr(U.buildHash(["token",r.ct]))}">View</button>
+          <button class="btn xs buy" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{out:r.ct}))}">Buy</button>
+        </div></td></tr>`).join("")+
+      '</tbody></table></div>';
+  }catch(e){ body.innerHTML=H.errorBox("Failed to load holdings: "+e.message); }
+}
+
+/* ---------- FULL PnL MODAL ---------- */
+async function showPnL(addr){
+  addr=U.normAddr(addr);
+  App.modal({title:"Full-History PnL",wide:true,
+    body:H.loading(Indexer.hasKey()?"Querying indexer API…":"Computing PnL from on-chain history…"),
+    onMount(m){ loadPnL(addr,m); }});
+}
+async function loadPnL(addr,m){
+  const body=m.querySelector(".modal-body");
+  try{
+    const r=await fetchWalletPnL(addr);
+    const all=Store.walletMeta();
+    all[addr]=Object.assign(all[addr]||{},{pnl:{
+      realizedSui:r.realizedSui||0,realizedUsd:r.realizedUsd||0,
+      winRate:r.winRate||0,trades:r.trades||0,source:r.source,at:Date.now()}});
+    Store.setWalletMeta(all);
+    const est=r.source==="estimate";
+    let html=est
+      ? '<div class="note warn" style="margin-bottom:13px">Estimated from on-chain transaction history (no indexer key). '+
+        'Add a BlockVision / InsideX key in <a href="#/settings">Settings</a> for full-accuracy realized PnL.</div>'
+      : '<div class="note" style="margin-bottom:13px">Source: '+U.esc(r.provider||"indexer")+' indexer API.</div>';
+    html+='<div class="grid g-kpi">'+
+      H.kpi("Realized PnL",
+        (est?U.num(r.realizedSui,3)+" SUI":U.usd(r.realizedUsd)),
+        est?U.usd(r.realizedUsd):"realized",
+        ((r.realizedUsd||r.realizedSui)>=0?"up":"down"))+
+      H.kpi("Trades",U.num(r.trades,0),est?(r.sampled+" txs sampled"):"")+
+      H.kpi("Win Rate",U.num(r.winRate,1)+"%",est?(r.closedPositions+" closed positions"):"")+
+      '</div>';
+    if(est&&r.positions&&Object.keys(r.positions).length){
+      const cts=Object.keys(r.positions);
+      const metas=await getMetaBatch(cts);
+      const rows=cts.map(ct=>{
+        const p=r.positions[ct], meta=metas[ct]||{symbol:U.coinSym(ct)};
+        const net=(p.suiRecv-(p.boughtTok>0?(p.suiSpent/p.boughtTok)*Math.min(p.soldTok,p.boughtTok):p.suiSpent))/CONFIG.MIST;
+        return {ct,meta,p,net,traded:p.buys+p.sells};
+      }).sort((a,b)=>b.traded-a.traded);
+      html+='<div class="divider"></div><div class="muted" style="margin-bottom:8px;font-weight:600">Per-Coin Breakdown</div>'+
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Coin</th><th class="num">Buys</th>'+
+        '<th class="num">Sells</th><th class="num">SUI In/Out</th><th class="num">Realized</th></tr></thead><tbody>'+
+        rows.map(x=>`<tr>
+          <td><div class="tok">${H.tokenImg(x.meta.iconUrl,x.meta.symbol)}
+            <span style="font-weight:700">${U.esc(x.meta.symbol)}</span></div></td>
+          <td class="num mono">${x.p.buys}</td><td class="num mono">${x.p.sells}</td>
+          <td class="num mono">${U.num(x.p.suiRecv/CONFIG.MIST,1)} / ${U.num(x.p.suiSpent/CONFIG.MIST,1)}</td>
+          <td class="num mono ${x.p.sells>0?(x.net>=0?"up":"down"):"dim"}">${x.p.sells>0?(x.net>=0?"+":"")+U.num(x.net,3):"open"}</td>
+        </tr>`).join("")+'</tbody></table></div>';
+    }
+    body.innerHTML=html;
+    if(state.route&&state.route.path[0]==="wallet"){
+      const c=document.querySelector('[data-card="'+addr+'"]');
+      const w=Store.wallets().find(x=>U.normAddr(x.address)===addr);
+      if(c&&w) c.outerHTML=walletCard(w,state._wd&&state._wd[addr]||null);
+    }
+  }catch(e){ body.innerHTML=H.errorBox("PnL unavailable: "+e.message); }
+}
+
+/* ---------- WALLET ACTIVITY MODAL ---------- */
+function actType(t){
+  if(t==="buy") return '<span class="badge green">Buy</span>';
+  if(t==="sell") return '<span class="badge red">Sell</span>';
+  if(t==="receive") return '<span class="badge accent">In</span>';
+  if(t==="send") return '<span class="badge">Out</span>';
+  return '<span class="badge">'+U.esc(t)+'</span>';
+}
+async function showWalletActivity(addr){
+  addr=U.normAddr(addr);
+  App.modal({title:"Wallet Activity",wide:true,body:H.loading("Loading recent transactions…"),
+    onMount(m){ loadWalletActivityModal(addr,m); }});
+}
+async function loadWalletActivityModal(addr,m){
+  const body=m.querySelector(".modal-body");
+  try{
+    const txs=await walletTxHistory(addr,3);
+    const evs=txs.map(t=>classifyTx(t,addr)).filter(c=>c.type!=="other");
+    if(!evs.length){ body.innerHTML=H.empty("≋","No recent activity","No classified trades or transfers found."); return; }
+    const metas=await getMetaBatch(evs.map(e=>e.coin).filter(Boolean));
+    body.innerHTML='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Time</th><th>Action</th>'+
+      '<th>Coin</th><th class="num">Amount</th><th class="num">SUI</th><th></th></tr></thead><tbody>'+
+      evs.map(e=>{
+        const meta=e.coin?(metas[e.coin]||{symbol:U.coinSym(e.coin),decimals:9}):null;
+        const amt=e.coin?U.units(Math.abs(e.coinDelta),meta.decimals==null?9:meta.decimals):0;
+        const ex=CONFIG.EXPLORERS[Store.settings().explorer]||CONFIG.EXPLORERS.suivision;
+        return `<tr><td class="muted">${U.timeAgo(e.ts)}</td><td>${actType(e.type)}</td>
+          <td>${meta?'<a href="'+U.attr(U.buildHash(["token",e.coin]))+'">'+U.esc(meta.symbol)+'</a>':'<span class="dim">SUI</span>'}</td>
+          <td class="num mono">${meta?U.compact(amt):"—"}</td>
+          <td class="num mono">${U.num(Math.abs(e.suiDelta)/CONFIG.MIST,3)}</td>
+          <td class="num"><a class="btn xs" href="${U.attr(ex.tx(e.digest))}" target="_blank" rel="noopener">TX ↗</a></td></tr>`;
+      }).join("")+'</tbody></table></div>';
+  }catch(e){ body.innerHTML=H.errorBox("Failed: "+e.message); }
+}
+
+/* ---------- WALLET MENU ---------- */
+function showWalletMenu(addr){
+  addr=U.normAddr(addr);
+  const w=Store.wallets().find(x=>U.normAddr(x.address)===addr);
+  if(!w) return;
+  const ex=CONFIG.EXPLORERS;
+  App.modal({title:"Wallet Options",
+    body:`<div class="kv-list" style="margin-bottom:14px">
+      <div class="kv-row"><span class="k">Label</span><span class="v">${U.esc(w.label||"—")}</span></div>
+      <div class="kv-row"><span class="k">Address</span><span class="v mono">${U.esc(addr)}</span></div>
+      <div class="kv-row"><span class="k">Tracked since</span><span class="v">${U.dateStr(w.addedAt)}</span></div>
+    </div>
+    <div class="row wrap" style="gap:7px">
+      <button class="btn sm" id="wmRename">Rename</button>
+      <button class="btn sm" id="wmAnalyze">Re-analyze funding</button>
+      <a class="btn sm" href="${U.attr(ex.suivision.account(addr))}" target="_blank" rel="noopener">SuiVision ↗</a>
+      <a class="btn sm" href="${U.attr(ex.suiscan.account(addr))}" target="_blank" rel="noopener">Suiscan ↗</a>
+      <button class="btn sm danger" id="wmRemove">Remove</button>
+    </div>`,
+    onMount(m){
+      m.querySelector("#wmRename").addEventListener("click",()=>{
+        App.closeModal();
+        App.prompt("Rename wallet","Label",w.label||"",val=>{
+          const ws=Store.wallets(); const t=ws.find(x=>U.normAddr(x.address)===addr);
+          if(t){ t.label=val; Store.setWallets(ws); Router.go(); U.toast("Renamed","ok"); }
+        });
+      });
+      m.querySelector("#wmAnalyze").addEventListener("click",async()=>{
+        App.closeModal(); U.toast("Re-analyzing…");
+        await analyzeWallet(addr,true); Router.go();
+      });
+      m.querySelector("#wmRemove").addEventListener("click",()=>{
+        App.closeModal();
+        App.confirm("Remove this wallet from your watchlist?",()=>{
+          Store.setWallets(Store.wallets().filter(x=>U.normAddr(x.address)!==addr));
+          App.renderNav(); Router.go(); U.toast("Wallet removed");
+        });
+      });
+    }});
+}
+
+App.prompt=function(title,label,value,onOk){
+  App.modal({title,
+    body:'<div class="field"><label>'+U.esc(label)+'</label>'+
+      '<input class="input" id="pmInput" value="'+U.attr(value||"")+'"></div>',
+    foot:'<button class="btn" data-act="modal-close">Cancel</button>'+
+      '<button class="btn accent" id="pmOk">Save</button>',
+    onMount(m){
+      const i=m.querySelector("#pmInput"); i.focus(); i.select();
+      const go=()=>{ App.closeModal(); onOk(i.value.trim()); };
+      m.querySelector("#pmOk").addEventListener("click",go);
+      i.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+    }});
+};
+
+/* ---------- CLUSTERS ---------- */
+function clusterCard(c,idx){
+  const fundColor=c.funder?U.colorFor(c.funder):"var(--text-3)";
+  return `<div class="card card-pad" style="margin-bottom:13px">
+    <div class="row between" style="margin-bottom:11px">
+      <div class="row">
+        <div class="wc-av" style="width:30px;height:30px;border-radius:8px;background:${fundColor};font-size:12px">⧉</div>
+        <div>
+          <div style="font-weight:700">Cluster ${idx+1} · ${c.wallets.length} wallets</div>
+          <div class="muted mono" style="font-size:11px">Funder ${c.funder?U.esc(U.addr(c.funder,7)):"unknown"}</div>
+        </div>
+      </div>
+      ${c.funder?'<a class="btn sm" href="'+U.attr(U.buildHash(["search"],{w:c.funder}))+'">View funder</a>':""}
+    </div>
+    <div class="kv-list">${c.wallets.map(w=>{
+      const a=U.normAddr(w.address); const sc=walletScore(a);
+      return `<div class="kv-row">
+        <span class="k row"><span class="wc-av" style="width:20px;height:20px;border-radius:5px;background:${U.colorFor(a)};font-size:9px">${U.esc((w.label||a.slice(2)).slice(0,1).toUpperCase())}</span>
+          <a href="${U.attr(U.buildHash(["search"],{w:a}))}">${U.esc(w.label||U.addr(a,5))}</a></span>
+        <span class="v"><span class="muted mono" style="font-size:10px">${U.esc(U.addr(a,5))}</span>
+          <span class="badge" style="margin-left:6px;color:${scoreColor(sc.score)}">${sc.score}</span></span>
+      </div>`;
+    }).join("")}</div>
+  </div>`;
+}
+Views.clusters=function(main){
+  const wallets=Store.wallets();
+  let html=H.pageHead("Wallet Clusters",
+    "Groups of tracked wallets that share a common funding source",
+    '<button class="btn" data-act="analyze-all">Re-analyze all</button>');
+  if(!wallets.length){
+    html+=H.empty("⧉","No wallets tracked","Add wallets on the Watchlist to detect funding clusters.");
+    main.innerHTML=html; return;
+  }
+  html+='<div id="clBody">'+H.loading("Analyzing funding sources on-chain…")+'</div>';
+  main.innerHTML=html;
+  renderClusters();
+};
+async function renderClusters(){
+  const wallets=Store.wallets();
+  await Promise.all(wallets.map(w=>analyzeWallet(w.address).catch(()=>{})));
+  const body=document.getElementById("clBody");
+  if(!body) return;
+  const clusters=computeClusters();
+  const multi=clusters.filter(c=>c.funder&&c.wallets.length>1);
+  const rest=clusters.filter(c=>!c.funder||c.wallets.length===1).reduce((a,c)=>a.concat(c.wallets),[]);
+  let html='<div class="grid g-kpi" style="margin-bottom:14px">'+
+    H.kpi("Clusters",U.num(multi.length,0))+
+    H.kpi("Clustered Wallets",U.num(multi.reduce((s,c)=>s+c.wallets.length,0),0))+
+    H.kpi("Independent",U.num(rest.length,0))+'</div>';
+  if(multi.length) html+=multi.map((c,i)=>clusterCard(c,i)).join("");
+  else html+=H.empty("⧉","No shared funding detected",
+    "Tracked wallets don't share a common funder, or older history is pruned by the public RPC.");
+  if(rest.length){
+    html+='<div class="divider"></div><div class="muted" style="font-weight:600;margin-bottom:9px">Independent / Unknown-funder wallets</div>'+
+      '<div class="card card-pad"><div class="kv-list">'+
+      rest.map(w=>{ const a=U.normAddr(w.address);
+        return `<div class="kv-row"><span class="k"><a href="${U.attr(U.buildHash(["search"],{w:a}))}">${U.esc(w.label||U.addr(a,6))}</a></span>
+          <span class="v mono muted">${U.esc(U.addr(a,6))}</span></div>`;
+      }).join("")+'</div></div>';
+  }
+  body.innerHTML=html;
+}
+
+/* ---------- ACTIVITY FEED ---------- */
+function feedRow(a,metas){
+  const meta=a.coin?(metas[a.coin]||{symbol:U.coinSym(a.coin),decimals:9}):null;
+  const amt=meta?U.units(Math.abs(a.coinDelta||0),meta.decimals==null?9:meta.decimals):0;
+  const w=Store.wallets().find(x=>U.normAddr(x.address)===a.wallet);
+  const wlabel=w?(w.label||U.addr(a.wallet,5)):U.addr(a.wallet,5);
+  const ex=CONFIG.EXPLORERS[Store.settings().explorer]||CONFIG.EXPLORERS.suivision;
+  return `<tr>
+    <td class="muted nowrap">${U.timeAgo(a.ts)}</td>
+    <td><a href="${U.attr(U.buildHash(["search"],{w:a.wallet}))}">${U.esc(wlabel)}</a></td>
+    <td>${actType(a.type)}</td>
+    <td>${meta?'<a href="'+U.attr(U.buildHash(["token",a.coin]))+'" class="row" style="gap:6px">'+
+      H.tokenImg(meta.iconUrl,meta.symbol)+'<span style="font-weight:700">'+U.esc(meta.symbol)+'</span></a>':'<span class="dim">—</span>'}</td>
+    <td class="num mono">${meta?U.compact(amt):"—"}</td>
+    <td class="num mono">${U.num(Math.abs(a.suiDelta||0)/CONFIG.MIST,3)}</td>
+    <td class="num"><div class="row" style="gap:4px;justify-content:flex-end">
+      ${a.coin?'<button class="btn xs '+(a.type==="sell"?"sell":"buy")+'" data-act="go" data-href="'+
+        U.attr(U.buildHash(["swap"],a.type==="sell"?{in:a.coin}:{out:a.coin}))+'">'+(a.type==="sell"?"Sell":"Buy")+'</button>':""}
+      <a class="btn xs" href="${U.attr(ex.tx(a.digest))}" target="_blank" rel="noopener">TX ↗</a>
+    </div></td></tr>`;
+}
+Views.activity=function(main){
+  let html=H.pageHead("Live Activity Feed",
+    "Real-time buys &amp; sells from tracked wallets — polled from Sui RPC every "+Store.settings().refreshSec+"s",
+    '<button class="btn" data-act="refresh-activity">Refresh now</button>');
+  html+='<div id="actBody"></div>';
+  main.innerHTML=html;
+  renderActivity();
+};
+async function renderActivity(){
+  const body=document.getElementById("actBody");
+  if(!body) return;
+  if(!Store.wallets().length){
+    body.innerHTML=H.empty("≋","No wallets tracked","Add wallets to the Watchlist to see their live trading activity.");
+    return;
+  }
+  const feed=Store.activity();
+  if(!feed.length){
+    body.innerHTML=H.empty("≋","Listening for activity…",
+      "No buys or sells observed yet from tracked wallets. The feed updates automatically.");
+    return;
+  }
+  const metas=await getMetaBatch(feed.map(f=>f.coin).filter(Boolean));
+  const buys=feed.filter(f=>f.type==="buy").length, sells=feed.filter(f=>f.type==="sell").length;
+  body.innerHTML='<div class="grid g-kpi" style="margin-bottom:14px">'+
+    H.kpi("Events",U.num(feed.length,0))+
+    H.kpi("Buys",U.num(buys,0),"","up")+
+    H.kpi("Sells",U.num(sells,0),"","down")+'</div>'+
+    '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Time</th><th>Wallet</th><th>Action</th>'+
+    '<th>Token</th><th class="num">Amount</th><th class="num">SUI</th><th></th></tr></thead><tbody>'+
+    feed.slice(0,120).map(a=>feedRow(a,metas)).join("")+'</tbody></table></div>';
+}
+
+/* ---------- SMART MONEY ---------- */
+Views.smartMoney=function(main){
+  let html=H.pageHead("Smart Money Discovery",
+    "Discover top traders on Sui and 1-click add them to your watchlist",
+    '<button class="btn" data-act="refresh-smart">Refresh</button>');
+  html+='<div id="smBody">'+H.loading("Discovering traders…")+'</div>';
+  main.innerHTML=html;
+  renderSmartMoney();
+};
+async function renderSmartMoney(){
+  const body=document.getElementById("smBody");
+  if(!body) return;
+  const tracked=new Set(Store.wallets().map(w=>U.normAddr(w.address)));
+  if(Indexer.hasKey()){
+    try{
+      const pairs=suiOnly(await Dex.search("sui")).filter(p=>p.baseToken)
+        .sort((a,b)=>volOf(b)-volOf(a)).slice(0,6);
+      const freq={};
+      for(const p of pairs){
+        try{
+          const hs=await Indexer.holders(p.baseToken.address);
+          hs.slice(0,40).forEach(h=>{
+            const a=U.normAddr(h.address); if(!a) return;
+            const e=freq[a]||(freq[a]={count:0,tokens:[],amt:0});
+            e.count++; e.tokens.push(p.baseToken.symbol||"?");
+          });
+        }catch(e){}
+      }
+      const ranked=Object.keys(freq).map(a=>Object.assign({addr:a},freq[a]))
+        .filter(x=>x.count>=2).sort((a,b)=>b.count-a.count).slice(0,40);
+      if(!ranked.length){
+        body.innerHTML=H.empty("★","No cross-token traders found","Indexer returned no overlapping holders for trending tokens.");
+        return;
+      }
+      body.innerHTML='<div class="note" style="margin-bottom:13px">Wallets appearing among top holders of multiple trending Sui tokens — likely active traders.</div>'+
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Wallet</th>'+
+        '<th class="num">Trending tokens held</th><th>Tokens</th><th></th></tr></thead><tbody>'+
+        ranked.map((x,i)=>`<tr><td class="muted">${i+1}</td>
+          <td><a href="${U.attr(U.buildHash(["search"],{w:x.addr}))}" class="mono">${U.esc(U.addr(x.addr,6))}</a></td>
+          <td class="num mono">${x.count}</td>
+          <td class="muted">${U.esc(Array.from(new Set(x.tokens)).slice(0,5).join(", "))}</td>
+          <td class="num">${tracked.has(x.addr)
+            ?'<span class="badge green">Watching</span>'
+            :'<button class="btn xs accent" data-act="watch-wallet" data-addr="'+x.addr+'">+ Watch</button>'}</td>
+        </tr>`).join("")+'</tbody></table></div>';
+    }catch(e){ body.innerHTML=H.errorBox("Discovery failed: "+e.message); }
+    return;
+  }
+  // degraded path — observed leaders from tracked wallets
+  const ranked=Store.wallets().map(w=>({w,sc:walletScore(w.address)}))
+    .filter(x=>x.sc.observed>0).sort((a,b)=>b.sc.score-a.sc.score);
+  let html='<div class="note warn" style="margin-bottom:14px">Add a BlockVision or InsideX indexer key in '+
+    '<a href="#/settings">Settings</a> to discover smart-money wallets from on-chain holder data. '+
+    'Meanwhile, showing observed leaders ranked by tracked-activity performance.</div>';
+  if(!ranked.length){
+    html+=H.empty("★","No observations yet","Track wallets and let the activity feed observe their trades to rank leaders.");
+  }else{
+    html+='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Wallet</th>'+
+      '<th class="num">Score</th><th class="num">Trades</th><th class="num">Net SUI</th></tr></thead><tbody>'+
+      ranked.map((x,i)=>{ const a=U.normAddr(x.w.address);
+        return `<tr><td class="muted">${i+1}</td>
+          <td><a href="${U.attr(U.buildHash(["search"],{w:a}))}">${U.esc(x.w.label||U.addr(a,6))}</a></td>
+          <td class="num mono" style="color:${scoreColor(x.sc.score)}">${x.sc.score}</td>
+          <td class="num mono">${x.sc.trades}</td>
+          <td class="num mono ${x.sc.netSui>=0?"up":"down"}">${(x.sc.netSui>=0?"+":"")+U.num(x.sc.netSui,2)}</td>
+        </tr>`;
+      }).join("")+'</tbody></table></div>';
+  }
+  body.innerHTML=html;
+}
+
+Object.assign(Actions,{
+  "add-wallet":()=>{
+    App.modal({title:"Track a Sui Wallet",
+      body:'<div class="field"><label>Wallet Address</label>'+
+        '<input class="input mono" id="awAddr" placeholder="0x… 64 hex characters" autocomplete="off"></div>'+
+        '<div class="field"><label>Label <span class="dim">(optional)</span></label>'+
+        '<input class="input" id="awLabel" placeholder="e.g. Whale #1"></div>'+
+        '<div class="hint">A Sui address is <span class="mono">0x</span> followed by 64 hexadecimal characters.</div>',
+      foot:'<button class="btn" data-act="modal-close">Cancel</button>'+
+        '<button class="btn accent" id="awSave">Add Wallet</button>',
+      onMount(m){
+        const ai=m.querySelector("#awAddr"); ai.focus();
+        const save=()=>{
+          if(App.addWallet(ai.value,m.querySelector("#awLabel").value.trim())){
+            App.closeModal();
+            if((state.route.path[0]||"")==="wallet") Router.go();
+            else if((state.route.path[0]||"")==="clusters") Router.go();
+          }
+        };
+        m.querySelector("#awSave").addEventListener("click",save);
+        ai.addEventListener("keydown",e=>{ if(e.key==="Enter") save(); });
+      }});
+  },
+  "wallet-holdings":t=>showHoldings(t.getAttribute("data-addr")),
+  "wallet-pnl":t=>showPnL(t.getAttribute("data-addr")),
+  "wallet-activity":t=>showWalletActivity(t.getAttribute("data-addr")),
+  "wallet-menu":t=>showWalletMenu(t.getAttribute("data-addr")),
+  "watch-wallet":t=>{
+    if(App.addWallet(t.getAttribute("data-addr"),"")) Router.go();
+  },
+  "analyze-all":async()=>{
+    U.toast("Re-analyzing all wallets…");
+    await Promise.all(Store.wallets().map(w=>analyzeWallet(w.address,true).catch(()=>{})));
+    Router.go();
+  },
+  "refresh-activity":async()=>{ U.toast("Refreshing…"); await pollActivity(); renderActivity(); },
+  "refresh-smart":()=>renderSmartMoney()
+});
+
+/* ---------- TRENDING / TOKEN TABLES ---------- */
+function dedupeByToken(pairs){
+  const m={};
+  suiOnly(pairs).forEach(p=>{
+    if(!p.baseToken||!p.baseToken.address) return;
+    const k=U.normCoinType(p.baseToken.address);
+    if(!m[k]||liqOf(p)>liqOf(m[k])) m[k]=p;
+  });
+  return Object.keys(m).map(k=>m[k]);
+}
+async function getSuiUniverse(force){
+  if(state._uni && !force && Date.now()-state._uni.ts<60000) return state._uni.pairs;
+  let all=[];
+  for(const q of ["sui","usdc","meme"]){
+    try{ all=all.concat(suiOnly(await Dex.search(q))); }catch(e){}
+  }
+  try{
+    const b=(await Dex.boostsTop()).concat(await Dex.boosts());
+    const sa=[];
+    b.forEach(x=>{ if(x.chainId===CONFIG.CHAIN&&x.tokenAddress&&sa.indexOf(x.tokenAddress)<0) sa.push(x.tokenAddress); });
+    if(sa.length) all=all.concat(suiOnly(await Dex.tokenPairs(sa.slice(0,28).join(","))));
+  }catch(e){}
+  const out=dedupeByToken(all);
+  state._uni={pairs:out,ts:Date.now()};
+  return out;
+}
+function pairRow(p,i){
+  const sym=(p.baseToken&&p.baseToken.symbol)||"?";
+  const ct=U.normCoinType(p.baseToken.address);
+  const ch=(p.priceChange&&Number(p.priceChange.h24))||0;
+  const watched=Store.tokens().some(t=>U.normCoinType(t.coinType)===ct);
+  return `<tr>
+    <td class="muted">${i+1}</td>
+    <td><a class="tok" href="${U.attr(U.buildHash(["token",ct]))}">
+      ${H.tokenImg(pairImg(p),sym)}
+      <div style="min-width:0"><div style="font-weight:700">${U.esc(sym)}</div>
+      <div class="muted" style="font-size:10px">${U.esc((p.baseToken.name||"").slice(0,24))}</div></div></a></td>
+    <td class="num mono">${U.usd(Number(p.priceUsd)||0)}</td>
+    <td class="num mono ${ch>=0?"up":"down"}">${U.pct(ch)}</td>
+    <td class="num mono">${U.usd(volOf(p))}</td>
+    <td class="num mono">${U.usd(liqOf(p))}</td>
+    <td class="num muted nowrap">${p.pairCreatedAt?U.timeAgo(p.pairCreatedAt):"—"}</td>
+    <td><span class="badge">${U.esc((p.dexId||"?").slice(0,9))}</span></td>
+    <td class="num"><div class="row" style="gap:4px;justify-content:flex-end">
+      <button class="btn xs buy" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{out:ct}))}">Buy</button>
+      <button class="btn xs sell" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{in:ct}))}">Sell</button>
+      <button class="btn xs ${watched?"":"accent"}" data-act="watch-token" data-coin="${U.attr(ct)}" data-sym="${U.attr(sym)}" data-name="${U.attr(p.baseToken.name||"")}">${watched?"★ Watching":"Watch"}</button>
+    </div></td></tr>`;
+}
+function tokenTable(pairs){
+  if(!pairs.length) return H.empty("∅","No tokens","DexScreener returned no matching Sui pairs.");
+  return '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Token</th>'+
+    '<th class="num">Price</th><th class="num">24h</th><th class="num">Volume</th>'+
+    '<th class="num">Liquidity</th><th class="num">Age</th><th>DEX</th><th></th></tr></thead><tbody>'+
+    pairs.map((p,i)=>pairRow(p,i)).join("")+'</tbody></table></div>';
+}
+const TR_TABS=[["trending","Trending"],["gainers","Gainers"],["new","New Pairs"],["volume","High Volume"]];
+Views.trending=function(main,route){
+  const tab=route.query.tab||"trending";
+  let html=H.pageHead("Trending — Sui",
+    "Live token tables from DexScreener · chain <span class=\"mono\">sui</span>",
+    '<button class="btn" data-act="refresh-trending">Refresh</button>');
+  html+='<div class="tabs">'+TR_TABS.map(t=>
+    '<a class="tab'+(t[0]===tab?" active":"")+'" href="'+U.attr(U.buildHash(["trading","trending"],{tab:t[0]}))+'">'+t[1]+'</a>').join("")+'</div>';
+  html+='<div id="trBody">'+H.loading("Loading "+tab+" tokens…")+'</div>';
+  main.innerHTML=html;
+  loadTrending(tab);
+};
+async function loadTrending(tab,force){
+  const body=document.getElementById("trBody");
+  if(!body) return;
+  try{
+    let pairs=await getSuiUniverse(force);
+    if(tab==="gainers")
+      pairs=pairs.filter(p=>liqOf(p)>500).sort((a,b)=>
+        ((b.priceChange&&b.priceChange.h24)||0)-((a.priceChange&&a.priceChange.h24)||0));
+    else if(tab==="new")
+      pairs=pairs.filter(p=>p.pairCreatedAt).sort((a,b)=>b.pairCreatedAt-a.pairCreatedAt);
+    else if(tab==="volume")
+      pairs=pairs.sort((a,b)=>volOf(b)-volOf(a));
+    else
+      pairs=pairs.sort((a,b)=>{
+        const ta=(a.txns&&a.txns.h24)?(a.txns.h24.buys+a.txns.h24.sells):0;
+        const tb=(b.txns&&b.txns.h24)?(b.txns.h24.buys+b.txns.h24.sells):0;
+        return tb-ta||volOf(b)-volOf(a);
+      });
+    pairs=pairs.slice(0,60);
+    body.innerHTML=tokenTable(pairs);
+  }catch(e){
+    body.innerHTML=H.errorBox("Failed to load tokens: "+e.message+
+      " — DexScreener may be unreachable under this network policy.");
+  }
+}
+
+/* ---------- TOKEN DETAIL ---------- */
+Views.token=function(main,route){
+  const coin=U.normCoinType(decodeURIComponent(route.path.slice(1).join("/")));
+  if(!U.isCoinType(coin)){
+    main.innerHTML=H.empty("⚠","Invalid coin type",U.esc(coin)); return;
+  }
+  main.innerHTML=H.loading("Loading token…");
+  loadToken(coin,main);
+};
+async function loadToken(coin,main){
+  try{
+    const [meta,pairs,priceRes]=await Promise.all([
+      getMeta(coin),Dex.pairsCached(coin),getTokenPrice(coin)]);
+    const best=priceRes.pair||bestBasePair(pairs,coin)||bestPair(pairs);
+    let img=meta.iconUrl||pairImg(best);
+    if(!img){ try{ img=await resolveTokenImage(coin); }catch(e){} }
+    let supply=null;
+    try{ const s=await Sui.call("suix_getTotalSupply",[coin]); if(s&&s.value!=null) supply=s.value; }catch(e){}
+    const watched=Store.tokens().some(t=>U.normCoinType(t.coinType)===coin);
+    const ch=best&&best.priceChange||{};
+    const price=priceRes.price||0;
+    const supplyHuman=supply!=null?U.units(supply,meta.decimals==null?9:meta.decimals):null;
+    let html=`<div class="row" style="gap:8px;margin-bottom:6px"><a href="#/trading/trending" class="muted">← Trending</a></div>
+    <div class="row between wrap" style="gap:12px;margin-bottom:16px">
+      <div class="row" style="gap:13px">
+        ${H.tokenImg(img,meta.symbol,"lg")}
+        <div>
+          <div class="row" style="gap:8px"><h1 style="font-size:21px;font-weight:700">${U.esc(meta.symbol)}</h1>
+            ${best?'<span class="badge accent">'+U.esc(best.dexId||"")+'</span>':""}
+            ${meta._fallback?'<span class="badge yellow">no metadata</span>':""}</div>
+          <div class="muted">${U.esc(meta.name||"")}</div>
+          <div class="muted mono" style="font-size:11px;margin-top:2px">${U.esc(U.addr(coin,8))}
+            <span class="copy" data-act="copy" data-copy="${U.attr(coin)}">⧉</span></div>
+        </div>
+      </div>
+      <div class="row wrap" style="gap:7px">
+        <button class="btn buy" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{out:coin}))}">Buy</button>
+        <button class="btn sell" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{in:coin}))}">Sell</button>
+        <button class="btn ${watched?"":"accent"}" data-act="watch-token" data-coin="${U.attr(coin)}" data-sym="${U.attr(meta.symbol)}" data-name="${U.attr(meta.name||"")}">${watched?"★ Watching":"+ Watch"}</button>
+        <button class="btn" data-act="token-alert" data-coin="${U.attr(coin)}" data-sym="${U.attr(meta.symbol)}" data-price="${price}">Set Alert</button>
+        <a class="btn" href="${U.attr(U.buildHash(["tool","holders"],{coin}))}">Holders</a>
+      </div>
+    </div>
+    <div class="grid g-kpi" style="margin-bottom:15px">
+      ${H.kpi("Price",U.usd(price))}
+      ${H.kpi("24h Change",U.pct(Number(ch.h24)||0),"",((Number(ch.h24)||0)>=0?"up":"down"))}
+      ${H.kpi("Liquidity",U.usd(liqOf(best)))}
+      ${H.kpi("Volume 24h",U.usd(volOf(best)))}
+      ${H.kpi("FDV",best&&best.fdv?U.usd(best.fdv):"—")}
+      ${H.kpi("Market Cap",best&&best.marketCap?U.usd(best.marketCap):"—")}
+    </div>
+    <div class="grid g-2">
+      <div class="card card-pad">
+        <div style="font-weight:700;margin-bottom:10px">Market</div>
+        <div class="kv-list">
+          <div class="kv-row"><span class="k">Price change 5m / 1h / 6h</span><span class="v">
+            <span class="${(Number(ch.m5)||0)>=0?"up":"down"}">${U.pct(Number(ch.m5)||0)}</span> ·
+            <span class="${(Number(ch.h1)||0)>=0?"up":"down"}">${U.pct(Number(ch.h1)||0)}</span> ·
+            <span class="${(Number(ch.h6)||0)>=0?"up":"down"}">${U.pct(Number(ch.h6)||0)}</span></span></div>
+          <div class="kv-row"><span class="k">24h Transactions</span><span class="v mono">${best&&best.txns&&best.txns.h24?
+            '<span class="up">'+best.txns.h24.buys+' buys</span> / <span class="down">'+best.txns.h24.sells+' sells</span>':"—"}</span></div>
+          <div class="kv-row"><span class="k">Pair / DEX</span><span class="v">${best?U.esc(best.dexId)+" · "+U.esc((best.quoteToken&&best.quoteToken.symbol)||""):"—"}</span></div>
+          <div class="kv-row"><span class="k">Pair created</span><span class="v">${best&&best.pairCreatedAt?U.dateStr(best.pairCreatedAt):"—"}</span></div>
+          ${best&&safeUrl(best.url)?'<div class="kv-row"><span class="k">DexScreener</span><span class="v"><a href="'+U.attr(best.url)+'" target="_blank" rel="noopener">Open ↗</a></span></div>':""}
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div style="font-weight:700;margin-bottom:10px">Coin Info</div>
+        <div class="kv-list">
+          <div class="kv-row"><span class="k">Decimals</span><span class="v mono">${meta.decimals==null?"?":meta.decimals}</span></div>
+          <div class="kv-row"><span class="k">Total Supply</span><span class="v mono">${supplyHuman!=null?U.compact(supplyHuman):"—"}</span></div>
+          <div class="kv-row"><span class="k">Coin Type</span><span class="v mono" style="font-size:10px">${U.esc(coin)}</span></div>
+          <div class="kv-row"><span class="k">Explorer</span><span class="v">${H.explorerLinks("coin",coin)}</span></div>
+        </div>
+        ${meta.description?'<div class="muted" style="margin-top:10px;font-size:11px">'+U.esc(meta.description.slice(0,260))+'</div>':""}
+        ${renderSocials(best)}
+      </div>
+    </div>`;
+    const others=suiOnly(pairs).filter(p=>p!==best);
+    if(others.length){
+      html+='<div class="divider"></div><div style="font-weight:700;margin-bottom:9px">All Pairs ('+(others.length+1)+')</div>'+
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>DEX</th><th>Pair</th>'+
+        '<th class="num">Price</th><th class="num">Liquidity</th><th class="num">Vol 24h</th></tr></thead><tbody>'+
+        [best].concat(others).filter(Boolean).map(p=>`<tr><td><span class="badge">${U.esc(p.dexId||"?")}</span></td>
+          <td class="muted">${U.esc((p.baseToken&&p.baseToken.symbol)||"?")}/${U.esc((p.quoteToken&&p.quoteToken.symbol)||"?")}</td>
+          <td class="num mono">${U.usd(Number(p.priceUsd)||0)}</td>
+          <td class="num mono">${U.usd(liqOf(p))}</td>
+          <td class="num mono">${U.usd(volOf(p))}</td></tr>`).join("")+'</tbody></table></div>';
+    }
+    main.innerHTML=html;
+  }catch(e){
+    main.innerHTML=H.empty("⚠","Failed to load token",U.esc(e.message),
+      '<a class="btn" href="#/trading/trending">Back to Trending</a>');
+  }
+}
+function safeUrl(u){ return typeof u==="string"&&/^https?:\/\//i.test(u)?u:null; }
+function renderSocials(p){
+  if(!p||!p.info) return "";
+  const sites=(p.info.websites||[]).map(w=>w.url||w);
+  const socials=(p.info.socials||[]).map(s=>s.url);
+  const links=sites.concat(socials).map(safeUrl).filter(Boolean);
+  if(!links.length) return "";
+  return '<div class="row wrap" style="gap:6px;margin-top:10px">'+
+    links.slice(0,6).map(l=>'<a class="badge accent" href="'+U.attr(l)+'" target="_blank" rel="noopener">'+
+      U.esc((l.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]).slice(0,20))+' ↗</a>').join("")+'</div>';
+}
+
+/* ---------- HOLDER INSIGHTS ---------- */
+Views.holders=function(main,route){
+  const coin=route.query.coin||"";
+  let html=H.pageHead("Holder Insights",
+    "Top holders of any Sui coin — via your configured indexer API");
+  html+='<div class="card card-pad" style="margin-bottom:14px">'+
+    '<div class="field" style="margin-bottom:0"><label>Coin Type</label>'+
+    '<div class="row"><input class="input mono" id="hiInput" placeholder="0x…::module::SYMBOL" value="'+U.attr(coin)+'">'+
+    '<button class="btn accent" id="hiGo">Analyze</button></div>'+
+    '<div class="hint">'+(Indexer.hasKey()?"Using "+U.esc(Indexer.cfg().name)+" indexer.":
+      'No indexer key set — <a href="#/settings">add one in Settings</a> to enable holder data.')+'</div></div></div>';
+  html+='<div id="hiBody"></div>';
+  main.innerHTML=html;
+  const inp=document.getElementById("hiInput");
+  const run=()=>{
+    const c=inp.value.trim();
+    if(!U.isCoinType(c)){ U.toast("Enter a valid coin type (0x…::module::name)","err"); return; }
+    U.go(["tool","holders"],{coin:U.normCoinType(c)});
+  };
+  document.getElementById("hiGo").addEventListener("click",run);
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") run(); });
+  if(coin&&U.isCoinType(coin)) loadHolders(U.normCoinType(coin));
+};
+async function loadHolders(coin){
+  const body=document.getElementById("hiBody");
+  if(!body) return;
+  body.innerHTML=H.loading("Loading token & holders…");
+  try{
+    const [meta,priceRes]=await Promise.all([getMeta(coin),getTokenPrice(coin)]);
+    const price=priceRes.price||0;
+    let header=`<div class="row between wrap" style="gap:12px;margin-bottom:14px">
+      <div class="row" style="gap:11px">${H.tokenImg(meta.iconUrl,meta.symbol)}
+        <div><div style="font-weight:700;font-size:15px">${U.esc(meta.symbol)}</div>
+        <div class="muted">${U.esc(meta.name||"")} · ${U.usd(price)}</div></div></div>
+      <div class="row" style="gap:7px">
+        <button class="btn buy" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{out:coin}))}">Buy ${U.esc(meta.symbol)}</button>
+        <button class="btn sell" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{in:coin}))}">Sell ${U.esc(meta.symbol)}</button>
+        <a class="btn" href="${U.attr(U.buildHash(["token",coin]))}">Token page</a>
+      </div></div>`;
+    let holders;
+    try{ holders=await Indexer.holders(coin); }
+    catch(e){
+      body.innerHTML=header+(e.noKey
+        ?'<div class="note warn">No indexer API key configured. Add a BlockVision or InsideX key in '+
+          '<a href="#/settings">Settings</a> to load holder data. The rest of SuiScope works without it.</div>'
+        :H.errorBox("Indexer request failed: "+e.message+". Verify your key and provider in Settings."));
+      return;
+    }
+    const dec=meta.decimals==null?9:meta.decimals;
+    const rows=holders.map(h=>{
+      let amt=Number(h.amount)||0;
+      // heuristic: large integers are raw base units
+      if(amt>1e12 && dec>0) amt=U.units(h.amount,dec);
+      const usd=h.raw&&(h.raw.usdValue||h.raw.usd_value||h.raw.valueUsd);
+      return {addr:U.normAddr(h.address)||h.address,amt,pct:h.pct,usd:usd!=null?Number(usd):(price&&amt?amt*price:null)};
+    });
+    const tracked=new Set(Store.wallets().map(w=>U.normAddr(w.address)));
+    body.innerHTML=header+
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Holder</th>'+
+      '<th class="num">Balance</th><th class="num">Share</th><th class="num">Est. Value</th><th></th></tr></thead><tbody>'+
+      rows.map((r,i)=>`<tr><td class="muted">${i+1}</td>
+        <td class="mono"><a href="${U.attr(U.buildHash(["search"],{w:r.addr}))}">${U.esc(U.addr(r.addr,7))}</a></td>
+        <td class="num mono">${U.compact(r.amt)}</td>
+        <td class="num mono">${r.pct!=null?U.num(r.pct,2)+"%":"—"}</td>
+        <td class="num mono">${r.usd!=null?U.usd(r.usd):"—"}</td>
+        <td class="num"><div class="row" style="gap:4px;justify-content:flex-end">
+          ${tracked.has(r.addr)?'<span class="badge green">Watching</span>':
+            '<button class="btn xs accent" data-act="watch-wallet" data-addr="'+U.attr(r.addr)+'">Watch</button>'}
+          <a class="btn xs" href="${U.attr(U.buildHash(["search"],{w:r.addr}))}">Open</a>
+          <button class="btn xs buy" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{out:coin}))}">Buy</button>
+        </div></td></tr>`).join("")+'</tbody></table></div>';
+  }catch(e){ body.innerHTML=H.errorBox("Failed: "+e.message); }
+}
+
+/* ---------- SEARCH / WALLET DETAIL ---------- */
+Views.search=function(main,route){
+  if(route.query.w){
+    const a=U.normAddr(route.query.w);
+    if(!a){ main.innerHTML=H.empty("⚠","Invalid address",U.esc(route.query.w)); return; }
+    main.innerHTML=H.loading("Loading wallet…");
+    renderWalletDetail(a,main);
+    return;
+  }
+  const q=route.query.q||"";
+  let html=H.pageHead("Search Results",'Sui tokens matching “'+U.esc(q)+'”');
+  html+='<div id="srBody">'+H.loading("Searching DexScreener…")+'</div>';
+  main.innerHTML=html;
+  Dex.search(q).then(pairs=>{
+    const body=document.getElementById("srBody");
+    if(!body) return;
+    body.innerHTML=tokenTable(dedupeByToken(pairs).sort((a,b)=>liqOf(b)-liqOf(a)).slice(0,50));
+  }).catch(e=>{
+    const body=document.getElementById("srBody");
+    if(body) body.innerHTML=H.errorBox("Search failed: "+e.message);
+  });
+};
+async function renderWalletDetail(addr,main){
+  try{
+    const [balances,suiPrice,meta]=await Promise.all([
+      Sui.getAllBalances(addr),getSuiPrice(),analyzeWallet(addr).catch(()=>null)]);
+    const suiBal=(balances||[]).find(b=>isSui(b.coinType));
+    const sui=suiBal?U.units(suiBal.totalBalance,9):0;
+    const tracked=Store.wallets().some(w=>U.normAddr(w.address)===addr);
+    const fresh=isFresh(meta);
+    const col=U.colorFor(addr);
+    const ex=CONFIG.EXPLORERS;
+    let html=`<div class="row" style="gap:8px;margin-bottom:6px"><a class="muted" href="#/wallet">← Watchlist</a></div>
+    <div class="row between wrap" style="gap:12px;margin-bottom:15px">
+      <div class="row" style="gap:13px">
+        <div class="wc-av" style="width:46px;height:46px;border-radius:12px;background:${col};font-size:17px">${U.esc(addr.slice(2,3).toUpperCase())}</div>
+        <div>
+          <div class="row" style="gap:7px"><h1 style="font-size:18px">Wallet</h1>
+            ${fresh?'<span class="badge yellow">Fresh</span>':""}
+            ${tracked?'<span class="badge green">Tracked</span>':""}</div>
+          <div class="muted mono" style="font-size:11px">${U.esc(addr)}
+            <span class="copy" data-act="copy" data-copy="${U.attr(addr)}">⧉</span></div>
+        </div>
+      </div>
+      <div class="row wrap" style="gap:7px">
+        ${tracked?'<button class="btn danger" data-act="untrack-wallet" data-addr="'+addr+'">Untrack</button>'
+          :'<button class="btn accent" data-act="watch-wallet" data-addr="'+addr+'">+ Track Wallet</button>'}
+        <button class="btn" data-act="wallet-pnl" data-addr="${addr}">Full PnL</button>
+        <a class="btn" href="${U.attr(ex.suivision.account(addr))}" target="_blank" rel="noopener">SuiVision ↗</a>
+      </div>
+    </div>
+    <div class="grid g-kpi" style="margin-bottom:15px">
+      ${H.kpi("SUI Balance",U.num(sui,3))}
+      ${H.kpi("Portfolio Value",U.usd(sui*suiPrice),"SUI only")}
+      ${H.kpi("Coin Types",U.num((balances||[]).length,0))}
+      ${H.kpi("First Seen",meta&&meta.firstSeenTs?U.timeAgo(meta.firstSeenTs):"unknown",
+        fresh?'<span class="yellow">fresh wallet</span>':"")}
+      ${H.kpi("Funder",meta&&meta.funder?U.addr(meta.funder,4):"unknown")}
+    </div>`;
+    // holdings
+    const metas=await getMetaBatch((balances||[]).map(b=>b.coinType));
+    const hrows=await Promise.all((balances||[]).map(async b=>{
+      const ct=U.normCoinType(b.coinType);
+      const cm=metas[ct]||{symbol:U.coinSym(ct),decimals:9,name:""};
+      const amt=U.units(b.totalBalance,cm.decimals==null?9:cm.decimals);
+      let price=0; try{ price=(await getTokenPrice(ct)).price; }catch(e){}
+      return {ct,cm,amt,usd:amt*price,price};
+    }));
+    hrows.sort((a,b)=>b.usd-a.usd);
+    html+='<div class="grid g-2">';
+    html+='<div><div style="font-weight:700;margin-bottom:9px">Holdings ('+hrows.length+')</div>'+
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Coin</th><th class="num">Balance</th>'+
+      '<th class="num">Value</th><th></th></tr></thead><tbody>'+
+      (hrows.length?hrows.map(r=>`<tr><td><div class="tok">${H.tokenImg(r.cm.iconUrl,r.cm.symbol)}
+        <span style="font-weight:700">${U.esc(r.cm.symbol)}</span></div></td>
+        <td class="num mono">${U.num(r.amt,r.amt<1?6:2)}</td>
+        <td class="num mono">${r.usd?U.usd(r.usd):'<span class="dim">—</span>'}</td>
+        <td class="num"><a class="btn xs" href="${U.attr(U.buildHash(["token",r.ct]))}">View</a></td></tr>`).join("")
+        :'<tr><td colspan="4" class="muted center">No coins</td></tr>')+'</tbody></table></div></div>';
+    // recent activity
+    html+='<div><div style="font-weight:700;margin-bottom:9px">Recent Activity</div><div id="wdAct">'+H.loading("Loading…")+'</div></div>';
+    html+='</div>';
+    main.innerHTML=html;
+    // activity
+    try{
+      const txs=await walletTxHistory(addr,2);
+      const evs=txs.map(t=>classifyTx(t,addr)).filter(c=>c.type!=="other").slice(0,25);
+      const am=await getMetaBatch(evs.map(e=>e.coin).filter(Boolean));
+      const wd=document.getElementById("wdAct");
+      if(wd) wd.innerHTML=evs.length?
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Time</th><th>Action</th><th>Coin</th>'+
+        '<th class="num">SUI</th></tr></thead><tbody>'+evs.map(e=>{
+          const cm=e.coin?(am[e.coin]||{symbol:U.coinSym(e.coin)}):null;
+          return `<tr><td class="muted">${U.timeAgo(e.ts)}</td><td>${actType(e.type)}</td>
+            <td>${cm?'<a href="'+U.attr(U.buildHash(["token",e.coin]))+'">'+U.esc(cm.symbol)+'</a>':'<span class="dim">SUI</span>'}</td>
+            <td class="num mono">${U.num(Math.abs(e.suiDelta)/CONFIG.MIST,3)}</td></tr>`;
+        }).join("")+'</tbody></table></div>'
+        :H.empty("≋","No recent activity","");
+    }catch(e){
+      const wd=document.getElementById("wdAct");
+      if(wd) wd.innerHTML=H.errorBox("Activity unavailable: "+e.message);
+    }
+  }catch(e){
+    main.innerHTML=H.empty("⚠","Failed to load wallet",U.esc(e.message),
+      '<a class="btn" href="#/wallet">Back</a>');
+  }
+}
+
+Object.assign(Actions,{
+  "refresh-trending":()=>{
+    const tab=(state.route.query&&state.route.query.tab)||"trending";
+    const b=document.getElementById("trBody");
+    if(b) b.innerHTML=H.loading("Refreshing…");
+    loadTrending(tab,true);
+  },
+  "watch-token":t=>{
+    const coin=U.normCoinType(t.getAttribute("data-coin"));
+    const tokens=Store.tokens();
+    const idx=tokens.findIndex(x=>U.normCoinType(x.coinType)===coin);
+    if(idx>=0){
+      tokens.splice(idx,1); Store.setTokens(tokens);
+      U.toast("Removed from watchlist");
+    }else{
+      tokens.push({coinType:coin,symbol:t.getAttribute("data-sym")||U.coinSym(coin),
+        name:t.getAttribute("data-name")||"",addedAt:Date.now()});
+      Store.setTokens(tokens);
+      U.toast("Added to token watchlist","ok");
+    }
+    App.renderNav();
+    Router.go();
+  },
+  "untrack-wallet":t=>{
+    const a=U.normAddr(t.getAttribute("data-addr"));
+    App.confirm("Remove this wallet from your watchlist?",()=>{
+      Store.setWallets(Store.wallets().filter(x=>U.normAddr(x.address)!==a));
+      App.renderNav(); Router.go(); U.toast("Wallet removed");
+    });
+  },
+  "token-alert":t=>showAlertModal(U.normCoinType(t.getAttribute("data-coin")),
+    t.getAttribute("data-sym"),Number(t.getAttribute("data-price"))||0)
+});
+
+/* ---------- SWAP ---------- */
+function toRaw(amount,dec){
+  const n=Number(amount); if(!isFinite(n)||n<=0) return "0";
+  dec=dec==null?9:dec;
+  const s=n.toFixed(Math.min(dec,15));
+  const parts=s.split("."), w=parts[0]||"0", f=parts[1]||"";
+  const frac=(f+"0".repeat(dec)).slice(0,dec);
+  try{ return (BigInt(w)*(10n**BigInt(dec))+BigInt(frac||"0")).toString(); }
+  catch(e){ return String(Math.round(n*Math.pow(10,dec))); }
+}
+Views.swap=function(main,route){
+  const q=route.query||{};
+  state.swap={
+    in:q.in?U.normCoinType(q.in):((state.swap&&state.swap.in)||CONFIG.SUI_TYPE),
+    out:q.out?U.normCoinType(q.out):((state.swap&&state.swap.out)||""),
+    amount:(state.swap&&state.swap.amount)||""
+  };
+  renderSwapView(main);
+};
+function renderSwapView(main){
+  const s=state.swap, prov=Swap.cfg();
+  main.innerHTML=H.pageHead("Swap","Trade Sui tokens — quotes via the "+U.esc(prov.name)+" aggregator")+
+  `<div style="max-width:466px;margin:0 auto">
+    <div class="card card-pad">
+      <div class="field"><label>You pay</label>
+        <div class="row" style="gap:8px">
+          <button class="btn" id="swInTok" style="min-width:118px;justify-content:flex-start;gap:6px">…</button>
+          <input class="input mono" id="swAmount" placeholder="0.0" value="${U.attr(s.amount)}" style="text-align:right" inputmode="decimal">
+        </div>
+        <div class="hint" id="swInBal"></div>
+      </div>
+      <div class="center" style="margin:3px 0"><button class="btn sm ghost" id="swFlip" title="Flip tokens">⇅</button></div>
+      <div class="field"><label>You receive <span class="dim">(estimated)</span></label>
+        <div class="row" style="gap:8px">
+          <button class="btn" id="swOutTok" style="min-width:118px;justify-content:flex-start;gap:6px">Select token</button>
+          <input class="input mono" id="swOut" readonly placeholder="0.0" style="text-align:right;background:var(--panel)">
+        </div>
+      </div>
+      <div id="swQuote" class="kv-list" style="margin:8px 0 13px"></div>
+      <button class="btn accent" id="swGo" style="width:100%">Get Quote</button>
+      <a class="btn" id="swDeep" style="width:100%;margin-top:8px" target="_blank" rel="noopener">Complete swap in ${U.esc(prov.name)} ↗</a>
+    </div>
+    <div class="note" style="margin-top:12px">Quotes are computed in-app. On-chain execution opens in the ${U.esc(prov.name)} interface where you sign with your own wallet — SuiScope never holds keys or funds. Slippage tolerance: ${Store.settings().slippage}% (editable in Settings).</div>
+  </div>`;
+  wireSwap();
+}
+async function wireSwap(){
+  const s=state.swap;
+  const inBtn=document.getElementById("swInTok"),outBtn=document.getElementById("swOutTok");
+  const amt=document.getElementById("swAmount"),deep=document.getElementById("swDeep");
+  inBtn.addEventListener("click",()=>swapPickToken("in"));
+  outBtn.addEventListener("click",()=>swapPickToken("out"));
+  document.getElementById("swFlip").addEventListener("click",()=>{
+    const t=s.in; s.in=s.out||CONFIG.SUI_TYPE; s.out=t;
+    renderSwapView(document.getElementById("main"));
+  });
+  amt.addEventListener("input",U.debounce(()=>{ s.amount=amt.value; swapUpdateQuote(); },420));
+  document.getElementById("swGo").addEventListener("click",()=>{ s.amount=amt.value; swapUpdateQuote(true); });
+  deep.href=Swap.deepLink(s.in||CONFIG.SUI_TYPE,s.out||CONFIG.SUI_TYPE);
+  async function lbl(btn,ct,ph){
+    if(!ct){ btn.textContent=ph; return; }
+    try{ const m=await getMeta(ct);
+      btn.innerHTML=(m.iconUrl?'<img src="'+U.attr(m.iconUrl)+'" style="width:18px;height:18px;border-radius:50%" onerror="this.remove()">':'')+
+        '<span style="font-weight:700">'+U.esc(m.symbol)+'</span>';
+    }catch(e){ btn.textContent=U.coinSym(ct); }
+  }
+  lbl(inBtn,s.in,"Select");
+  lbl(outBtn,s.out,"Select token");
+  if(s.amount&&s.out) swapUpdateQuote();
+  if(state.connected){
+    try{
+      const [bal,m]=await Promise.all([Sui.getBalance(state.connected.address,s.in),getMeta(s.in)]);
+      const el=document.getElementById("swInBal");
+      if(el&&bal) el.textContent="Connected balance: "+U.num(U.units(bal.totalBalance,m.decimals==null?9:m.decimals),4)+" "+m.symbol;
+    }catch(e){}
+  }
+}
+async function swapUpdateQuote(force){
+  const s=state.swap;
+  const qEl=document.getElementById("swQuote"),outEl=document.getElementById("swOut");
+  if(!qEl||!outEl) return;
+  if(!s.in||!s.out){ qEl.innerHTML='<div class="kv-row"><span class="k muted">Select both tokens to quote</span><span class="v"></span></div>'; outEl.value=""; return; }
+  if(!s.amount||Number(s.amount)<=0){ qEl.innerHTML=""; outEl.value=""; return; }
+  qEl.innerHTML='<div class="kv-row"><span class="k"><span class="spinner"></span> Fetching best quote…</span><span class="v"></span></div>';
+  try{
+    const mIn=await getMeta(s.in),mOut=await getMeta(s.out);
+    const raw=toRaw(s.amount,mIn.decimals==null?9:mIn.decimals);
+    let outAmt=0,source="";
+    try{
+      const q=await Swap.quote(s.in,s.out,raw);
+      outAmt=U.units(q.amountOutRaw,mOut.decimals==null?9:mOut.decimals);
+      source=Swap.cfg().name+" aggregator (live route)";
+    }catch(e){
+      const pi=await getTokenPrice(s.in),po=await getTokenPrice(s.out);
+      if(pi.price&&po.price){ outAmt=Number(s.amount)*pi.price/po.price; source="Indicative — DexScreener mid-price"; }
+      else throw new Error("No price/route data available for this pair");
+    }
+    const rate=outAmt/Number(s.amount);
+    const slip=Store.settings().slippage;
+    const minOut=outAmt*(1-slip/100);
+    outEl.value=U.num(outAmt,outAmt<1?6:4);
+    qEl.innerHTML=
+      '<div class="kv-row"><span class="k">Rate</span><span class="v mono">1 '+U.esc(mIn.symbol)+' ≈ '+U.num(rate,rate<1?6:4)+' '+U.esc(mOut.symbol)+'</span></div>'+
+      '<div class="kv-row"><span class="k">Min received ('+slip+'% slippage)</span><span class="v mono">'+U.num(minOut,minOut<1?6:4)+' '+U.esc(mOut.symbol)+'</span></div>'+
+      '<div class="kv-row"><span class="k">Quote source</span><span class="v">'+U.esc(source)+'</span></div>';
+  }catch(e){
+    qEl.innerHTML='<div class="kv-row"><span class="k down">Quote unavailable</span><span class="v muted">'+U.esc(e.message)+'</span></div>';
+    outEl.value="";
+  }
+}
+function swapPickToken(side){
+  const watch=Store.tokens();
+  App.modal({title:"Select Token",
+    body:'<div class="field" style="margin-bottom:6px"><input class="input" id="tpSearch" placeholder="Search name / symbol, or paste 0x…::module::name" autocomplete="off"></div><div id="tpList"></div>',
+    onMount(m){
+      const list=m.querySelector("#tpList");
+      const common=[{coinType:CONFIG.SUI_TYPE,symbol:"SUI",name:"Sui"}].concat(
+        watch.map(t=>({coinType:t.coinType,symbol:t.symbol,name:t.name})));
+      function render(items,label){
+        list.innerHTML=(label?'<div class="muted" style="font-size:10px;margin:9px 0 5px;font-weight:700;letter-spacing:.08em">'+label+'</div>':'')+
+          (items.length?items.map(it=>'<button class="btn" style="width:100%;justify-content:flex-start;margin-bottom:5px" data-pick="'+
+            U.attr(U.normCoinType(it.coinType))+'"><span style="font-weight:700">'+U.esc(it.symbol||U.coinSym(it.coinType))+
+            '</span><span class="muted" style="margin-left:7px;font-size:11px">'+U.esc((it.name||"").slice(0,28))+'</span></button>').join("")
+            :'<div class="muted center" style="padding:14px">No results</div>');
+        U.$$("[data-pick]",list).forEach(b=>b.addEventListener("click",()=>{
+          state.swap[side]=b.getAttribute("data-pick");
+          App.closeModal();
+          renderSwapView(document.getElementById("main"));
+        }));
+      }
+      render(common,"SUI & your watchlist");
+      const si=m.querySelector("#tpSearch"); si.focus();
+      si.addEventListener("input",U.debounce(async()=>{
+        const q=si.value.trim();
+        if(U.isCoinType(q)){ render([{coinType:q,symbol:U.coinSym(q),name:"Custom coin type"}],"Entered coin type"); return; }
+        if(q.length<2){ render(common,"SUI & your watchlist"); return; }
+        list.innerHTML=H.loading("Searching…");
+        try{
+          const pairs=dedupeByToken(await Dex.search(q)).sort((a,b)=>liqOf(b)-liqOf(a)).slice(0,14);
+          render(pairs.map(p=>({coinType:p.baseToken.address,symbol:p.baseToken.symbol,name:p.baseToken.name})),"Search results");
+        }catch(e){ list.innerHTML=H.errorBox(e.message); }
+      },340));
+    }});
+}
+
+/* ---------- TOKEN WATCHLIST ---------- */
+Views.tokenWatch=function(main){
+  const tokens=Store.tokens();
+  let html=H.pageHead("Token Watchlist",
+    tokens.length+" token"+(tokens.length===1?"":"s")+" watched · live prices",
+    '<a class="btn" href="#/trading/trending">Browse Trending</a>');
+  if(!tokens.length){
+    html+=H.empty("☰","No tokens watched",
+      "Add tokens from the Trending page or any token detail page.",
+      '<a class="btn accent" href="#/trading/trending">Browse Trending</a>');
+    main.innerHTML=html; return;
+  }
+  html+='<div id="twBody">'+H.loading("Loading prices…")+'</div>';
+  main.innerHTML=html;
+  loadTokenWatch();
+};
+async function loadTokenWatch(){
+  const tokens=Store.tokens();
+  const body=document.getElementById("twBody");
+  if(!body) return;
+  const rows=await Promise.all(tokens.map(async t=>{
+    const ct=U.normCoinType(t.coinType);
+    let pr={price:0,pair:null};
+    try{ pr=await getTokenPrice(ct); }catch(e){}
+    return {t,ct,pr};
+  }));
+  body.innerHTML='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Token</th>'+
+    '<th class="num">Price</th><th class="num">24h</th><th class="num">Liquidity</th>'+
+    '<th class="num">Volume 24h</th><th></th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const p=r.pr.pair;
+      const ch=(p&&p.priceChange&&Number(p.priceChange.h24))||0;
+      return `<tr>
+        <td><a class="tok" href="${U.attr(U.buildHash(["token",r.ct]))}">${H.tokenImg(p?pairImg(p):null,r.t.symbol)}
+          <div><div style="font-weight:700">${U.esc(r.t.symbol||U.coinSym(r.ct))}</div>
+          <div class="muted" style="font-size:10px">${U.esc((r.t.name||"").slice(0,22))}</div></div></a></td>
+        <td class="num mono">${U.usd(r.pr.price)}</td>
+        <td class="num mono ${ch>=0?"up":"down"}">${U.pct(ch)}</td>
+        <td class="num mono">${U.usd(liqOf(p))}</td>
+        <td class="num mono">${U.usd(volOf(p))}</td>
+        <td class="num"><div class="row" style="gap:4px;justify-content:flex-end">
+          <button class="btn xs buy" data-act="go" data-href="${U.attr(U.buildHash(["swap"],{out:r.ct}))}">Buy</button>
+          <button class="btn xs" data-act="token-alert" data-coin="${U.attr(r.ct)}" data-sym="${U.attr(r.t.symbol||"")}" data-price="${r.pr.price}">Alert</button>
+          <button class="btn xs danger" data-act="watch-token" data-coin="${U.attr(r.ct)}" data-sym="${U.attr(r.t.symbol||"")}">Remove</button>
+        </div></td></tr>`;
+    }).join("")+'</tbody></table></div>';
+}
+
+/* ---------- ALERTS ---------- */
+Views.alerts=function(main){
+  const alerts=Store.alerts();
+  let html=H.pageHead("Price Alerts",
+    "Get notified when a token crosses your target — checked every "+Store.settings().refreshSec+"s",
+    '<button class="btn accent" data-act="new-alert">+ New Alert</button>');
+  if(!alerts.length){
+    html+=H.empty("◔","No alerts set","Create a price alert here or from any token page.",
+      '<button class="btn accent" data-act="new-alert">+ New Alert</button>');
+    main.innerHTML=html; return;
+  }
+  html+='<div id="alBody">'+H.loading("Loading prices…")+'</div>';
+  main.innerHTML=html;
+  loadAlerts();
+};
+async function loadAlerts(){
+  const alerts=Store.alerts();
+  const body=document.getElementById("alBody");
+  if(!body) return;
+  const rows=await Promise.all(alerts.map(async a=>{
+    let price=0; try{ price=(await getTokenPrice(a.coinType)).price; }catch(e){}
+    return {a,price};
+  }));
+  rows.sort((x,y)=>(x.a.triggered?1:0)-(y.a.triggered?1:0)||y.a.createdAt-x.a.createdAt);
+  body.innerHTML='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Token</th><th>Condition</th>'+
+    '<th class="num">Target</th><th class="num">Current</th><th>Status</th><th></th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const a=r.a;
+      const status=a.triggered
+        ?'<span class="badge green">Triggered '+U.timeAgo(a.triggeredAt)+'</span>'
+        :'<span class="badge accent">Active</span>';
+      const near=!a.triggered&&r.price?(a.dir==="above"?r.price/a.price:a.price/r.price):0;
+      return `<tr>
+        <td><a href="${U.attr(U.buildHash(["token",a.coinType]))}" style="font-weight:700">${U.esc(a.symbol)}</a></td>
+        <td>Price ${a.dir==="above"?"rises above":"falls below"}</td>
+        <td class="num mono">${U.usd(a.price)}</td>
+        <td class="num mono">${r.price?U.usd(r.price):'<span class="dim">—</span>'}${near>0?' <span class="muted" style="font-size:10px">('+U.num(near*100,0)+'%)</span>':''}</td>
+        <td>${status}</td>
+        <td class="num"><button class="btn xs danger" data-act="del-alert" data-id="${U.attr(a.id)}">Delete</button></td>
+      </tr>`;
+    }).join("")+'</tbody></table></div>';
+}
+function showAlertModal(coin,sym,price){
+  coin=U.normCoinType(coin);
+  App.modal({title:"Create Price Alert",
+    body:`<div class="kv-list" style="margin-bottom:8px">
+      <div class="kv-row"><span class="k">Token</span><span class="v" style="font-weight:700">${U.esc(sym||U.coinSym(coin))}</span></div>
+      <div class="kv-row"><span class="k">Current price</span><span class="v mono">${price?U.usd(price):"unknown"}</span></div></div>
+      <div class="field"><label>Condition</label>
+        <select class="input" id="alDir">
+          <option value="above">Price rises above target</option>
+          <option value="below">Price falls below target</option>
+        </select></div>
+      <div class="field" style="margin-bottom:0"><label>Target Price (USD)</label>
+        <input class="input mono" id="alPrice" placeholder="0.00" value="${price?U.price(price):""}"></div>`,
+    foot:'<button class="btn" data-act="modal-close">Cancel</button>'+
+      '<button class="btn accent" id="alSave">Create Alert</button>',
+    onMount(m){
+      const pi=m.querySelector("#alPrice"); pi.focus(); pi.select();
+      m.querySelector("#alSave").addEventListener("click",()=>{
+        const tp=Number(pi.value);
+        if(!isFinite(tp)||tp<=0){ U.toast("Enter a valid target price","err"); return; }
+        const alerts=Store.alerts();
+        alerts.push({id:U.uid(),coinType:coin,symbol:sym||U.coinSym(coin),
+          dir:m.querySelector("#alDir").value,price:tp,createdAt:Date.now(),triggered:false});
+        Store.setAlerts(alerts);
+        App.renderNav(); App.closeModal();
+        U.toast("Alert created","ok");
+        if(state.route.path[0]==="alerts") Router.go();
+      });
+    }});
+}
+
+/* ---------- TRANSACTION DECODER ---------- */
+Views.decoder=function(main,route){
+  const digest=route.query.digest||"";
+  let html=H.pageHead("Transaction Decoder","Decode any Sui transaction block into human-readable detail");
+  html+='<div class="card card-pad" style="margin-bottom:14px">'+
+    '<div class="field" style="margin-bottom:0"><label>Transaction Digest</label>'+
+    '<div class="row"><input class="input mono" id="dcInput" placeholder="Base58 transaction digest" value="'+U.attr(digest)+'">'+
+    '<button class="btn accent" id="dcGo">Decode</button></div></div></div>';
+  html+='<div id="dcBody"></div>';
+  main.innerHTML=html;
+  const inp=document.getElementById("dcInput");
+  const run=()=>{
+    const d=inp.value.trim();
+    if(!U.isDigest(d)){ U.toast("Enter a valid base58 transaction digest","err"); return; }
+    U.go(["decoder"],{digest:d});
+  };
+  document.getElementById("dcGo").addEventListener("click",run);
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") run(); });
+  if(digest&&U.isDigest(digest)) loadDecode(digest);
+};
+async function loadDecode(digest){
+  const body=document.getElementById("dcBody");
+  if(!body) return;
+  body.innerHTML=H.loading("Fetching transaction from RPC…");
+  try{
+    const tx=await Sui.getTransactionBlock(digest);
+    if(!tx){ body.innerHTML=H.errorBox("Transaction not found."); return; }
+    const eff=tx.effects||{};
+    const ok=eff.status&&eff.status.status==="success";
+    const sender=(tx.transaction&&tx.transaction.data&&tx.transaction.data.sender)||"—";
+    const gas=gasOf(tx);
+    const ex=CONFIG.EXPLORERS[Store.settings().explorer]||CONFIG.EXPLORERS.suivision;
+    const changes=tx.balanceChanges||[];
+    const metas=await getMetaBatch(changes.map(c=>c.coinType));
+    let html=`<div class="grid g-kpi" style="margin-bottom:14px">
+      ${H.kpi("Status",ok?"Success":"Failed","",ok?"up":"down")}
+      ${H.kpi("Gas Used",U.num(gas/CONFIG.MIST,5)+" SUI")}
+      ${H.kpi("Timestamp",tx.timestampMs?U.timeAgo(tx.timestampMs):"—",tx.timestampMs?U.dateStr(tx.timestampMs):"")}
+      ${H.kpi("Checkpoint",tx.checkpoint||"—")}
+    </div>
+    <div class="card card-pad" style="margin-bottom:13px">
+      <div class="kv-list">
+        <div class="kv-row"><span class="k">Digest</span><span class="v mono">${U.esc(digest)} <span class="copy" data-act="copy" data-copy="${U.attr(digest)}">⧉</span></span></div>
+        <div class="kv-row"><span class="k">Sender</span><span class="v mono"><a href="${U.attr(U.buildHash(["search"],{w:sender}))}">${U.esc(sender)}</a></span></div>
+        ${!ok&&eff.status&&eff.status.error?'<div class="kv-row"><span class="k">Error</span><span class="v down">'+U.esc(eff.status.error)+'</span></div>':""}
+        <div class="kv-row"><span class="k">Explorer</span><span class="v"><a href="${U.attr(ex.tx(digest))}" target="_blank" rel="noopener">Open ↗</a></span></div>
+      </div>
+    </div>`;
+    if(changes.length){
+      html+='<div style="font-weight:700;margin-bottom:8px">Balance Changes</div>'+
+        '<div class="tbl-wrap" style="margin-bottom:13px"><table class="tbl"><thead><tr><th>Owner</th><th>Coin</th>'+
+        '<th class="num">Amount</th></tr></thead><tbody>'+
+        changes.map(c=>{
+          const owner=(c.owner&&(c.owner.AddressOwner||c.owner.ObjectOwner))||"shared";
+          const ct=U.normCoinType(c.coinType);
+          const m=metas[ct]||{symbol:U.coinSym(ct),decimals:9};
+          const amt=U.units(c.amount,m.decimals==null?9:m.decimals);
+          return `<tr><td class="mono">${U.esc(U.addr(owner,6))}</td>
+            <td><a href="${U.attr(U.buildHash(["token",ct]))}">${U.esc(m.symbol)}</a></td>
+            <td class="num mono ${amt>=0?"up":"down"}">${amt>=0?"+":""}${U.num(amt,Math.abs(amt)<1?6:4)}</td></tr>`;
+        }).join("")+'</tbody></table></div>';
+    }
+    const cmds=(tx.transaction&&tx.transaction.data&&tx.transaction.data.transaction&&
+      tx.transaction.data.transaction.transactions)||[];
+    if(cmds.length){
+      html+='<div style="font-weight:700;margin-bottom:8px">Programmable Transaction · '+cmds.length+' command'+(cmds.length===1?"":"s")+'</div>'+
+        '<div class="card card-pad" style="margin-bottom:13px"><div class="kv-list">'+
+        cmds.map((c,i)=>{
+          const kind=Object.keys(c)[0]||"Command";
+          let detail="";
+          if(kind==="MoveCall"&&c.MoveCall){
+            const mc=c.MoveCall;
+            detail=U.addr(mc.package,4)+"::"+U.esc(mc.module)+"::"+U.esc(mc["function"]||mc.function);
+          }
+          return '<div class="kv-row"><span class="k">#'+i+' '+U.esc(kind)+'</span>'+
+            '<span class="v mono" style="font-size:11px">'+U.esc(detail)+'</span></div>';
+        }).join("")+'</div></div>';
+    }
+    const events=tx.events||[];
+    if(events.length){
+      html+='<div style="font-weight:700;margin-bottom:8px">Events · '+events.length+'</div>'+
+        '<div class="card card-pad" style="margin-bottom:13px">'+
+        events.slice(0,30).map(ev=>{
+          const t=ev.type||"";
+          const short=t.split("::").slice(-2).join("::");
+          let pj="";
+          try{ pj=JSON.stringify(ev.parsedJson||{}); }catch(e){}
+          if(pj.length>220) pj=pj.slice(0,220)+"…";
+          return '<div style="padding:7px 0;border-bottom:1px solid var(--border)">'+
+            '<div class="mono" style="font-size:11px;color:var(--accent-2)">'+U.esc(short)+'</div>'+
+            (pj?'<div class="muted mono" style="font-size:10.5px;margin-top:3px;word-break:break-all">'+U.esc(pj)+'</div>':'')+'</div>';
+        }).join("")+'</div>';
+    }
+    const objs=tx.objectChanges||[];
+    if(objs.length){
+      const counts={};
+      objs.forEach(o=>{ counts[o.type]=(counts[o.type]||0)+1; });
+      html+='<div style="font-weight:700;margin-bottom:8px">Object Changes · '+objs.length+'</div>'+
+        '<div class="card card-pad"><div class="row wrap" style="gap:7px;margin-bottom:9px">'+
+        Object.keys(counts).map(k=>'<span class="badge accent">'+U.esc(k)+' ×'+counts[k]+'</span>').join("")+'</div>'+
+        '<div class="kv-list">'+objs.slice(0,24).map(o=>
+          '<div class="kv-row"><span class="k">'+U.esc(o.type)+'</span>'+
+          '<span class="v mono" style="font-size:10.5px">'+U.esc((o.objectType||"").split("::").slice(-2).join("::")||U.addr(o.objectId,5))+'</span></div>'
+        ).join("")+'</div></div>';
+    }
+    body.innerHTML=html;
+  }catch(e){ body.innerHTML=H.errorBox("Decode failed: "+e.message); }
+}
+
+/* ---------- SETTINGS ---------- */
+Views.settings=function(main){
+  const s=Store.settings();
+  let html=H.pageHead("Settings","API keys, RPC &amp; preferences — stored locally under <span class=\"mono\">suiscope:*</span> keys");
+  html+=`<div class="grid g-2">
+    <div class="card card-pad">
+      <div style="font-weight:700;margin-bottom:13px">Data Sources</div>
+      <div class="field"><label>Sui RPC URL</label>
+        <input class="input mono" id="stRpc" placeholder="${CONFIG.RPC}" value="${U.attr(s.rpcUrl)}">
+        <div class="hint">Blank = default public mainnet fullnode.</div></div>
+      <div class="field"><label>Indexer Provider</label>
+        <select class="input" id="stIndProv">
+          <option value="blockvision"${s.indexerProvider==="blockvision"?" selected":""}>BlockVision</option>
+          <option value="insidex"${s.indexerProvider==="insidex"?" selected":""}>InsideX</option>
+        </select></div>
+      <div class="field"><label>Indexer API Key <span class="dim">(optional)</span></label>
+        <input class="input mono" id="stIndKey" type="password" placeholder="enables Holder Insights, Smart Money &amp; full PnL" value="${U.attr(s.indexerKey)}">
+        <div class="hint">SuiScope degrades gracefully without a key — PnL falls back to an on-chain estimate.</div></div>
+      <div class="field"><label>Swap Aggregator</label>
+        <select class="input" id="stSwapProv">
+          <option value="7k"${s.swapProvider==="7k"?" selected":""}>7K Protocol</option>
+          <option value="cetus"${s.swapProvider==="cetus"?" selected":""}>Cetus Aggregator</option>
+        </select></div>
+      <div class="field" style="margin-bottom:0"><label>Swap API Key <span class="dim">(optional)</span></label>
+        <input class="input mono" id="stSwapKey" type="password" value="${U.attr(s.swapKey)}"></div>
+    </div>
+    <div class="card card-pad">
+      <div style="font-weight:700;margin-bottom:13px">Preferences</div>
+      <div class="field"><label>Default Explorer</label>
+        <select class="input" id="stExplorer">
+          <option value="suivision"${s.explorer==="suivision"?" selected":""}>SuiVision</option>
+          <option value="suiscan"${s.explorer==="suiscan"?" selected":""}>Suiscan</option>
+        </select></div>
+      <div class="field"><label>Refresh Interval (seconds)</label>
+        <input class="input mono" id="stRefresh" type="number" min="10" value="${s.refreshSec}"></div>
+      <div class="field"><label>Fresh-Wallet Threshold (days)</label>
+        <input class="input mono" id="stFresh" type="number" min="1" value="${s.freshDays}"></div>
+      <div class="field"><label>Swap Slippage (%)</label>
+        <input class="input mono" id="stSlip" type="number" min="0.1" step="0.1" value="${s.slippage}"></div>
+      <button class="btn accent" id="stSave" style="width:100%">Save Settings</button>
+    </div>
+  </div>
+  <div class="card card-pad" style="margin-top:13px">
+    <div class="row between" style="margin-bottom:8px">
+      <div style="font-weight:700">Data-Layer Diagnostics</div>
+      <button class="btn" id="stDiag">Run Diagnostics</button>
+    </div>
+    <div class="muted" style="font-size:11px;margin-bottom:11px">Tests each Sui JSON-RPC &amp; DexScreener function live from your browser. Useful to confirm connectivity and the chosen RPC.</div>
+    <div id="diagOut" class="kv-list"></div>
+  </div>
+  <div class="card card-pad" style="margin-top:13px">
+    <div style="font-weight:700;margin-bottom:10px">Data Management</div>
+    <div class="row wrap" style="gap:7px">
+      <button class="btn" id="stExport">Export Backup</button>
+      <button class="btn" id="stImport">Import Backup</button>
+      <button class="btn danger" id="stClear">Clear All Data</button>
+    </div>
+  </div>`;
+  main.innerHTML=html;
+  wireSettings();
+};
+function wireSettings(){
+  document.getElementById("stSave").addEventListener("click",()=>{
+    Store.setSettings({
+      rpcUrl:document.getElementById("stRpc").value.trim(),
+      indexerProvider:document.getElementById("stIndProv").value,
+      indexerKey:document.getElementById("stIndKey").value.trim(),
+      swapProvider:document.getElementById("stSwapProv").value,
+      swapKey:document.getElementById("stSwapKey").value.trim(),
+      explorer:document.getElementById("stExplorer").value,
+      refreshSec:Math.max(10,parseInt(document.getElementById("stRefresh").value)||30),
+      freshDays:Math.max(1,parseInt(document.getElementById("stFresh").value)||7),
+      slippage:Math.max(0.1,parseFloat(document.getElementById("stSlip").value)||1)
+    });
+    App.startPolling();
+    Sui.getReferenceGasPrice().then(()=>App.setNet(true)).catch(()=>App.setNet(false));
+    U.toast("Settings saved","ok");
+  });
+  document.getElementById("stDiag").addEventListener("click",runDiagnostics);
+  document.getElementById("stExport").addEventListener("click",exportData);
+  document.getElementById("stImport").addEventListener("click",importData);
+  document.getElementById("stClear").addEventListener("click",()=>{
+    App.confirm("Delete all SuiScope data (wallets, tokens, alerts, settings)? This cannot be undone.",()=>{
+      const keys=[];
+      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+        if(k&&k.indexOf("suiscope:")===0) keys.push(k); }
+      keys.forEach(k=>localStorage.removeItem(k));
+      U.toast("All data cleared");
+      location.hash="#/wallet"; location.reload();
+    });
+  });
+}
+async function runDiagnostics(){
+  const out=document.getElementById("diagOut");
+  if(!out) return;
+  out.innerHTML="";
+  let digest=null;
+  const tests=[
+    ["suix_getReferenceGasPrice",async()=>{ const r=await Sui.getReferenceGasPrice(); return "reference gas price = "+r; }],
+    ["suix_getCoinMetadata",async()=>{ const m=await Sui.getCoinMetadata(CONFIG.SUI_TYPE); return (m?m.symbol:"?")+" · "+(m?m.decimals:"?")+" decimals"; }],
+    ["suix_getBalance",async()=>{ const b=await Sui.getBalance("0x0000000000000000000000000000000000000000000000000000000000000005",CONFIG.SUI_TYPE); return "ok ("+(b?b.totalBalance:"0")+" MIST)"; }],
+    ["suix_getAllBalances",async()=>{ const b=await Sui.getAllBalances("0x0000000000000000000000000000000000000000000000000000000000000005"); return "returned "+(b?b.length:0)+" balance entries"; }],
+    ["suix_getOwnedObjects",async()=>{ const o=await Sui.getOwnedObjects("0x0000000000000000000000000000000000000000000000000000000000000005",{limit:5}); return "returned "+((o&&o.data&&o.data.length)||0)+" objects"; }],
+    ["suix_queryTransactionBlocks",async()=>{ const r=await Sui.call("suix_queryTransactionBlocks",[{filter:null,options:{showInput:false}},null,3,true]); if(r&&r.data&&r.data.length){ digest=r.data[0].digest; } return "returned "+((r&&r.data&&r.data.length)||0)+" recent txs"; }],
+    ["sui_getTransactionBlock",async()=>{ if(!digest) throw new Error("no digest from previous step"); const t=await Sui.getTransactionBlock(digest); return "decoded tx "+U.addr(t.digest,5); }],
+    ["DexScreener /latest/dex/search",async()=>{ const p=await Dex.search("sui"); return "returned "+p.length+" pairs ("+suiOnly(p).length+" on sui)"; }],
+    ["DexScreener /latest/dex/tokens",async()=>{ const p=await Dex.tokenPairs(CONFIG.SUI_TYPE); return "returned "+p.length+" SUI pairs"; }],
+    ["Indexer "+Indexer.cfg().name,async()=>{ if(!Indexer.hasKey()) { const e=new Error("no key set — skipped"); e.skip=true; throw e; } const h=await Indexer.holders(CONFIG.SUI_TYPE); return "returned "+h.length+" holders"; }]
+  ];
+  for(const pair of tests){
+    const name=pair[0],fn=pair[1];
+    const row=document.createElement("div");
+    row.className="kv-row";
+    row.innerHTML='<span class="k mono">'+U.esc(name)+'</span><span class="v"><span class="spinner"></span></span>';
+    out.appendChild(row);
+    const t0=performance.now();
+    try{
+      const detail=await fn();
+      const ms=Math.round(performance.now()-t0);
+      row.querySelector(".v").innerHTML='<span class="badge green">PASS</span> <span class="muted">'+U.esc(detail)+' · '+ms+'ms</span>';
+    }catch(e){
+      const ms=Math.round(performance.now()-t0);
+      if(e.skip){ row.querySelector(".v").innerHTML='<span class="badge">SKIP</span> <span class="muted">'+U.esc(e.message)+'</span>'; }
+      else row.querySelector(".v").innerHTML='<span class="badge red">FAIL</span> <span class="muted">'+U.esc(e.message)+' · '+ms+'ms</span>';
+    }
+  }
+}
+function exportData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.indexOf("suiscope:")===0) data[k]=localStorage.getItem(k);
+  }
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="suiscope-backup-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  U.toast("Backup downloaded","ok");
+}
+function importData(){
+  App.modal({title:"Import Backup",
+    body:'<div class="field" style="margin-bottom:0"><label>Paste backup JSON</label>'+
+      '<textarea class="input mono" id="impTxt" rows="7" placeholder=\'{"suiscope:wallets":"[]"}\'></textarea></div>',
+    foot:'<button class="btn" data-act="modal-close">Cancel</button>'+
+      '<button class="btn accent" id="impGo">Import</button>',
+    onMount(m){
+      m.querySelector("#impGo").addEventListener("click",()=>{
+        try{
+          const obj=JSON.parse(m.querySelector("#impTxt").value);
+          let n=0;
+          Object.keys(obj).forEach(k=>{
+            if(k.indexOf("suiscope:")===0){ localStorage.setItem(k,obj[k]); n++; }
+          });
+          App.closeModal();
+          U.toast("Imported "+n+" keys — reloading","ok");
+          setTimeout(()=>location.reload(),800);
+        }catch(e){ U.toast("Invalid JSON: "+e.message,"err"); }
+      });
+    }});
+}
+
+Object.assign(Actions,{
+  "new-alert":()=>{
+    App.prompt("New Price Alert","Coin Type","",async val=>{
+      if(!U.isCoinType(val)){ U.toast("Enter a valid coin type (0x…::module::name)","err"); return; }
+      const coin=U.normCoinType(val);
+      let meta={symbol:U.coinSym(coin)},price=0;
+      try{ meta=await getMeta(coin); }catch(e){}
+      try{ price=(await getTokenPrice(coin)).price; }catch(e){}
+      showAlertModal(coin,meta.symbol,price);
+    });
+  },
+  "del-alert":t=>{
+    const id=t.getAttribute("data-id");
+    Store.setAlerts(Store.alerts().filter(a=>a.id!==id));
+    App.renderNav(); Router.go(); U.toast("Alert deleted");
+  }
+});
+
+/* ---------- LIVE VIEW UPDATES ---------- */
+document.addEventListener("suiscope:activity",()=>{
+  if(state.route&&state.route.path[0]==="activity") renderActivity();
+});
+document.addEventListener("suiscope:tick",()=>{
+  const p=state.route&&state.route.path[0];
+  if(p==="activity") renderActivity();
+});
+
+/* ============================ BOOT ============================ */
+App.init();
+
+
+})();
+</script>
+</body>
+</html>
