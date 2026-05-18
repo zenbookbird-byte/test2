@@ -75,8 +75,8 @@ code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monos
   text-decoration: none; color: inherit; flex-shrink: 0;
 }
 .logo-mark svg {
-  width: 34px; height: 34px;
-  filter: drop-shadow(0 3px 10px rgba(77, 162, 255, .45));
+  width: 36px; height: 36px;
+  filter: drop-shadow(0 4px 12px rgba(77, 162, 255, .4));
 }
 .brand h1 {
   margin: 0; font-size: 20px; font-weight: 700;
@@ -3158,17 +3158,24 @@ tr.hf-moved td { background: rgba(255,255,255,.022); }
         <span class="logo-mark">
           <svg viewBox="0 0 48 48" aria-hidden="true">
             <defs>
-              <linearGradient id="lionG" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#8fe2ff"/>
-                <stop offset="48%" stop-color="#4DA2FF"/>
-                <stop offset="100%" stop-color="#2f73d8"/>
+              <linearGradient id="lionBg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#5cb6ff"/>
+                <stop offset="100%" stop-color="#1f57bd"/>
               </linearGradient>
             </defs>
-            <path fill="url(#lionG)" d="M24,2 L28.6,9.7 L36.9,6.2 L36.1,15.2 L44.9,17.2 L39,24 L44.9,30.8 L36.1,32.8 L36.9,41.8 L28.6,38.3 L24,46 L19.4,38.3 L11.1,41.8 L11.9,32.8 L3.1,30.8 L9,24 L3.1,17.2 L11.9,15.2 L11.1,6.2 L19.4,9.7 Z"/>
-            <circle cx="24" cy="24" r="10.6" fill="#0b0918"/>
-            <circle cx="20.3" cy="22.6" r="1.85" fill="url(#lionG)"/>
-            <circle cx="27.7" cy="22.6" r="1.85" fill="url(#lionG)"/>
-            <path fill="url(#lionG)" d="M21.5,26 L26.5,26 L24,29.6 Z"/>
+            <rect x="2" y="2" width="44" height="44" rx="13.5" fill="url(#lionBg)"/>
+            <rect x="2" y="2" width="44" height="21" rx="13.5" fill="#ffffff" opacity=".12"/>
+            <g fill="#fff">
+              <path d="M19.8 14.6 Q16.6 6.7 11.7 11.8 Q11.5 15.4 14.6 18.4 Z"/>
+              <path d="M28.2 14.6 Q31.4 6.7 36.3 11.8 Q36.5 15.4 33.4 18.4 Z"/>
+              <circle cx="24" cy="25.2" r="14.3"/>
+            </g>
+            <path fill="url(#lionBg)" d="M24 13.4 C31.1 13.4 34 18.7 34 24.6 C34 31 29.6 35.6 24 35.6 C18.4 35.6 14 31 14 24.6 C14 18.7 16.9 13.4 24 13.4 Z"/>
+            <g fill="#fff">
+              <ellipse cx="20" cy="23.4" rx="2.15" ry="1.5"/>
+              <ellipse cx="28" cy="23.4" rx="2.15" ry="1.5"/>
+              <path d="M24 27.1 Q27.3 27.8 26.4 30.4 Q24 33 21.6 30.4 Q20.7 27.8 24 27.1 Z"/>
+            </g>
           </svg>
         </span>
         <div class="brand-text">
