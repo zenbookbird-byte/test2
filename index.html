@@ -5669,6 +5669,20 @@ function tradingSparkline(change) {
   return `<svg class="tr-spark trend-spark ${cls}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="line" d="${line}"/></svg>`;
 }
 
+/* Token logo with a CDN fallback — DexScreener's search API often omits
+   info.imageUrl, so fall back to its token-image CDN, then to initials. */
+function tokenLogoHtml(mint, logo, symbol, cls = 'trend-logo') {
+  const cdn = mint ? `https://dd.dexscreener.com/ds-data/tokens/solana/${encodeURIComponent(mint)}.png` : '';
+  const primary = logo || cdn;
+  const initials = escapeHtml((symbol || '?').slice(0, 2).toUpperCase());
+  const letter = `<span class=&quot;${cls} fallback&quot;>${initials}</span>`;
+  if (!primary) return `<span class="${cls} fallback">${initials}</span>`;
+  // If a real logo failed, try the CDN once before giving up to initials.
+  const next = (logo && cdn) ? cdn : '';
+  return `<img class="${cls}" src="${safeUrl(primary)}" alt="" loading="lazy" data-fb="${safeUrl(next)}" `
+    + `onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.outerHTML='${letter}';}">`;
+}
+
 function paintTradingRows() {
   const container = $('#trading-rows');
   if (!container) return;
@@ -5730,9 +5744,7 @@ function paintTradingRows() {
               <td class="trend-rank">${i + 1}</td>
               <td>
                 <div class="trend-tok">
-                  ${row.logo
-                    ? `<img class="trend-logo" src="${safeUrl(row.logo)}" alt="" onerror="this.outerHTML='<span class=&quot;trend-logo fallback&quot;>${escapeHtml((row.symbol||'?').slice(0,2).toUpperCase())}</span>'">`
-                    : `<span class="trend-logo fallback">${escapeHtml((row.symbol||'?').slice(0,2).toUpperCase())}</span>`}
+                  ${tokenLogoHtml(row.mint, row.logo, row.symbol)}
                   <div class="trend-tok-text">
                     <div class="trend-tok-top">
                       <span class="trend-sym">${escapeHtml(row.symbol || '?')}</span>
